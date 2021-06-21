@@ -19,10 +19,10 @@ type Router struct {
 	// is enabled
 	LogResponseBodies bool
 
-	// LogErrorsAlways defines if errors in a there.Response should be logged
+	// AlwaysLogErrors defines if errors in a there.Response should be logged
 	// or not, independent of the status code. Overrides Router.LogResponseBodies
 	// and Router.LogRouteCalls
-	LogErrorsAlways bool
+	AlwaysLogErrors bool
 
 	server   *http.Server
 	handlers []HandlerContainer
@@ -30,7 +30,7 @@ type Router struct {
 
 //Listen start listening on the provided port blocking
 func (router *Router) Listen() error {
-	router.server = &http.Server{Addr: ":" + strconv.Itoa(router.Port), Handler: &GlobalHandler{router: router}}
+	router.server = &http.Server{Addr: ":" + strconv.Itoa(router.Port), Handler: &RouteHandler{router: router}}
 	return router.server.ListenAndServe()
 }
 

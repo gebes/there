@@ -82,3 +82,27 @@ func (request *Request) ReadParams(requiredParameters ...string) ([]string, erro
 	return parameters, nil
 
 }
+
+func (response *Response) ToJson() []byte {
+	var j []byte
+	switch response.Data.(type) {
+	case string, *string:
+		j, _ = json.Marshal(response)
+	case error, *error:
+		response.Data = response.Data.(error).Error()
+		j, _ = json.Marshal(response)
+	default:
+		j, _ = json.Marshal(response.Data)
+	}
+	return j
+}
+
+//IsError returns true if the Data is an error or pointer to an error
+func (response *Response) IsError() bool {
+	switch response.Data.(type) {
+	case error, *error:
+		return true
+	default:
+		return false
+	}
+}

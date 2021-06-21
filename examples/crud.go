@@ -11,16 +11,18 @@ type User struct {
 
 func main() {
 	router := Router{
-		Port: 8080,
-		LogRouteCalls: true,
+		Port:              8080,
+		LogRouteCalls:     true,
+		LogResponseBodies: true,
+		AlwaysLogErrors:   true,
 	}
 
-	router.Handle("/user", func(request Request) Response {
+	router.HandleGet("/user", func(request Request) Response {
 		return ResponseData(StatusOK, User{
 			1, "John",
 		})
-	}, MethodGet)
-	router.Handle("/user", func(request Request) Response {
+	})
+	router.HandlePost("/user", func(request Request) Response {
 
 		var user User
 		err := request.ReadBody(&user)
@@ -32,7 +34,7 @@ func main() {
 
 		return ResponseData(StatusOK, "Saved the user to the database")
 
-	}, MethodPost)
+	})
 
 	err := router.Listen()
 	if err != nil {
