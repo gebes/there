@@ -1,4 +1,4 @@
-module there
+module github.com/Gebes/there
 
 go 1.16
 
