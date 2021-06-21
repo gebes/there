@@ -9,7 +9,7 @@ Basic GET and POST routing without database implementation
 package main
 
 import (
-	. "there"
+	. "github.com/Gebes/there"
 )
 
 type User struct {
