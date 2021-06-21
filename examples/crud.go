@@ -1,7 +1,7 @@
 package main
 
 import (
-	. "there"
+	. "github.com/Gebes/there"
 )
 
 type User struct {
