@@ -30,6 +30,18 @@ func ResponseData(statusCode int, data interface{}) Response {
 	return Response{Status: statusCode, Data: data}
 }
 
+//ResponseStatusP creates a simple response pointer only with a status code and the text from the status code
+func ResponseStatusP(statusCode int) *Response {
+	r := Response{Status: statusCode, Data: http.StatusText(statusCode)}
+	return &r
+}
+
+//ResponseDataP is a response pointer with a status code and data
+func ResponseDataP(statusCode int, data interface{}) *Response {
+	r := Response{Status: statusCode, Data: data}
+	return &r
+}
+
 //ReadBody reads the body of an http.Request as a json to the provided interface{}.
 //
 func (request *Request) ReadBody(body interface{}) error {
