@@ -118,6 +118,9 @@ func (globalHandler *RouteHandler) ServeHTTP(rawWriter http.ResponseWriter, rawR
 	if response == nil {
 		response = &Response{Status: http.StatusNotFound}
 	}
+	if request.Method() == "OPTIONS" {
+		response = &Response{Status: http.StatusOK}
+	}
 
 	// default Content-Type
 	rawWriter.Header().Set("Content-Type", "application/json")
