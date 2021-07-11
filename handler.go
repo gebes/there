@@ -90,12 +90,20 @@ type RouteHandler struct {
 func (globalHandler *RouteHandler) ServeHTTP(rawWriter http.ResponseWriter, rawRequest *http.Request) {
 	var response *Response
 
+
+
 	request := Request{
 		RawRequest: rawRequest,
 		RawWriter:  &rawWriter,
 	}
 	router := globalHandler.router
 
+	// setup headers
+	for key, value := range router.SetupResponseHeaders {
+		rawWriter.Header().Set(key, value)
+	}
+
+	// find specific handler
 	for _, container := range router.handlers {
 		if !(container.path == request.Path() && (len(container.methods) == 0 || strings.Contains(strings.Join(container.methods, " "), rawRequest.Method))) {
 			continue
@@ -106,6 +114,7 @@ func (globalHandler *RouteHandler) ServeHTTP(rawWriter http.ResponseWriter, rawR
 		break
 	}
 
+	// no handler found
 	if response == nil {
 		response = &Response{Status: http.StatusNotFound}
 	}

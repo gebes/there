@@ -24,6 +24,10 @@ type Router struct {
 	// and Router.LogRouteCalls
 	AlwaysLogErrors bool
 
+	// SetupResponseHeaders are automatically set, before a request gets forwarded
+	// to its handler
+	SetupResponseHeaders map[string]string
+
 	server   *http.Server
 	handlers []HandlerContainer
 }
