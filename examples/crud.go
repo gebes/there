@@ -1,7 +1,7 @@
-package main
+package examples
 
 import (
-	. "github.com/Gebes/there"
+	"github.com/Gebes/there/there"
 )
 
 type User struct {
@@ -9,35 +9,32 @@ type User struct {
 	Name string `json:"name,omitempty" validate:"required"`
 }
 
-func main() {
-	router := Router{
+func CrudRouter() error{
+	router := there.Router{
 		Port:              8080,
 		LogRouteCalls:     true,
 		LogResponseBodies: true,
 		AlwaysLogErrors:   true,
 	}
 
-	router.HandleGet("/user", func(request Request) Response {
-		return ResponseData(StatusOK, User{
+	router.HandleGet("/user", func(request there.Request) there.Response {
+		return there.ResponseData(there.StatusOK, User{
 			1, "John",
 		})
 	})
-	router.HandlePost("/user", func(request Request) Response {
+	router.HandlePost("/user", func(request there.Request) there.Response {
 
 		var user User
 		err := request.ReadBody(&user)
 		if err != nil {
-			return ResponseData(StatusBadRequest, err)
+			return there.ResponseData(there.StatusBadRequest, err)
 		}
 
 		// code
 
-		return ResponseData(StatusOK, "Saved the user to the database")
+		return there.ResponseData(there.StatusOK, "Saved the user to the database")
 
 	})
 
-	err := router.Listen()
-	if err != nil {
-		panic(err)
-	}
+	return router.Listen()
 }

@@ -3,6 +3,7 @@ package there
 import (
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type Router struct {
@@ -28,9 +29,17 @@ type Router struct {
 	// to its handler
 	SetupResponseHeaders map[string]string
 
+
+	// HandlerRouteNotFound gets called when a route gets called, which method is
+	// not mapped
+	HandlerRouteNotFound Handler
+
 	server   *http.Server
-	handlers []HandlerContainer
+	handlers []*HandlerContainer
+	globalMiddlewares []Middleware
 }
+
+
 
 //Listen start listening on the provided port blocking
 func (router *Router) Listen() error {
@@ -48,4 +57,18 @@ func (router *Router) EnsureRunning() {
 	if !router.IsRunning() {
 		panic(ErrorNotRunning)
 	}
+}
+
+func (router*Router) FindHandler(request*Request) *HandlerContainer{
+	// find specific handler
+	for _, container := range router.handlers {
+		if container.path == request.URL.Path && (len(container.methods) == 0 || strings.Contains(strings.Join(container.methods, " "), request.Method)) {
+			return container
+		}
+	}
+	return nil
+}
+
+func (router*Router) AddGlobalMiddleware(middleware... Middleware){
+	router.globalMiddlewares = append(router.globalMiddlewares, middleware...)
 }
