@@ -1,12 +1,13 @@
 package there
 
 import (
+	"fmt"
 	. "github.com/Gebes/there/there/http/middlewares"
 	"net/http"
 )
 
 type Router struct {
-	RunningPort *string
+	RunningPort uint16
 
 	Endpoints         []*EndpointContainer
 	GlobalMiddlewares []Middleware
@@ -16,9 +17,9 @@ func NewRouter() *Router {
 	return &Router{}
 }
 
-func (router Router) Listen(address string) error {
-	router.RunningPort = &address
-	return http.ListenAndServe(address, &router)
+func (router Router) Listen(port uint16) error {
+	router.RunningPort = port
+	return http.ListenAndServe(fmt.Sprintf(":%d", port), &router)
 }
 
 func (router *Router) AddGlobalMiddleware(middleware Middleware) *Router {

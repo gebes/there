@@ -16,7 +16,7 @@ func main() {
 		Get("/user", GetUser).
 		Get("/test", GetTest).
 		AddGlobalMiddleware(CorsMiddleware(AllowAllConfiguration())).
-		Listen(":8080")
+		Listen(8080)
 
 	if err != nil {
 		panic(err)
@@ -34,7 +34,7 @@ func RandomMiddleware(request HttpRequest) HttpResponse {
 
 	if count%2 == 0 {
 		return Error(StatusInternalServerError, errors.New("lost database connection")).
-					Header().Set(ResponseHeaderContentLanguage, "English")
+			Header().Set(ResponseHeaderContentLanguage, "English")
 	}
 
 	return Next()
