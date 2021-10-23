@@ -1,15 +1,11 @@
 package cors
 
-import (
-	"github.com/Gebes/there/there"
-)
-
 type Configuration struct {
 	AccessControlAllowOrigin  string
 	AccessControlAllowMethods string
 	AccessControlAllowHeaders string
 }
-
+/*
 func DefaultConfiguration() Configuration {
 	return Configuration{
 		AccessControlAllowOrigin:  "*",
@@ -31,3 +27,4 @@ func MiddlewareCors(configuration Configuration) there.Middleware {
 		return nil
 	}
 }
+*/
