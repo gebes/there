@@ -21,6 +21,3 @@ func (h *HeaderWrapper) SetAll(values map[string][]string) *HeaderWrapper {
 	return h
 }
 
-func (h *HeaderWrapper) GetResponse() HttpResponse {
-	return h
-}

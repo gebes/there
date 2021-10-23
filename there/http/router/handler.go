@@ -6,7 +6,6 @@ import (
 	. "github.com/Gebes/there/there/http/response"
 	"github.com/Gebes/there/there/http/router/handlers"
 	. "github.com/Gebes/there/there/utils"
-	"log"
 	"net/http"
 )
 
@@ -76,12 +75,17 @@ func writeHeader(w *http.ResponseWriter, httpResponse HttpResponse) {
 }
 
 func isNextMiddleware(response HttpResponse) bool {
-	log.Printf("%T", response)
-	switch response.(type) {
+
+	switch v := response.(type) {
 	case *NextMiddleware:
 		return true
 	case *HeaderWrapper:
-
+		switch v.HttpResponse.(type){
+		case *NextMiddleware:
+			return true
+		default:
+			return false
+		}
 	default:
 		return false
 	}
