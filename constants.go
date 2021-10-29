@@ -3,11 +3,8 @@
 package there
 
 import (
-	"errors"
 	"strings"
 )
-
-var ErrorNotRunning = errors.New("there: Server is not running")
 
 const (
 	MethodGet     = "GET"
@@ -226,249 +223,249 @@ const (
 	// Acceptable instance-manipulations for the request.
 	//
 	//	A-IM: feed
-	RequestHeaderAIm="A-IM"
+	RequestHeaderAIm = "A-IM"
 
 	// RequestHeaderAccept
 	// Media type(s) that is/are acceptable for the response. See Content negotiation.
 	//
 	//	Accept: text/html
-	RequestHeaderAccept="Accept"
+	RequestHeaderAccept = "Accept"
 
 	// RequestHeaderAcceptCharset
 	// Character sets that are acceptable.
 	//
 	//	Accept-Charset: utf-8
-	RequestHeaderAcceptCharset="Accept-Charset"
+	RequestHeaderAcceptCharset = "Accept-Charset"
 
 	// RequestHeaderAcceptDatetime
 	// Acceptable version in time.
 	//
 	//	Accept-Datetime: Thu, 31 May 2007 20:35:00 GMT
-	RequestHeaderAcceptDatetime="Accept-Datetime"
+	RequestHeaderAcceptDatetime = "Accept-Datetime"
 
 	// RequestHeaderAcceptEncoding
 	// List of acceptable encodings. See HTTP compression.
 	//
 	//	Accept-Encoding: gzip, deflate
-	RequestHeaderAcceptEncoding="Accept-Encoding"
+	RequestHeaderAcceptEncoding = "Accept-Encoding"
 
 	// RequestHeaderAcceptLanguage
 	// List of acceptable human languages for response. See Content negotiation.
 	//
 	//	Accept-Language: en-US
-	RequestHeaderAcceptLanguage="Accept-Language"
+	RequestHeaderAcceptLanguage = "Accept-Language"
 
 	// RequestHeaderAccessControlRequestMethod
 	// Initiates a request for cross-origin resource sharing with Origin (below).
 	//
 	//	Access-Control-Request-Method: GET
-	RequestHeaderAccessControlRequestMethod="Access-Control-Request-Method"
+	RequestHeaderAccessControlRequestMethod = "Access-Control-Request-Method"
 
 	// RequestHeaderAccessControlRequestHeaders
 	// Initiates a request for cross-origin resource sharing with Origin (below).
 	//Access-Control-Request-Method: GET
-	RequestHeaderAccessControlRequestHeaders="Access-Control-Request-Headers"
+	RequestHeaderAccessControlRequestHeaders = "Access-Control-Request-Headers"
 
 	// RequestHeaderAuthorization
 	// Authentication credentials for HTTP authentication.
 	//
 	//	Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
-	RequestHeaderAuthorization="Authorization"
+	RequestHeaderAuthorization = "Authorization"
 
 	// RequestHeaderCacheControl
 	// Used to specify directives that must be obeyed by all caching mechanisms along the request-response chain.
 	//
 	//	Cache-Control: no-cache
-	RequestHeaderCacheControl="Cache-Control"
+	RequestHeaderCacheControl = "Cache-Control"
 
 	// RequestHeaderConnection
 	// Control options for the current connection and list of hop-by-hop request fields. Must not be used with HTTP/2.
 	//
 	//	Connection: keep-alive
 	//	Connection: Upgrade
-	RequestHeaderConnection="Connection"
+	RequestHeaderConnection = "Connection"
 
 	// RequestHeaderContentEncoding
 	// The type of encoding used on the data. See HTTP compression.
 	//
 	//	Content-Encoding: gzip
-	RequestHeaderContentEncoding="Content-Encoding"
+	RequestHeaderContentEncoding = "Content-Encoding"
 
 	// RequestHeaderContentLength
 	// The length of the request body in octets (8-bit bytes).
 	//
 	//	Content-Length: 348
-	RequestHeaderContentLength="Content-Length"
+	RequestHeaderContentLength = "Content-Length"
 
 	// RequestHeaderContentMd5
 	// A Base64-encoded binary MD5 sum of the content of the request body.
 	//
 	//	Content-MD5: Q2hlY2sgSW50ZWdyaXR5IQ==
-	RequestHeaderContentMd5="Content-MD5"
+	RequestHeaderContentMd5 = "Content-MD5"
 
 	// RequestHeaderContentType
 	// The Media type of the body of the request (used with POST and PUT requests).
 	//
 	//	Content-Type: application/x-www-form-urlencoded
-	RequestHeaderContentType="Content-Type"
+	RequestHeaderContentType = "Content-Type"
 
 	// RequestHeaderCookie
 	// An HTTP cookie previously sent by the server with Set-Cookie (below).
 	//
 	//	Cookie: $Version=1; Skin=new;
-	RequestHeaderCookie="Cookie"
+	RequestHeaderCookie = "Cookie"
 
 	// RequestHeaderDate
 	// The date and time at which the message was originated (in "HTTP-date" format as defined by RFC 7231 Date/Time Formats).
 	//
 	//	Date: Tue, 15 Nov 1994 08:12:31 GMT
-	RequestHeaderDate="Date"
+	RequestHeaderDate = "Date"
 
 	// RequestHeaderExpect
 	// Indicates that particular server behaviors are required by the client.
 	//
 	//	Expect: 100-continue
-	RequestHeaderExpect="Expect"
+	RequestHeaderExpect = "Expect"
 
 	// RequestHeaderForwarded
 	// Disclose original information of a client connecting to a web server through an HTTP proxy.
 	//
 	//	Forwarded: for=192.0.2.60;proto=http;by=203.0.113.43
 	//	Forwarded: for=192.0.2.43, for=198.51.100.17
-	RequestHeaderForwarded="Forwarded"
+	RequestHeaderForwarded = "Forwarded"
 
 	// RequestHeaderFrom
 	// The email address of the user making the request.
 	//
 	//	From: user@example.com
-	RequestHeaderFrom="From"
+	RequestHeaderFrom = "From"
 
 	// RequestHeaderHost
 	// The domain name of the server (for virtual hosting), and the TCP port number on which the server is listening. The port number may be omitted if the port is the standard port for the service requested. Mandatory since HTTP/1.1. If the request is generated directly in HTTP/2, it should not be used.
 	//
 	//	Host: en.wikipedia.org:8080
 	//	Host: en.wikipedia.org
-	RequestHeaderHost="Host"
+	RequestHeaderHost = "Host"
 
 	// RequestHeaderHttp2Settings
 	// A request that upgrades from HTTP/1.1 to HTTP/2 MUST include exactly one HTTP2-Setting header field. The HTTP2-Settings header field is a connection-specific header field that includes parameters that govern the HTTP/2 connection, provided in anticipation of the server accepting the request to upgrade.
 	//
 	//	HTTP2-Settings: token64
-	RequestHeaderHttp2Settings="HTTP2-Settings"
+	RequestHeaderHttp2Settings = "HTTP2-Settings"
 
 	// RequestHeaderIfMatch
 	// Only perform the action if the client supplied entity matches the same entity on the server. This is mainly for methods like PUT to only update a resource if it has not been modified since the user last updated it.
 	//
 	//	If-Match: "737060cd8c284d8af7ad3082f209582d"
-	RequestHeaderIfMatch="If-Match"
+	RequestHeaderIfMatch = "If-Match"
 
 	// RequestHeaderIfModifiedSince
 	// Allows a 304 Not Modified to be returned if content is unchanged.
 	//
 	//	If-Modified-Since: Sat, 29 Oct 1994 19:43:31 GMT
-	RequestHeaderIfModifiedSince="If-Modified-Since"
+	RequestHeaderIfModifiedSince = "If-Modified-Since"
 
 	// RequestHeaderIfNoneMatch
 	// Allows a 304 Not Modified to be returned if content is unchanged, see HTTP ETag.
 	//
 	//	If-None-Match: "737060cd8c284d8af7ad3082f209582d"
-	RequestHeaderIfNoneMatch="If-None-Match"
+	RequestHeaderIfNoneMatch = "If-None-Match"
 
 	// RequestHeaderIfRange
 	// If the entity is unchanged, send me the part(s) that I am missing; otherwise, send me the entire new entity.
 	//
 	//	If-Range: "737060cd8c284d8af7ad3082f209582d"
-	RequestHeaderIfRange="If-Range"
+	RequestHeaderIfRange = "If-Range"
 
 	// RequestHeaderIfUnmodifiedSince
 	// Only send the response if the entity has not been modified since a specific time.
 	//
 	//	If-Unmodified-Since: Sat, 29 Oct 1994 19:43:31 GMT
-	RequestHeaderIfUnmodifiedSince="If-Unmodified-Since"
+	RequestHeaderIfUnmodifiedSince = "If-Unmodified-Since"
 
 	// RequestHeaderMaxForwards
 	// Limit the number of times the message can be forwarded through proxies or gateways.
 	//
 	//	Max-Forwards: 10
-	RequestHeaderMaxForwards="Max-Forwards"
+	RequestHeaderMaxForwards = "Max-Forwards"
 
 	// RequestHeaderOrigin
 	// Initiates a request for cross-origin resource sharing (asks server for Access-Control-* response fields).
 	//
 	//	Origin: http://www.example-social-network.com
-	RequestHeaderOrigin="Origin"
+	RequestHeaderOrigin = "Origin"
 
 	// RequestHeaderPragma
 	// Implementation-specific fields that may have various effects anywhere along the request-response chain.
 	//
 	//	Pragma: no-cache
-	RequestHeaderPragma="Pragma"
+	RequestHeaderPragma = "Pragma"
 
 	// RequestHeaderPrefer
 	// Allows client to request that certain behaviors be employed by a server while processing a request.
 	//
 	//	Prefer: return=representation
-	RequestHeaderPrefer="Prefer"
+	RequestHeaderPrefer = "Prefer"
 
 	// RequestHeaderProxyAuthorization
 	// Authorization credentials for connecting to a proxy.
 	//
 	//	Proxy-Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
-	RequestHeaderProxyAuthorization="Proxy-Authorization"
+	RequestHeaderProxyAuthorization = "Proxy-Authorization"
 
 	// RequestHeaderRange
-	// Request only part of an entity.  Bytes are numbered from 0.  See Byte serving.
+	// Request only part of an entity.  AsBytes are numbered from 0.  See Byte serving.
 	//
 	//	Range: bytes=500-999
-	RequestHeaderRange="Range"
+	RequestHeaderRange = "Range"
 
 	// RequestHeaderReferer
 	// This is the address of the previous web page from which a link to the currently requested page was followed. (The word "referrer" has been misspelled in the RFC as well as in most implementations to the point that it has become standard usage and is considered correct terminology)
 	//
 	//	Referer: http://en.wikipedia.org/wiki/Main_Page
-	RequestHeaderReferer ="Referer"
+	RequestHeaderReferer = "Referer"
 
 	// RequestHeaderTe
 	// The transfer encodings the user agent is willing to accept: the same values as for the response header field Transfer-Encoding can be used, plus the "trailers" value (related to the "chunked" transfer method) to notify the server it expects to receive additional fields in the trailer after the last, zero-sized, chunk. Only trailers is supported in HTTP/2.
 	//
 	//	TE: trailers, deflate
-	RequestHeaderTe="TE"
+	RequestHeaderTe = "TE"
 
 	// RequestHeaderTrailer
 	// The Trailer general field value indicates that the given set of header fields is present in the trailer of a message encoded with chunked transfer coding.
 	//
 	//	Trailer: Max-Forwards
-	RequestHeaderTrailer="Trailer"
+	RequestHeaderTrailer = "Trailer"
 
 	// RequestHeaderTransferEncoding
 	// The form of encoding used to safely transfer the entity to the user. Currently defined methods are: chunked, compress, deflate, gzip, identity. Must not be used with HTTP/2.
 	//
 	//	Transfer-Encoding: chunked
-	RequestHeaderTransferEncoding="Transfer-Encoding"
+	RequestHeaderTransferEncoding = "Transfer-Encoding"
 
 	// RequestHeaderUserAgent
 	// The user agent string of the user agent.
 	//
 	//	User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:12.0) Gecko/20100101 Firefox/12.0
-	RequestHeaderUserAgent="User-Agent"
+	RequestHeaderUserAgent = "User-Agent"
 
 	// RequestHeaderUpgrade
 	// Ask the server to upgrade to another protocol. Must not be used in HTTP/2.
 	//
 	//	Upgrade: h2c, HTTPS/1.3, IRC/6.9, RTA/x11, websocket
-	RequestHeaderUpgrade="Upgrade"
+	RequestHeaderUpgrade = "Upgrade"
 
 	// RequestHeaderVia
 	// Informs the server of proxies through which the request was sent.
 	//
 	//	Via: 1.0 fred, 1.1 example.com (Apache/1.1)
-	RequestHeaderVia="Via"
+	RequestHeaderVia = "Via"
 
 	// RequestHeaderWarning
 	// A general warning about possible problems with the entity body.
 	//
 	//	Warning: 199 Miscellaneous warning
-	RequestHeaderWarning="Warning"
+	RequestHeaderWarning = "Warning"
 )
 
 // Response Headers
@@ -478,177 +475,177 @@ const (
 	// Requests HTTP Client Hints
 	//
 	//	Accept-CH: UA, Platform
-	ResponseHeaderAcceptCh="Accept-CH"
+	ResponseHeaderAcceptCh = "Accept-CH"
 
 	// ResponseHeaderAccessControlAllowOrigin
 	// Specifying which web sites can participate in cross-origin resource sharing
 	//
 	//	Access-Control-Allow-Origin: *
-	ResponseHeaderAccessControlAllowOrigin="Access-Control-Allow-Origin"
+	ResponseHeaderAccessControlAllowOrigin = "Access-Control-Allow-Origin"
 
 	// ResponseHeaderAccessControlAllowCredentials
 	// Specifying which web sites can participate in cross-origin resource sharing
 	//Access-Control-Allow-Origin: *
-	ResponseHeaderAccessControlAllowCredentials="Access-Control-Allow-Credentials"
+	ResponseHeaderAccessControlAllowCredentials = "Access-Control-Allow-Credentials"
 
 	// ResponseHeaderAccessControlExposeHeaders
 	// Specifying which web sites can participate in cross-origin resource sharing
 	//Access-Control-Allow-Origin: *
-	ResponseHeaderAccessControlExposeHeaders="Access-Control-Expose-Headers"
+	ResponseHeaderAccessControlExposeHeaders = "Access-Control-Expose-Headers"
 
 	// ResponseHeaderAccessControlMaxAge
 	// Specifying which web sites can participate in cross-origin resource sharing
 	//Access-Control-Allow-Origin: *
-	ResponseHeaderAccessControlMaxAge="Access-Control-Max-Age"
+	ResponseHeaderAccessControlMaxAge = "Access-Control-Max-Age"
 
 	// ResponseHeaderAccessControlAllowMethods
 	// Specifying which web sites can participate in cross-origin resource sharing
 	//Access-Control-Allow-Origin: *
-	ResponseHeaderAccessControlAllowMethods="Access-Control-Allow-Methods"
+	ResponseHeaderAccessControlAllowMethods = "Access-Control-Allow-Methods"
 
 	// ResponseHeaderAccessControlAllowHeaders
 	// Specifying which web sites can participate in cross-origin resource sharing
 	//Access-Control-Allow-Origin: *
-	ResponseHeaderAccessControlAllowHeaders="Access-Control-Allow-Headers"
+	ResponseHeaderAccessControlAllowHeaders = "Access-Control-Allow-Headers"
 
 	// ResponseHeaderAcceptPatch
 	// Specifies which patch document formats this server supports
 	//
 	//	Accept-Patch: text/example;charset=utf-8
-	ResponseHeaderAcceptPatch="Accept-Patch"
+	ResponseHeaderAcceptPatch = "Accept-Patch"
 
 	// ResponseHeaderAcceptRanges
 	// What partial content range types this server supports via byte serving
 	//
 	//	Accept-Ranges: bytes
-	ResponseHeaderAcceptRanges="Accept-Ranges"
+	ResponseHeaderAcceptRanges = "Accept-Ranges"
 
 	// ResponseHeaderAge
 	// The age the object has been in a proxy cache in seconds
 	//
 	//	Age: 12
-	ResponseHeaderAge="Age"
+	ResponseHeaderAge = "Age"
 
 	// ResponseHeaderAllow
 	// Valid methods for a specified resource. To be used for a 405 Method not allowed
 	//
 	//	Allow: GET, HEAD
-	ResponseHeaderAllow="Allow"
+	ResponseHeaderAllow = "Allow"
 
 	// ResponseHeaderAltSvc
 	// A server uses "Alt-Svc" header (meaning Alternative Services) to indicate that its resources can also be accessed at a different network location (host or port) or using a different protocol When using HTTP/2, servers should instead send an ALTSVC frame.
 	//
 	//	Alt-Svc: http/1.1="http2.example.com:8001"; ma=7200
-	ResponseHeaderAltSvc="Alt-Svc"
+	ResponseHeaderAltSvc = "Alt-Svc"
 
 	// ResponseHeaderCacheControl
 	// Tells all caching mechanisms from server to client whether they may cache this object. It is measured in seconds
 	//
 	//	Cache-Control: max-age=3600
-	ResponseHeaderCacheControl="Cache-Control"
+	ResponseHeaderCacheControl = "Cache-Control"
 
 	// ResponseHeaderConnection
 	// Control options for the current connection and list of hop-by-hop response fields. Must not be used with HTTP/2.
 	//
 	//	Connection: close
-	ResponseHeaderConnection="Connection"
+	ResponseHeaderConnection = "Connection"
 
 	// ResponseHeaderContentDisposition
 	// An opportunity to raise a "File Download" dialogue box for a known MIME type with binary format or suggest a filename for dynamic content. Quotes are necessary with special characters.
 	//
 	//	Content-Disposition: attachment; filename="fname.ext"
-	ResponseHeaderContentDisposition="Content-Disposition"
+	ResponseHeaderContentDisposition = "Content-Disposition"
 
 	// ResponseHeaderContentEncoding
 	// The type of encoding used on the data. See HTTP compression.
 	//
 	//	Content-Encoding: gzip
-	ResponseHeaderContentEncoding="Content-Encoding"
+	ResponseHeaderContentEncoding = "Content-Encoding"
 
 	// ResponseHeaderContentLanguage
 	// The natural language or languages of the intended audience for the enclosed content
 	//
 	//	Content-Language: da
-	ResponseHeaderContentLanguage="Content-Language"
+	ResponseHeaderContentLanguage = "Content-Language"
 
 	// ResponseHeaderContentLength
 	// The length of the response body in octets (8-bit bytes)
 	//
 	//	Content-Length: 348
-	ResponseHeaderContentLength="Content-Length"
+	ResponseHeaderContentLength = "Content-Length"
 
 	// ResponseHeaderContentLocation
 	// An alternate location for the returned data
 	//
 	//	Content-Location: /index.htm
-	ResponseHeaderContentLocation="Content-Location"
+	ResponseHeaderContentLocation = "Content-Location"
 
 	// ResponseHeaderContentMd5
 	// A Base64-encoded binary MD5 sum of the content of the response
 	//
 	//	Content-MD5: Q2hlY2sgSW50ZWdyaXR5IQ==
-	ResponseHeaderContentMd5="Content-MD5"
+	ResponseHeaderContentMd5 = "Content-MD5"
 
 	// ResponseHeaderContentRange
 	// Where in a full body message this partial message belongs
 	//
 	//	Content-Range: bytes 21010-47021/47022
-	ResponseHeaderContentRange="Content-Range"
+	ResponseHeaderContentRange = "Content-Range"
 
 	// ResponseHeaderContentType
 	// The MIME type of this content
 	//
 	//	Content-Type: text/html; charset=utf-8
-	ResponseHeaderContentType="Content-Type"
+	ResponseHeaderContentType = "Content-Type"
 
 	// ResponseHeaderDate
 	// The date and time that the message was sent (in "HTTP-date" format as defined by RFC 7231)
 	//
 	//	Date: Tue, 15 Nov 1994 08:12:31 GMT
-	ResponseHeaderDate="Date"
+	ResponseHeaderDate = "Date"
 
 	// ResponseHeaderDeltaBase
 	// Specifies the delta-encoding entity tag of the response.
 	//
 	//	Delta-Base: "abc"
-	ResponseHeaderDeltaBase="Delta-Base"
+	ResponseHeaderDeltaBase = "Delta-Base"
 
 	// ResponseHeaderEtag
 	// An identifier for a specific version of a resource, often a message digest
 	//
 	//	ETag: "737060cd8c284d8af7ad3082f209582d"
-	ResponseHeaderEtag="ETag"
+	ResponseHeaderEtag = "ETag"
 
 	// ResponseHeaderExpires
 	// Gives the date/time after which the response is considered stale (in "HTTP-date" format as defined by RFC 7231)
 	//
 	//	Expires: Thu, 01 Dec 1994 16:00:00 GMT
-	ResponseHeaderExpires="Expires"
+	ResponseHeaderExpires = "Expires"
 
 	// ResponseHeaderIm
 	// Instance-manipulations applied to the response.
 	//
 	//	IM: feed
-	ResponseHeaderIm="IM"
+	ResponseHeaderIm = "IM"
 
 	// ResponseHeaderLastModified
 	// The last modified date for the requested object (in "HTTP-date" format as defined by RFC 7231)
 	//
 	//	Last-Modified: Tue, 15 Nov 1994 12:45:26 GMT
-	ResponseHeaderLastModified="Last-Modified"
+	ResponseHeaderLastModified = "Last-Modified"
 
 	// ResponseHeaderLink
 	// Used to express a typed relationship with another resource, where the relation type is defined by RFC 5988
 	//
 	//	Link: </feed>; rel="alternate"
-	ResponseHeaderLink="Link"
+	ResponseHeaderLink = "Link"
 
 	// ResponseHeaderLocation
 	// Used in redirection, or when a new resource has been created.
 	//Example 1:
 	//	Location: http://www.w3.org/pub/WWW/People.html Example 2:
 	//	Location: /pub/WWW/People.html
-	ResponseHeaderLocation="Location"
+	ResponseHeaderLocation = "Location"
 
 	// ResponseHeaderP3p
 	// This field is supposed to set P3P policy, in the form of P3P:CP="your_compact_policy". However, P3P did not take off, most browsers have never fully implemented it, a lot of websites set this field with fake policy text, that was enough to fool browsers the existence of P3P policy and grant permissions for third party cookies.
@@ -656,109 +653,109 @@ const (
 	//	P3P: CP="This is not a
 	//	P3P policy! See https://en.wikipedia.org/wiki/Special:CentralAutoLogin/
 	//	P3P for more info."
-	ResponseHeaderP3p="P3P"
+	ResponseHeaderP3p = "P3P"
 
 	// ResponseHeaderPragma
 	// Implementation-specific fields that may have various effects anywhere along the request-response chain.
 	//
 	//	Pragma: no-cache
-	ResponseHeaderPragma="Pragma"
+	ResponseHeaderPragma = "Pragma"
 
 	// ResponseHeaderPreferenceApplied
 	// Indicates which Prefer tokens were honored by the server and applied to the processing of the request.
 	//
 	//	Preference-Applied: return=representation
-	ResponseHeaderPreferenceApplied="Preference-Applied"
+	ResponseHeaderPreferenceApplied = "Preference-Applied"
 
 	// ResponseHeaderProxyAuthenticate
 	// Request authentication to access the proxy.
 	//
 	//	Proxy-Authenticate: Basic
-	ResponseHeaderProxyAuthenticate="Proxy-Authenticate"
+	ResponseHeaderProxyAuthenticate = "Proxy-Authenticate"
 
 	// ResponseHeaderPublicKeyPins
 	// HTTP Public Key Pinning, announces hash of website's authentic TLS certificate
 	//
 	//	Public-Key-Pins: max-age=2592000; pin-sha256="E9CZ9INDbd+2eRQozYqqbQ2yXLVKB9+xcprMF+44U1g=";
-	ResponseHeaderPublicKeyPins="Public-Key-Pins"
+	ResponseHeaderPublicKeyPins = "Public-Key-Pins"
 
 	// ResponseHeaderRetryAfter
 	// If an entity is temporarily unavailable, this instructs the client to try again later. Value could be a specified period of time (in seconds) or a HTTP-date.
 	//Example 1:
 	//	Retry-After: 120 Example 2:
 	//	Retry-After: Fri, 07 Nov 2014 23:59:59 GMT
-	ResponseHeaderRetryAfter="Retry-After"
+	ResponseHeaderRetryAfter = "Retry-After"
 
 	// ResponseHeaderServer
 	// A name for the server
 	//
 	//	Server: Apache/2.4.1 (Unix)
-	ResponseHeaderServer="Server"
+	ResponseHeaderServer = "Server"
 
 	// ResponseHeaderSetCookie
 	// An HTTP cookie
 	//
 	//	Set-Cookie: UserID=JohnDoe; Max-Age=3600; Version=1
-	ResponseHeaderSetCookie="Set-Cookie"
+	ResponseHeaderSetCookie = "Set-Cookie"
 
 	// ResponseHeaderStrictTransportSecurity
 	// A HSTS Policy informing the HTTP client how long to cache the HTTPS only policy and whether this applies to subdomains.
 	//
 	//	Strict-Transport-Security: max-age=16070400; includeSubDomains
-	ResponseHeaderStrictTransportSecurity="Strict-Transport-Security"
+	ResponseHeaderStrictTransportSecurity = "Strict-Transport-Security"
 
 	// ResponseHeaderTrailer
 	// The Trailer general field value indicates that the given set of header fields is present in the trailer of a message encoded with chunked transfer coding.
 	//
 	//	Trailer: Max-Forwards
-	ResponseHeaderTrailer="Trailer"
+	ResponseHeaderTrailer = "Trailer"
 
 	// ResponseHeaderTransferEncoding
 	// The form of encoding used to safely transfer the entity to the user. Currently defined methods are: chunked, compress, deflate, gzip, identity. Must not be used with HTTP/2.
 	//
 	//	Transfer-Encoding: chunked
-	ResponseHeaderTransferEncoding="Transfer-Encoding"
+	ResponseHeaderTransferEncoding = "Transfer-Encoding"
 
 	// ResponseHeaderTk
 	// Tracking Status header, value suggested to be sent in response to a DNT(do-not-track), possible values: "!" — under construction "?" — dynamic "G" — gateway to multiple parties "N" — not tracking "T" — tracking "C" — tracking with consent "P" — tracking only if consented "D" — disregarding DNT "U" — updated
 	//
 	//	Tk: ?
-	ResponseHeaderTk="Tk"
+	ResponseHeaderTk = "Tk"
 
 	// ResponseHeaderUpgrade
 	// Ask the client to upgrade to another protocol. Must not be used in HTTP/2
 	//
 	//	Upgrade: h2c, HTTPS/1.3, IRC/6.9, RTA/x11, websocket
-	ResponseHeaderUpgrade="Upgrade"
+	ResponseHeaderUpgrade = "Upgrade"
 
 	// ResponseHeaderVary
 	// Tells downstream proxies how to match future request headers to decide whether the cached response can be used rather than requesting a fresh one from the origin server.
 	//Example 1:
 	//	Vary: * Example 2:
 	//	Vary: Accept-Language
-	ResponseHeaderVary="Vary"
+	ResponseHeaderVary = "Vary"
 
 	// ResponseHeaderVia
 	// Informs the client of proxies through which the response was sent.
 	//
 	//	Via: 1.0 fred, 1.1 example.com (Apache/1.1)
-	ResponseHeaderVia="Via"
+	ResponseHeaderVia = "Via"
 
 	// ResponseHeaderWarning
 	// A general warning about possible problems with the entity body.
 	//
 	//	Warning: 199 Miscellaneous warning
-	ResponseHeaderWarning="Warning"
+	ResponseHeaderWarning = "Warning"
 
 	// ResponseHeaderWwwAuthenticate
 	// Indicates the authentication scheme that should be used to access the requested entity.
 	//
 	//	WWW-Authenticate: Basic
-	ResponseHeaderWwwAuthenticate="WWW-Authenticate"
+	ResponseHeaderWwwAuthenticate = "WWW-Authenticate"
 
 	// ResponseHeaderXFrameOptions
 	// Clickjacking protection: deny - no rendering within a frame, sameorigin - no rendering if origin mismatch, allow-from - allow from specified location, allowall - non-standard, allow from any location
 	//
 	//	X-Frame-Options: deny
-	ResponseHeaderXFrameOptions="X-Frame-Options"
+	ResponseHeaderXFrameOptions = "X-Frame-Options"
 )

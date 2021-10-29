@@ -2,21 +2,22 @@ package main
 
 import (
 	"errors"
-	. "github.com/Gebes/there/there/http/middlewares"
-	. "github.com/Gebes/there/there/http/request"
-	. "github.com/Gebes/there/there/http/response"
-	. "github.com/Gebes/there/there/http/router"
-	. "github.com/Gebes/there/there/utils"
+	. "github.com/Gebes/there"
 )
 
 func main() {
 
-	err := NewRouter().
+	router := NewRouter().SetProductionMode()
+	router.
 		Get("/", GetWelcome).AddMiddleware(RandomMiddleware).
-		Get("/user", GetUser).
-		Get("/test", GetTest).
-		AddGlobalMiddleware(CorsMiddleware(AllowAllConfiguration())).
-		Listen(8080)
+		Group("home").
+			Get("/", GetPage).
+			Get("/params", GetParams).IgnoreCase().
+			Get("/user", GetUser).IgnoreCase().
+			Get("/user/:name", GetUserByName).IgnoreCase().
+		Use(CorsMiddleware(AllowAllConfiguration()))
+
+	err := router.Listen(8080)
 
 	if err != nil {
 		panic(err)
@@ -29,7 +30,7 @@ type User struct {
 
 var count = 0
 
-func RandomMiddleware(request HttpRequest) HttpResponse {
+func RandomMiddleware(HttpRequest) HttpResponse {
 	count++
 
 	if count%2 == 0 {
@@ -40,24 +41,31 @@ func RandomMiddleware(request HttpRequest) HttpResponse {
 	return Next()
 }
 
-func GetWelcome(request HttpRequest) HttpResponse {
+func GetWelcome(HttpRequest) HttpResponse {
 	return String(StatusOK, "Hello")
 }
 
-func GetUser(request HttpRequest) HttpResponse {
+func GetUser(HttpRequest) HttpResponse {
 	return Json(StatusOK, User{
 		Name: "Hannes",
 	})
 }
 
-func GetTest(request HttpRequest) HttpResponse {
-	body, err := request.ReadBody().String()
+func GetUserByName(request HttpRequest) HttpResponse {
+	name := request.RouteParams.GetDefault("name", "Hannes")
+	return String(StatusOK, "Hallo "+name)
+}
 
-	if err != nil {
-		return Error(StatusBadRequest, err)
-	}
+func GetParams(request HttpRequest) HttpResponse {
 	return Json(StatusOK, map[string]interface{}{
-		"body":   body,
-		"params": request.ReadParams().Map(),
+		"params": request.Params,
+		"routeParams": request.RouteParams,
+	})
+}
+
+func GetPage(request HttpRequest) HttpResponse {
+	user := request.Params.GetDefault("user", "Gebes")
+	return Html(StatusOK, "./examples/index.html", map[string]string{
+		"user": user,
 	})
 }
