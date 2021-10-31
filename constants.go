@@ -316,7 +316,7 @@ const (
 	RequestHeaderCookie = "Cookie"
 
 	// RequestHeaderDate
-	// The date and time at which the message was originated (in "HTTP-date" format as defined by RFC 7231 Date/Time Formats).
+	// The date and time at which the message was originated (in "HTTP-date" bind as defined by RFC 7231 Date/Time Formats).
 	//
 	//	Date: Tue, 15 Nov 1994 08:12:31 GMT
 	RequestHeaderDate = "Date"
@@ -414,7 +414,7 @@ const (
 	RequestHeaderProxyAuthorization = "Proxy-Authorization"
 
 	// RequestHeaderRange
-	// Request only part of an entity.  AsBytes are numbered from 0.  See Byte serving.
+	// Request only part of an entity.  ToBytes are numbered from 0.  See Byte serving.
 	//
 	//	Range: bytes=500-999
 	RequestHeaderRange = "Range"
@@ -551,7 +551,7 @@ const (
 	ResponseHeaderConnection = "Connection"
 
 	// ResponseHeaderContentDisposition
-	// An opportunity to raise a "File Download" dialogue box for a known MIME type with binary format or suggest a filename for dynamic content. Quotes are necessary with special characters.
+	// An opportunity to raise a "File Download" dialogue box for a known MIME type with binary bind or suggest a filename for dynamic content. Quotes are necessary with special characters.
 	//
 	//	Content-Disposition: attachment; filename="fname.ext"
 	ResponseHeaderContentDisposition = "Content-Disposition"
@@ -599,7 +599,7 @@ const (
 	ResponseHeaderContentType = "Content-Type"
 
 	// ResponseHeaderDate
-	// The date and time that the message was sent (in "HTTP-date" format as defined by RFC 7231)
+	// The date and time that the message was sent (in "HTTP-date" bind as defined by RFC 7231)
 	//
 	//	Date: Tue, 15 Nov 1994 08:12:31 GMT
 	ResponseHeaderDate = "Date"
@@ -617,7 +617,7 @@ const (
 	ResponseHeaderEtag = "ETag"
 
 	// ResponseHeaderExpires
-	// Gives the date/time after which the response is considered stale (in "HTTP-date" format as defined by RFC 7231)
+	// Gives the date/time after which the response is considered stale (in "HTTP-date" bind as defined by RFC 7231)
 	//
 	//	Expires: Thu, 01 Dec 1994 16:00:00 GMT
 	ResponseHeaderExpires = "Expires"
@@ -629,7 +629,7 @@ const (
 	ResponseHeaderIm = "IM"
 
 	// ResponseHeaderLastModified
-	// The last modified date for the requested object (in "HTTP-date" format as defined by RFC 7231)
+	// The last modified date for the requested object (in "HTTP-date" bind as defined by RFC 7231)
 	//
 	//	Last-Modified: Tue, 15 Nov 1994 12:45:26 GMT
 	ResponseHeaderLastModified = "Last-Modified"
