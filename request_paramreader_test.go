@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	exampleReader = ParamReader{
+	exampleReader = BasicReader{
 		"id":    []string{"100", "101"},
 		"name":  []string{},
 		"query": []string{"all"},
@@ -19,7 +19,7 @@ func TestParamReader_Get(t *testing.T) {
 	}
 	tests := []struct {
 		name   string
-		reader ParamReader
+		reader BasicReader
 		args   args
 		want   string
 		want1  bool
@@ -73,7 +73,7 @@ func TestParamReader_GetDefault(t *testing.T) {
 	}
 	tests := []struct {
 		name   string
-		reader ParamReader
+		reader BasicReader
 		args   args
 		want   string
 	}{
@@ -117,7 +117,7 @@ func TestParamReader_GetSlice(t *testing.T) {
 	}
 	tests := []struct {
 		name   string
-		reader ParamReader
+		reader BasicReader
 		args   args
 		want   []string
 		want1  bool
@@ -170,7 +170,7 @@ func TestParamReader_Has(t *testing.T) {
 	}
 	tests := []struct {
 		name   string
-		reader ParamReader
+		reader BasicReader
 		args   args
 		want   bool
 	}{

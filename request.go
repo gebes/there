@@ -14,17 +14,20 @@ type HttpRequest struct {
 
 	Method      string
 	Body        *BodyReader
-	Params      *ParamReader
+	Params      *BasicReader
+	Headers     *BasicReader
 	RouteParams *RouteParamReader
 }
 
 func NewHttpRequest(request http.Request) HttpRequest {
-	paramReader := ParamReader(request.URL.Query())
+	paramReader := BasicReader(request.URL.Query())
+	headerReader := BasicReader(request.Header)
 	return HttpRequest{
 		request:     request,
 		Method:      request.Method,
 		Body:        &BodyReader{request: request},
 		Params:      &paramReader,
+		Headers:     &headerReader,
 		RouteParams: nil, // inject routeParams in Handler
 	}
 }
@@ -73,15 +76,15 @@ func (read BodyReader) ToBytes() ([]byte, error) {
 	return data, nil
 }
 
-//ParamReader reads http params
-type ParamReader map[string][]string
+//BasicReader reads http params
+type BasicReader map[string][]string
 
-func (reader ParamReader) Has(key string) bool {
+func (reader BasicReader) Has(key string) bool {
 	_, ok := reader.GetSlice(key)
 	return ok
 }
 
-func (reader ParamReader) GetDefault(key, defaultValue string) string {
+func (reader BasicReader) GetDefault(key, defaultValue string) string {
 	s, ok := reader.Get(key)
 	if !ok {
 		return defaultValue
@@ -89,7 +92,7 @@ func (reader ParamReader) GetDefault(key, defaultValue string) string {
 	return s
 }
 
-func (reader ParamReader) Get(key string) (string, bool) {
+func (reader BasicReader) Get(key string) (string, bool) {
 	list, ok := reader.GetSlice(key)
 	if !ok {
 		return "", false
@@ -97,7 +100,7 @@ func (reader ParamReader) Get(key string) (string, bool) {
 	return list[0], true
 }
 
-func (reader ParamReader) GetSlice(key string) ([]string, bool) {
+func (reader BasicReader) GetSlice(key string) ([]string, bool) {
 	list, ok := reader[key]
 	if !ok || len(list) == 0 {
 		return nil, false
