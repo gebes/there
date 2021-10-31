@@ -34,21 +34,21 @@ type BodyReader struct {
 	request http.Request
 }
 
-func (read BodyReader) AsJson(dest interface{}) error {
-	return read.format(&dest, json.Unmarshal)
+func (read BodyReader) BindJson(dest interface{}) error {
+	return read.bind(&dest, json.Unmarshal)
 }
 
-func (read BodyReader) AsXml(dest interface{}) error {
-	return read.format(&dest, xml.Unmarshal)
+func (read BodyReader) BindXml(dest interface{}) error {
+	return read.bind(&dest, xml.Unmarshal)
 }
 
-func (read BodyReader) AsYaml(dest interface{}) error {
+func (read BodyReader) BindYaml(dest interface{}) error {
 	fmt.Println(ContentTypeApplicationEdiDashX12)
-	return read.format(&dest, yaml.Unmarshal)
+	return read.bind(&dest, yaml.Unmarshal)
 }
 
-func (read BodyReader) format(dest *interface{}, formatter func(data []byte, v interface{}) error) error {
-	body, err := read.AsBytes()
+func (read BodyReader) bind(dest *interface{}, formatter func(data []byte, v interface{}) error) error {
+	body, err := read.ToBytes()
 	if err != nil {
 		return err
 	}
@@ -56,15 +56,15 @@ func (read BodyReader) format(dest *interface{}, formatter func(data []byte, v i
 	return err
 }
 
-func (read BodyReader) AsString() (string, error) {
-	data, err := read.AsBytes()
+func (read BodyReader) ToString() (string, error) {
+	data, err := read.ToBytes()
 	if err != nil {
 		return "", err
 	}
 	return string(data), err
 }
 
-func (read BodyReader) AsBytes() ([]byte, error) {
+func (read BodyReader) ToBytes() ([]byte, error) {
 	data, err := ioutil.ReadAll(read.request.Body)
 	defer read.request.Body.Close()
 	if err != nil {

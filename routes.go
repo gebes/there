@@ -160,7 +160,7 @@ type RouteManager []*Route
 
 func (r *RouteManager) FindOverlappingRoute(routeToCheck *Route) *Route {
 	for _, toCompare := range *r {
-		if toCompare.Path.Equals(routeToCheck.Path) {
+		if toCompare.OverlapsWith(*routeToCheck) {
 			return toCompare
 		}
 	}
