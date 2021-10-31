@@ -31,7 +31,6 @@ func TestCorsMiddleware(t *testing.T) {
 		log.Fatalln("response is not next middleware")
 	}
 
-
 	if !reflect.DeepEqual(response.Header().Values[ResponseHeaderAccessControlAllowOrigin], []string{"*"}) ||
 		!reflect.DeepEqual(response.Header().Values[ResponseHeaderAccessControlAllowMethods], []string{AllMethodsString}) ||
 		!reflect.DeepEqual(response.Header().Values[ResponseHeaderAccessControlAllowHeaders], []string{"Accept, Content-Type, Content-Length, Authorization"}) {

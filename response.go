@@ -37,8 +37,6 @@ func (h *HeaderWrapper) SetAll(values map[string][]string) *HeaderWrapper {
 	return h
 }
 
-
-
 //Bytes takes a StatusCode and a series of bytes to render
 func Bytes(code int, data []byte) *bytesResponse {
 	r := &bytesResponse{data: data, code: code}

@@ -133,4 +133,3 @@ type defaultHandlers struct{}
 func (d defaultHandlers) RouteNotFound(request *http.Request) error {
 	return errors.New("Could not find route " + request.Method + " " + request.URL.Path)
 }
-

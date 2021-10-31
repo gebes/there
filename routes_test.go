@@ -77,7 +77,6 @@ func TestNewRouteGroup3(t *testing.T) {
 
 	defer func() { recover() }()
 
-
 	router.
 		Get("/", handler).IgnoreCase().IgnoreCase().
 		Get("/home/", handler).
@@ -125,8 +124,6 @@ func TestRoute_OverlapsWith2(t *testing.T) {
 	if routeA.OverlapsWith(*routeC) {
 		log.Fatalln("routes a and c must NOT overlap!")
 	}
-
-
 
 }
 

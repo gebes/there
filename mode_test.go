@@ -45,7 +45,7 @@ func TestMode(t *testing.T) {
 }
 
 func TestModeRouter(t *testing.T) {
-	 router := NewRouter()
+	router := NewRouter()
 
 	if !router.IsDebugMode() {
 		log.Fatalln("is not debug")
