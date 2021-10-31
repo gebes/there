@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	. "github.com/Gebes/there"
+	. "github.com/Gebes/there/v2"
 )
 
 func main() {

@@ -1,4 +1,4 @@
-module github.com/Gebes/there
+module github.com/Gebes/there/v2
 
 go 1.17
 
