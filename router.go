@@ -4,10 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
-	"os"
-	"strings"
 )
 
 type Router struct {
@@ -137,33 +134,3 @@ func (d defaultHandlers) RouteNotFound(request *http.Request) error {
 	return errors.New("Could not find route " + request.Method + " " + request.URL.Path)
 }
 
-var mode = DebugMode
-
-func IsDebug() bool {
-	return mode == DebugMode
-}
-
-func IsProduction() bool {
-	return mode == ProductionMode
-}
-
-func DebugPrintln(v ...interface{}) {
-	if IsDebug() {
-		log.Println(v...)
-	}
-}
-
-func init() {
-	SetMode(os.Getenv(envThereMode))
-}
-
-func SetMode(newMode string) {
-	if newMode == "" {
-		mode = DebugMode
-		return
-	}
-
-	newMode = strings.ToLower(newMode)
-	Assert(newMode == DebugMode || newMode == ProductionMode, "unknown mode: "+newMode)
-	mode = newMode
-}

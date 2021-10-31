@@ -33,6 +33,9 @@ func NewRouteGroup(router *Router, route string) *RouteGroup {
 	if !strings.HasPrefix(route, "/") {
 		route = "/" + route
 	}
+	if !strings.HasSuffix(route, "/") {
+		route += "/"
+	}
 
 	return &RouteGroup{
 		Router: router,
@@ -171,7 +174,6 @@ func (r *RouteManager) AddRoute(routeToAdd *Route) *Route {
 	}
 
 	*r = append(*r, routeToAdd)
-	DebugPrintln("Registered " + routeToAdd.ToString())
 
 	return routeToAdd
 }
@@ -180,7 +182,6 @@ func (r *RouteManager) RemoveRoute(toRemove *Route) {
 
 	for i, container := range *r {
 		if container.Path.Equals(toRemove.Path) {
-			DebugPrintln("Removed " + toRemove.ToString())
 			*r = append((*r)[:i], (*r)[i+1:]...)
 		}
 	}

@@ -13,10 +13,10 @@ func CheckArrayContains(slice []string, toSearch string) bool {
 func CheckArraysOverlap(a []string, b []string) bool {
 	for _, s := range a {
 		if CheckArrayContains(b, s) {
-			return false
+			return true
 		}
 	}
-	return true
+	return false
 }
 
 func Assert(check bool, message string) {

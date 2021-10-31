@@ -113,8 +113,16 @@ func (p Path) Parse(route string) (map[string]string, bool) {
 }
 
 func splitUrl(route string) []string {
+	for strings.Contains(route, "//") {
+		route = strings.ReplaceAll(route, "//", "/")
+	}
+
 	route = strings.TrimPrefix(route, "/")
 	route = strings.TrimSuffix(route, "/")
+
+	if len(route) == 0 {
+		return []string{}
+	}
 
 	return strings.Split(route, "/")
 }

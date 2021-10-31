@@ -25,28 +25,28 @@ func TestParamReader_Get(t *testing.T) {
 		want1  bool
 	}{
 		{
-			name:   "Check Get Not Existing Param",
+			name:   "Not Existing Param",
 			reader: exampleReader,
 			args:   args{key: "something"},
 			want:   "",
 			want1:  false,
 		},
 		{
-			name:   "Check Get Empty (Not Existing) Param",
+			name:   "Empty (Not Existing) Param",
 			reader: exampleReader,
 			args:   args{key: "name"},
 			want:   "",
 			want1:  false,
 		},
 		{
-			name:   "Check Get One Param From Polluted Param",
+			name:   "One Param From Polluted Param",
 			reader: exampleReader,
 			args:   args{key: "id"},
 			want:   "100",
 			want1:  true,
 		},
 		{
-			name:   "Check Get Successful From Not Polluted",
+			name:   "Successful From Not Polluted",
 			reader: exampleReader,
 			args:   args{key: "query"},
 			want:   "all",
@@ -78,25 +78,25 @@ func TestParamReader_GetDefault(t *testing.T) {
 		want   string
 	}{
 		{
-			name:   "Check Get Not Existing Param",
+			name:   "Not Existing Param",
 			reader: exampleReader,
 			args:   args{key: "something", defaultValue: "abc"},
 			want:   "abc",
 		},
 		{
-			name:   "Check Get Empty (Not Existing) Param",
+			name:   "Empty (Not Existing) Param",
 			reader: exampleReader,
 			args:   args{key: "name", defaultValue: "abc"},
 			want:   "abc",
 		},
 		{
-			name:   "Check Get One Param From Polluted Param",
+			name:   "One Param From Polluted Param",
 			reader: exampleReader,
 			args:   args{key: "id", defaultValue: "abc"},
 			want:   "100",
 		},
 		{
-			name:   "Check Get Successful From Not Polluted",
+			name:   "Successful From Not Polluted",
 			reader: exampleReader,
 			args:   args{key: "query", defaultValue: "abc"},
 			want:   "all",
@@ -123,28 +123,28 @@ func TestParamReader_GetSlice(t *testing.T) {
 		want1  bool
 	}{
 		{
-			name:   "Check Get Not Existing Param",
+			name:   "Not Existing Param",
 			reader: exampleReader,
 			args:   args{key: "something"},
 			want:   nil,
 			want1:  false,
 		},
 		{
-			name:   "Check Get Empty (Not Existing) Param",
+			name:   "Empty (Not Existing) Param",
 			reader: exampleReader,
 			args:   args{key: "name"},
 			want:   nil,
 			want1:  false,
 		},
 		{
-			name:   "Check Get One Param From Polluted Param",
+			name:   "One Param From Polluted Param",
 			reader: exampleReader,
 			args:   args{key: "id"},
 			want:   []string{"100", "101"},
 			want1:  true,
 		},
 		{
-			name:   "Check Get Successful From Not Polluted",
+			name:   "Successful From Not Polluted",
 			reader: exampleReader,
 			args:   args{key: "query"},
 			want:   []string{"all"},
@@ -175,25 +175,25 @@ func TestParamReader_Has(t *testing.T) {
 		want   bool
 	}{
 		{
-			name:   "Check Get Not Existing Param",
+			name:   "Not Existing Param",
 			reader: exampleReader,
 			args:   args{key: "something"},
 			want:   false,
 		},
 		{
-			name:   "Check Get Empty (Not Existing) Param",
+			name:   "Empty (Not Existing) Param",
 			reader: exampleReader,
 			args:   args{key: "name"},
 			want:   false,
 		},
 		{
-			name:   "Check Get One Param From Polluted Param",
+			name:   "One Param From Polluted Param",
 			reader: exampleReader,
 			args:   args{key: "id"},
 			want:   true,
 		},
 		{
-			name:   "Check Get Successful From Not Polluted",
+			name:   "Successful From Not Polluted",
 			reader: exampleReader,
 			args:   args{key: "query"},
 			want:   true,
