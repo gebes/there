@@ -6,6 +6,7 @@ import (
 	"encoding/xml"
 	"html/template"
 	"net/http"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 //HttpResponse is the base for every return you can make in an Endpoint.
@@ -211,8 +212,8 @@ func Message(code int, message string) *jsonResponse {
 }
 
 //Msgpack takes a StatusCode and data which gets marshaled to Msgpack
-func Msgpack(code int, data interface{}) *jsonResponse {
-	r := &jsonResponse{data: data, code: code}
+func Msgpack(code int, data interface{}) *msgpackResponse {
+	r := &msgpackResponse{data: data, code: code}
 	r.header = Header(r).Set(ResponseHeaderContentType, "application/msgpack")
 	return r
 }
@@ -224,7 +225,7 @@ type msgpackResponse struct {
 }
 
 func (j *msgpackResponse) Execute(_ *Router, _ *http.Request, w *http.ResponseWriter) error {
-	b, err := json.Marshal(j.data)
+	b, err := msgpack.Marshal(j.data)
 	if err != nil {
 		return err
 	}

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"github.com/vmihailenco/msgpack/v5"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"net/http"
@@ -43,6 +44,10 @@ func (read BodyReader) BindJson(dest interface{}) error {
 
 func (read BodyReader) BindXml(dest interface{}) error {
 	return read.bind(&dest, xml.Unmarshal)
+}
+
+func (read BodyReader) BindMsgpack(dest interface{}) error {
+	return read.bind(&dest, msgpack.Unmarshal)
 }
 
 func (read BodyReader) BindYaml(dest interface{}) error {
