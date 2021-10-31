@@ -50,7 +50,7 @@ func (router *Router) ServeHTTP(writer http.ResponseWriter, request *http.Reques
 	if httpResponse == nil || isNextMiddleware(httpResponse) {
 		if endpoint == nil {
 			endpoint = func(_ HttpRequest) HttpResponse {
-				return Error(StatusNotFound, router.Configuration.RouteNotFound(request))
+				return Error(StatusNotFound, router.RouterConfiguration.RouteNotFound(request))
 			}
 		}
 		httpResponse = endpoint(httpRequest)

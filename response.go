@@ -109,7 +109,7 @@ func (j stringResponse) Header() *HeaderWrapper {
 	return j.header
 }
 
-//Error takes a StatusCode and err which rendering is specified by the Serializers in the Configuration
+//Error takes a StatusCode and err which rendering is specified by the Serializers in the RouterConfiguration
 func Error(code int, err error) *errorResponse {
 	r := &errorResponse{err: err, code: code}
 	r.header = Header(r)
@@ -123,11 +123,11 @@ type errorResponse struct {
 }
 
 func (j errorResponse) Execute(router *Router, _ *http.Request, w *http.ResponseWriter) error {
-	data, err := router.Configuration.ErrorToBytes(j.err)
+	data, err := router.RouterConfiguration.ErrorToBytes(j.err)
 	if err != nil {
 		return err
 	}
-	(*w).Header().Set(ResponseHeaderContentType, router.Configuration.ErrorToBytesContentType())
+	(*w).Header().Set(ResponseHeaderContentType, router.RouterConfiguration.ErrorToBytesContentType())
 	(*w).WriteHeader(j.code)
 	_, err = (*w).Write(data)
 	return err

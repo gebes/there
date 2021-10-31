@@ -19,19 +19,19 @@ type Router struct {
 
 	*RouteGroup
 
-	*Configuration
+	*RouterConfiguration
 
 	HttpEngine
 }
 
 func NewRouter() *Router {
 	r := &Router{
-		RunningPort:       0,
-		GlobalMiddlewares: make([]Middleware, 0),
-		routes:            make([]*Route, 0),
-		mode:              DebugMode,
-		HttpEngine:        newDefaultHttpEngine(),
-		Configuration:     defaultConfiguration(),
+		RunningPort:         0,
+		GlobalMiddlewares:   make([]Middleware, 0),
+		routes:              make([]*Route, 0),
+		mode:                DebugMode,
+		HttpEngine:          newDefaultHttpEngine(),
+		RouterConfiguration: defaultConfiguration(),
 	}
 	r.RouteGroup = NewRouteGroup(r, "/")
 	return r
@@ -96,8 +96,8 @@ func (router *Router) Use(middleware Middleware) *Router {
 	return router
 }
 
-//Configuration is a simple place for the user to override the behavior of the router
-type Configuration struct {
+//RouterConfiguration is a simple place for the user to override the behavior of the router
+type RouterConfiguration struct {
 	Serializers
 	Handlers
 }
@@ -107,8 +107,8 @@ type Serializers interface {
 	ErrorToBytesContentType() string
 }
 
-func defaultConfiguration() *Configuration {
-	return &Configuration{Serializers: &defaultSerializers{}, Handlers: &defaultHandlers{}}
+func defaultConfiguration() *RouterConfiguration {
+	return &RouterConfiguration{Serializers: &defaultSerializers{}, Handlers: &defaultHandlers{}}
 }
 
 type defaultSerializers struct{}
