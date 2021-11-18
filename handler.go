@@ -5,7 +5,19 @@ import (
 )
 
 func (router *Router) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	defer func() {
+		err := recover()
+		if err == nil {
+			return
+		}
+
+		httpResponse := Error(StatusInternalServerError, err)
+		writeHeader(&writer, httpResponse)
+		_ = httpResponse.Execute(router, request, &writer)
+	}()
+
 	method := request.Method
+
 
 	httpRequest := NewHttpRequest(*request)
 	var httpResponse HttpResponse
@@ -13,8 +25,7 @@ func (router *Router) ServeHTTP(writer http.ResponseWriter, request *http.Reques
 	errorOut := func(err error) {
 		httpResponse = Error(StatusInternalServerError, err)
 		writeHeader(&writer, httpResponse)
-		err = httpResponse.Execute(router, request, &writer)
-		// TODO log err
+		_ = httpResponse.Execute(router, request, &writer)
 	}
 
 	for _, middleware := range router.GlobalMiddlewares {

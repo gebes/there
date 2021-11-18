@@ -615,7 +615,24 @@ func TestRoute_ToString(t *testing.T) {
 		fields fields
 		want   string
 	}{
-		// TODO: Add test cases.
+		{
+			name:  "ToString Uppercase",
+			fields: fields{
+				Endpoint:    nil,
+				Methods:     []string{MethodGet},
+				Path:        Path{
+					parts: []PathPart{
+						{
+							value:    "",
+							variable: false,
+						},
+					},
+					ignoreCase: true,
+				},
+				Middlewares: nil,
+			},
+			want:   "[GET] / *IgnoreCase",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

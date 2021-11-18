@@ -2,11 +2,9 @@ package there
 
 import (
 	"bytes"
-	"encoding/json"
-	"encoding/xml"
 	"html/template"
+	"log"
 	"net/http"
-	"github.com/vmihailenco/msgpack/v5"
 )
 
 //HttpResponse is the base for every return you can make in an Endpoint.
@@ -99,10 +97,7 @@ type stringResponse struct {
 func (j stringResponse) Execute(_ *Router, _ *http.Request, w *http.ResponseWriter) error {
 	(*w).WriteHeader(j.code)
 	_, err := (*w).Write([]byte(j.data))
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (j stringResponse) Header() *HeaderWrapper {
@@ -110,7 +105,7 @@ func (j stringResponse) Header() *HeaderWrapper {
 }
 
 //Error takes a StatusCode and err which rendering is specified by the Serializers in the RouterConfiguration
-func Error(code int, err error) *errorResponse {
+func Error(code int, err interface{}) *errorResponse {
 	r := &errorResponse{err: err, code: code}
 	r.header = Header(r)
 	return r
@@ -118,18 +113,19 @@ func Error(code int, err error) *errorResponse {
 
 type errorResponse struct {
 	code   int
-	err    error
+	err    interface{}
 	header *HeaderWrapper
 }
 
 func (j errorResponse) Execute(router *Router, _ *http.Request, w *http.ResponseWriter) error {
-	data, err := router.RouterConfiguration.ErrorToBytes(j.err)
-	if err != nil {
-		return err
+	data := router.RouterConfiguration.ErrorMarshal(j.err)
+	if data == nil {
+		log.Println("ErrorMarshal returned nil byte array")
+		data = []byte("null")
 	}
-	(*w).Header().Set(ResponseHeaderContentType, router.RouterConfiguration.ErrorToBytesContentType())
+	(*w).Header().Set(ResponseHeaderContentType, router.RouterConfiguration.ErrorMarshalContentType)
 	(*w).WriteHeader(j.code)
-	_, err = (*w).Write(data)
+	_, err := (*w).Write(data)
 	return err
 }
 func (j *errorResponse) Header() *HeaderWrapper {
@@ -137,7 +133,7 @@ func (j *errorResponse) Header() *HeaderWrapper {
 }
 
 //Html takes a status code, the path to the html file and a map for the template parsing
-func Html(code int, file string, template map[string]string) *htmlResponse {
+func Html(code int, file string, template interface{}) *htmlResponse {
 	r := &htmlResponse{file: file, template: template, code: code}
 	r.header = Header(r).Set(ResponseHeaderContentType, ContentTypeTextHtml)
 	return r
@@ -145,7 +141,7 @@ func Html(code int, file string, template map[string]string) *htmlResponse {
 
 type htmlResponse struct {
 	file     string
-	template map[string]string
+	template interface{} // could be a map[string]string as an example
 	code     int
 	header   *HeaderWrapper
 }
@@ -190,8 +186,8 @@ type jsonResponse struct {
 	header *HeaderWrapper
 }
 
-func (j *jsonResponse) Execute(_ *Router, _ *http.Request, w *http.ResponseWriter) error {
-	b, err := json.Marshal(j.data)
+func (j *jsonResponse) Execute(router *Router, _ *http.Request, w *http.ResponseWriter) error {
+	b, err := router.RouterConfiguration.JsonMarshal(j.data)
 	if err != nil {
 		return err
 	}
@@ -224,8 +220,8 @@ type msgpackResponse struct {
 	header *HeaderWrapper
 }
 
-func (j *msgpackResponse) Execute(_ *Router, _ *http.Request, w *http.ResponseWriter) error {
-	b, err := msgpack.Marshal(j.data)
+func (j *msgpackResponse) Execute(router *Router, _ *http.Request, w *http.ResponseWriter) error {
+	b, err := router.RouterConfiguration.MsgpackMarshal(j.data)
 	if err != nil {
 		return err
 	}
@@ -273,8 +269,8 @@ type xmlResponse struct {
 	header *HeaderWrapper
 }
 
-func (j *xmlResponse) Execute(_ *Router, _ *http.Request, w *http.ResponseWriter) error {
-	b, err := xml.Marshal(j.data)
+func (j *xmlResponse) Execute(router *Router, _ *http.Request, w *http.ResponseWriter) error {
+	b, err := router.RouterConfiguration.XmlMarshal(j.data)
 	if err != nil {
 		return err
 	}
@@ -300,8 +296,8 @@ type yamlResponse struct {
 	header *HeaderWrapper
 }
 
-func (j *yamlResponse) Execute(_ *Router, _ *http.Request, w *http.ResponseWriter) error {
-	b, err := xml.Marshal(j.data)
+func (j *yamlResponse) Execute(router *Router, _ *http.Request, w *http.ResponseWriter) error {
+	b, err := router.RouterConfiguration.YamlMarshal(j.data)
 	if err != nil {
 		return err
 	}

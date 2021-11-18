@@ -3,7 +3,6 @@ package there
 import (
 	"encoding/json"
 	"encoding/xml"
-	"fmt"
 	"github.com/vmihailenco/msgpack/v5"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
@@ -39,23 +38,22 @@ type BodyReader struct {
 }
 
 func (read BodyReader) BindJson(dest interface{}) error {
-	return read.bind(&dest, json.Unmarshal)
+	return read.bind(dest, json.Unmarshal)
 }
 
 func (read BodyReader) BindXml(dest interface{}) error {
-	return read.bind(&dest, xml.Unmarshal)
+	return read.bind(dest, xml.Unmarshal)
 }
 
 func (read BodyReader) BindMsgpack(dest interface{}) error {
-	return read.bind(&dest, msgpack.Unmarshal)
+	return read.bind(dest, msgpack.Unmarshal)
 }
 
 func (read BodyReader) BindYaml(dest interface{}) error {
-	fmt.Println(ContentTypeApplicationEdiDashX12)
-	return read.bind(&dest, yaml.Unmarshal)
+	return read.bind(dest, yaml.Unmarshal)
 }
 
-func (read BodyReader) bind(dest *interface{}, formatter func(data []byte, v interface{}) error) error {
+func (read BodyReader) bind(dest interface{}, formatter func(data []byte, v interface{}) error) error {
 	body, err := read.ToBytes()
 	if err != nil {
 		return err

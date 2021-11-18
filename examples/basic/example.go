@@ -8,13 +8,13 @@ import (
 func main() {
 
 	router := NewRouter().SetProductionMode()
-	router.
-		Get("/", GetWelcome).AddMiddleware(RandomMiddleware).
-		Group("home").
-			Get("/", GetPage).
-			Get("/params", GetParams).IgnoreCase().
-			Get("/user", GetUser).IgnoreCase().
-			Get("/user/:name", GetUserByName).IgnoreCase().
+	router.Get("/", GetWelcome).AddMiddleware(RandomMiddleware)
+
+	router.Group("home").
+		Get("/", GetPage).
+		Get("/params", GetParams).IgnoreCase().
+		Get("/user", GetUser).IgnoreCase().
+		Get("/user/:name", GetUserByName).IgnoreCase().
 		Use(CorsMiddleware(AllowAllConfiguration()))
 
 	err := router.Listen(8080)
@@ -58,7 +58,7 @@ func GetUserByName(request HttpRequest) HttpResponse {
 
 func GetParams(request HttpRequest) HttpResponse {
 	return Json(StatusOK, map[string]interface{}{
-		"params": request.Params,
+		"params":      request.Params,
 		"routeParams": request.RouteParams,
 	})
 }
