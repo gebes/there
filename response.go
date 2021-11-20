@@ -2,6 +2,7 @@ package there
 
 import (
 	"bytes"
+	"context"
 	"html/template"
 	"log"
 	"net/http"
@@ -308,4 +309,26 @@ func (j *yamlResponse) Execute(router *Router, _ *http.Request, w *http.Response
 
 func (j *yamlResponse) Header() *HeaderWrapper {
 	return j.header
+}
+
+//Context wraps a response
+func WithContext(ctx context.Context, response HttpResponse) *contextResponse {
+	return &contextResponse{
+		ctx,
+		response,
+	}
+}
+
+type contextResponse struct {
+	ctx      context.Context
+	response HttpResponse
+}
+
+func (j *contextResponse) Execute(router *Router, r *http.Request, w *http.ResponseWriter) error {
+	*r = *r.WithContext(j.ctx)
+	return j.response.Execute(router, r, w)
+}
+
+func (j *contextResponse) Header() *HeaderWrapper {
+	return j.response.Header()
 }

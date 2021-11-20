@@ -130,7 +130,7 @@ func CreateRouter() *Router {
 	})
 	errorGroup.Get("/data", func(request HttpRequest) HttpResponse {
 		return Empty(StatusOK)
-	}).AddMiddleware(func(request HttpRequest) HttpResponse {
+	}).With(func(request HttpRequest) HttpResponse {
 		return Error(StatusInternalServerError, errors.New("lol"))
 	})
 

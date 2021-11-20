@@ -136,7 +136,8 @@ func (group *RouteGroup) Options(route string, endpoint Endpoint) *RouteRouteGro
 	return group.Handle(route, endpoint, MethodOptions)
 }
 
-func (group *RouteRouteGroupBuilder) AddMiddleware(middleware Middleware) *RouteRouteGroupBuilder {
+//With adds a middleware to the handler the method is called on
+func (group *RouteRouteGroupBuilder) With(middleware Middleware) *RouteRouteGroupBuilder {
 	group.Middlewares = append(group.Middlewares, middleware)
 	return group
 }

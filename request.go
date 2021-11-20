@@ -1,6 +1,7 @@
 package there
 
 import (
+	"context"
 	"encoding/json"
 	"encoding/xml"
 	"github.com/vmihailenco/msgpack/v5"
@@ -10,7 +11,7 @@ import (
 )
 
 type HttpRequest struct {
-	request http.Request
+	request *http.Request
 
 	Method      string
 	Body        *BodyReader
@@ -19,7 +20,7 @@ type HttpRequest struct {
 	RouteParams *RouteParamReader
 }
 
-func NewHttpRequest(request http.Request) HttpRequest {
+func NewHttpRequest(request *http.Request) HttpRequest {
 	paramReader := BasicReader(request.URL.Query())
 	headerReader := BasicReader(request.Header)
 	return HttpRequest{
@@ -32,9 +33,13 @@ func NewHttpRequest(request http.Request) HttpRequest {
 	}
 }
 
+func (r *HttpRequest) Context() context.Context {
+	return r.request.Context()
+}
+
 //BodyReader reads the body and unmarshal it to the specified destination
 type BodyReader struct {
-	request http.Request
+	request *http.Request
 }
 
 func (read BodyReader) BindJson(dest interface{}) error {

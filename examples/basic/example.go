@@ -8,7 +8,7 @@ import (
 func main() {
 
 	router := NewRouter().SetProductionMode()
-	router.Get("/", GetWelcome).AddMiddleware(RandomMiddleware)
+	router.Get("/", GetWelcome).With(RandomMiddleware)
 
 	router.Group("home").
 		Get("/", GetPage).

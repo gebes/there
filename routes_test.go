@@ -93,7 +93,7 @@ func TestRouteRouteGroupBuilder_AddMiddleware2(t *testing.T) {
 		return Next()
 	}
 	router := NewRouter()
-	h := router.Get("/", handler).AddMiddleware(middleware).AddMiddleware(middleware)
+	h := router.Get("/", handler).With(middleware).With(middleware)
 	if len(h.Middlewares) != 2 {
 		log.Fatalln("container did not have two middlewares")
 	}
@@ -538,8 +538,8 @@ func TestRouteRouteGroupBuilder_AddMiddleware(t *testing.T) {
 				Route:      tt.fields.Route,
 				RouteGroup: tt.fields.RouteGroup,
 			}
-			if got := group.AddMiddleware(tt.args.middleware); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("AddMiddleware() = %v, want %v", got, tt.want)
+			if got := group.With(tt.args.middleware); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("With() = %v, want %v", got, tt.want)
 			}
 		})
 	}

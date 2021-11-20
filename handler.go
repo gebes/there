@@ -18,8 +18,7 @@ func (router *Router) ServeHTTP(writer http.ResponseWriter, request *http.Reques
 
 	method := request.Method
 
-
-	httpRequest := NewHttpRequest(*request)
+	httpRequest := NewHttpRequest(request)
 	var httpResponse HttpResponse
 
 	errorOut := func(err error) {
@@ -31,7 +30,9 @@ func (router *Router) ServeHTTP(writer http.ResponseWriter, request *http.Reques
 	for _, middleware := range router.GlobalMiddlewares {
 		httpResponse = middleware(httpRequest)
 		writeHeader(&writer, httpResponse)
-		if !isNextMiddleware(httpResponse) {
+		if isNextMiddleware(httpResponse) {
+			_ = httpResponse.Execute(router, request, &writer)
+		} else {
 			break
 		}
 	}
@@ -53,7 +54,10 @@ func (router *Router) ServeHTTP(writer http.ResponseWriter, request *http.Reques
 	for _, middleware := range middlewares {
 		httpResponse = middleware(httpRequest)
 		writeHeader(&writer, httpResponse)
-		if !isNextMiddleware(httpResponse) {
+
+		if isNextMiddleware(httpResponse) {
+			_ = httpResponse.Execute(router, request, &writer)
+		} else {
 			break
 		}
 	}
@@ -95,6 +99,17 @@ func isNextMiddleware(response HttpResponse) bool {
 			return true
 		default:
 			return false
+		}
+	case *contextResponse:
+		for {
+			switch res := v.response.(type) {
+			case *contextResponse:
+				v = res
+			case *nextMiddleware:
+				return true
+			default:
+				return false
+			}
 		}
 	default:
 		return false
