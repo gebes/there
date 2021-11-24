@@ -266,7 +266,7 @@ func GetAuthHeader(request HttpRequest) HttpResponse {
 }
 
 ```
-The example seems a bit too big, but it shows everything that you can do with Middlewares. We added two Global Middlewares. One which we defined on our owm and one Cors Middleware, which allows everything.  
-Our RandomMiddleware is now used globally, which means it will be called before any Route Handler. As a result, every second call to our API will fail with the defined Error.  
+The example seems a bit too big, but it shows everything that you can do with Middlewares. We added two Global Middlewares. One which we defined on our own and one Cors Middleware, which allows everything.  
+Our RandomMiddleware is now used globally, which means it will be called before any Route Handler. As a result, every second call to our API will fail with the defined Error.   
 Our DataMiddleware is only used for the GetAuthHeader Route. Therefore, it gets the "Authorization" Header. If the Header is empty, then it will return an error. If not, it will pass the Authorization Header via Context to the next Middleware or final Route Handler.
 In this case, we do not have any extra Middlewares, so it will call the GetAuthHeader handler, read from the Context, and return it as a String.
