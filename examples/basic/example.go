@@ -8,6 +8,7 @@ import (
 func main() {
 
 	router := NewRouter().SetProductionMode()
+
 	router.Get("/", GetWelcome).With(RandomMiddleware)
 
 	router.Group("home").
@@ -64,7 +65,6 @@ func GetParams(request HttpRequest) HttpResponse {
 }
 
 func GetPage(request HttpRequest) HttpResponse {
-
 	user := request.Params.GetDefault("user", "Gebes")
 	return Html(StatusOK, "./examples/index.html", map[string]string{
 		"user": user,
