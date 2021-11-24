@@ -144,7 +144,7 @@ func GetUsers(request HttpRequest) HttpResponse {
 
 ```
 
-If you run this example and open localhost:8080/users in your tower, then you get the following result:
+If you run this example and open [localhost:8080/users](http://localhost:8080/users) in your browser, then you get the following result:
 
 ```json
 [{"name":"Steve Jobs","description":"Apple Founder"},{"name":"Elon Musk","description":"Cool guy"},{"name":"Bill Gates","description":"Microsoft Founder"},{"name":"Tim Cook","description":"Current Apple Ceo"}]
@@ -197,7 +197,7 @@ func RouteHandler(request HttpRequest) HttpResponse {
 }
 ```
 
-If you are up to it, you can also create your own Response by creating a struct that implements the HttpResponse interface.
+If you are up to it, you can also create your own Response by creating a struct that implements the `HttpResponse` interface.
 
 ### Middlewares
 
