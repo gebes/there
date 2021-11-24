@@ -49,7 +49,7 @@ func main(){
 ```
 
 Just create a new router instance and register some routes. `there` provides simple builder patterns, so you don't need to
-write `router.` for every route or Middleware.
+write `router.` for every route or middleware.
 
 ### Listen to a port
 ```go
@@ -201,8 +201,8 @@ If you are up to it, you can also create your own Response by creating a struct 
 
 ### Middlewares
 
-Of course, `there` has Middleware support. You can either have Global Middlewares by using `router.Use(middleware)` or route-specific Middlewares by using `router.Get("/route", handler).With(middleware)`.  
-You cannot do `router.With(middleware)` because the `.With(middleware)` method requires a route to be defined before. It will add the Middleware always to the last added route.
+Of course, `there` has middleware support. You can either have global middlewares by using `router.Use(middleware)` or route-specific middlewares by using `router.Get("/route", handler).With(middleware)`.  
+You cannot do `router.With(middleware)` because the `.With(middleware)` method requires a route to be defined before. It will add the middleware always to the last added route.
 
 ```go
 package main
@@ -215,7 +215,7 @@ import (
 
 func main() {
 
-	// Register Global Middleware 
+	// Register global middleware 
 	router := NewRouter().Use(RandomMiddleware).Use(CorsMiddleware(AllowAllConfiguration()))
 
 	router.
@@ -237,7 +237,7 @@ func RandomMiddleware(HttpRequest) HttpResponse {
 		// If you do not return Next(), then the Invocation-Chain will be broken, and the Response will be returned
 		return Error(StatusInternalServerError, errors.New("lost database connection"))
 	}
-	// Next() means, that either the next Middleware or Handler (if it is the last Middleware) should be executed
+	// Next() means, that either the next middleware or Handler (if it is the last middleware) should be executed
 	return Next()
 }
 
@@ -250,7 +250,7 @@ func DataMiddleware(request HttpRequest) HttpResponse {
 	// We wrap Next() with a Context, by using the WithContext Wrapper.
 	// In the GetAuthHeader Handler, we can then use the current Context to read "auth"
 	// WithContext can also be returned in a regular Handler, but it would make no sense. To where do you want to pass the context???
-	// The WithContext() and Next() HttpResponse should only be used for Middlewares
+	// The WithContext() and Next() HttpResponse should only be used for middlewares
 	return WithContext(context.WithValue(request.Context(), "auth", auth), Next())
 }
 
@@ -266,7 +266,7 @@ func GetAuthHeader(request HttpRequest) HttpResponse {
 }
 
 ```
-The example seems a bit too big, but it shows everything that you can do with Middlewares. We added two Global Middlewares. One which we defined on our own and one Cors Middleware, which allows everything.  
+The example seems a bit too big, but it shows everything that you can do with middlewares. We added two global middlewares. One which we defined on our own and one Cors middleware, which allows everything.  
 Our RandomMiddleware is now used globally, which means it will be called before any Route Handler. As a result, every second call to our API will fail with the defined Error.   
-Our DataMiddleware is only used for the GetAuthHeader Route. Therefore, it gets the "Authorization" Header. If the Header is empty, then it will return an error. If not, it will pass the Authorization Header via Context to the next Middleware or final Route Handler.
-In this case, we do not have any extra Middlewares, so it will call the GetAuthHeader handler, read from the Context, and return it as a String.
+Our DataMiddleware is only used for the GetAuthHeader Route. Therefore, it gets the "Authorization" Header. If the Header is empty, then it will return an error. If not, it will pass the Authorization Header via Context to the next middleware or final Route Handler.
+In this case, we do not have any extra middlewares, so it will call the GetAuthHeader handler, read from the Context, and return it as a String.
