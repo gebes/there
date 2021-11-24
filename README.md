@@ -14,7 +14,7 @@ If it states `Complete example`, you can just copy the whole example and run it 
   * [Listen to a port](#listen-to-a-port)
   * [Complete example: returning Json, Xml, Yaml or Msgpack](#complete-example-returning-json-xml-yaml-or-msgpack)
   * [All HttpResponses](#all-httpresponses)
-  * [Middlewares](#middlewares)
+  * [Complete example: Middlewares](#middlewares)
 
 ## Install 
 
