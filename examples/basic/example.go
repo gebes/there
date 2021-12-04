@@ -9,14 +9,16 @@ func main() {
 
 	router := NewRouter().SetProductionMode()
 
-	router.Get("/", GetWelcome).With(RandomMiddleware)
+	router.Use(CorsMiddleware(AllowAllConfiguration()))
+
+	router.Get("/", GetWelcome).
+		With(RandomMiddleware)
 
 	router.Group("home").
 		Get("/", GetPage).
 		Get("/params", GetParams).IgnoreCase().
 		Get("/user", GetUser).IgnoreCase().
-		Get("/user/:name", GetUserByName).IgnoreCase().
-		Use(CorsMiddleware(AllowAllConfiguration()))
+		Get("/user/:name", GetUserByName).IgnoreCase()
 
 	err := router.Listen(8080)
 

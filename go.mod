@@ -3,7 +3,6 @@ module github.com/Gebes/there/v2
 go 1.17
 
 require (
-	github.com/stretchr/testify v1.7.0
 	github.com/vmihailenco/msgpack/v5 v5.3.5
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )

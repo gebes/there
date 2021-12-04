@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
-	"github.com/stretchr/testify/assert"
 	"github.com/vmihailenco/msgpack/v5"
 	"gopkg.in/yaml.v3"
 	"io"
@@ -401,7 +400,7 @@ func TestBodyToStringError(t *testing.T) {
 			}
 
 			if tests != did {
-				return Error(StatusInternalServerError, "not every bind threw an error: "+ strconv.Itoa(did)+ "/" + strconv.Itoa(tests))
+				return Error(StatusInternalServerError, "not every bind threw an error: "+strconv.Itoa(did)+"/"+strconv.Itoa(tests))
 			}
 
 			return Empty(StatusOK)
@@ -469,13 +468,13 @@ func TestHtmlResponse(t *testing.T) {
 	router := CreateRouter()
 	r := readBody(router, t, MethodGet, "/data/html", nil)
 	res := string(r)
-	assert.Equal(t, res, "Hello Hannes")
+	AssertEquals(t, "Hello Hannes", res)
 }
 func TestBytesResponse(t *testing.T) {
 	router := CreateRouter()
 	r := readBody(router, t, MethodGet, "/data/bytes", nil)
 	res := string(r)
-	assert.Equal(t, res, "ab")
+	AssertEquals(t, "ab", res)
 }
 
 func readStringBody(router *Router, t *testing.T, method, route string, body io.Reader) string {
@@ -501,7 +500,7 @@ func testBind(t *testing.T, marshaller func(v interface{}) ([]byte, error), rout
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, sampleSimpleUser.Name, readStringBody(router, t, MethodPost, "/data/return/"+route, bytes.NewReader(data)))
+	AssertEquals(t, readStringBody(router, t, MethodPost, "/data/return/"+route, bytes.NewReader(data)), sampleSimpleUser.Name)
 }
 
 func TestJsonBodyBind(t *testing.T) {
@@ -523,5 +522,5 @@ func TestYamlBodyBind(t *testing.T) {
 func TestStringBodyBind(t *testing.T) {
 	router := CreateRouter()
 	s := "Hello !!!"
-	assert.Equal(t, s, readStringBody(router, t, MethodPost, "/data/return/string", bytes.NewReader([]byte(s))))
+	AssertEquals(t, readStringBody(router, t, MethodPost, "/data/return/string", bytes.NewReader([]byte(s))), s)
 }

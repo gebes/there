@@ -11,7 +11,7 @@ import (
 )
 
 type HttpRequest struct {
-	request *http.Request
+	Request *http.Request
 
 	Method      string
 	Body        *BodyReader
@@ -24,7 +24,7 @@ func NewHttpRequest(request *http.Request) HttpRequest {
 	paramReader := BasicReader(request.URL.Query())
 	headerReader := BasicReader(request.Header)
 	return HttpRequest{
-		request:     request,
+		Request:     request,
 		Method:      request.Method,
 		Body:        &BodyReader{request: request},
 		Params:      &paramReader,
@@ -34,7 +34,7 @@ func NewHttpRequest(request *http.Request) HttpRequest {
 }
 
 func (r *HttpRequest) Context() context.Context {
-	return r.request.Context()
+	return r.Request.Context()
 }
 
 //BodyReader reads the body and unmarshal it to the specified destination

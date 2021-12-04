@@ -2,6 +2,13 @@ package there
 
 import "testing"
 
+func AssertEquals(t *testing.T, got, want string) {
+	if got != want {
+		t.Errorf("%v != %v", want, got)
+	}
+}
+
+
 func TestAssert(t *testing.T) {
 	defer func() { recover() }()
 
@@ -109,3 +116,4 @@ func TestCheckArraysOverlap(t *testing.T) {
 		})
 	}
 }
+

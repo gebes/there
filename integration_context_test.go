@@ -3,7 +3,6 @@ package there
 import (
 	"context"
 	"errors"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http/httptest"
 	"testing"
@@ -71,8 +70,11 @@ func TestContextMiddleware1(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not read body %v", err)
 	}
-	dat := string(data)
-	assert.Equal(t, "{\"Name\":\"Person\"}", dat)
+	got := string(data)
+	want := "{\"Name\":\"Person\"}"
+	if got != want{
+		t.Errorf("%v != %v", want, got)
+	}
 }
 
 func TestContextMiddleware2(t *testing.T) {
@@ -92,6 +94,9 @@ func TestContextMiddleware2(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not read body %v", err)
 	}
-	dat := string(data)
-	assert.Equal(t, "Error", dat)
+	got := string(data)
+	want := "Error"
+	if got != want{
+		t.Errorf("%v != %v", want, got)
+	}
 }

@@ -311,7 +311,7 @@ func (j *yamlResponse) Header() *HeaderWrapper {
 	return j.header
 }
 
-//Context wraps a response
+//WithContext Context wraps a response
 func WithContext(ctx context.Context, response HttpResponse) *contextResponse {
 	return &contextResponse{
 		ctx,
