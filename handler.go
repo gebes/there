@@ -20,7 +20,7 @@ func (router *Router) ServeHTTP(rw http.ResponseWriter, request *http.Request) {
 		write(Error(StatusInternalServerError, err))
 	}()
 
-	httpRequest := NewHttpRequest(request)
+	httpRequest := NewHttpRequest(request, writer)
 
 	for _, middleware := range router.GlobalMiddlewares {
 		response := middleware(httpRequest)

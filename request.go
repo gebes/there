@@ -11,7 +11,8 @@ import (
 )
 
 type HttpRequest struct {
-	Request *http.Request
+	Request        *http.Request
+	ResponseWriter *http.ResponseWriter
 
 	Method      string
 	Body        *BodyReader
@@ -20,16 +21,17 @@ type HttpRequest struct {
 	RouteParams *RouteParamReader
 }
 
-func NewHttpRequest(request *http.Request) HttpRequest {
+func NewHttpRequest(request *http.Request, responseWriter *http.ResponseWriter) HttpRequest {
 	paramReader := BasicReader(request.URL.Query())
 	headerReader := BasicReader(request.Header)
 	return HttpRequest{
-		Request:     request,
-		Method:      request.Method,
-		Body:        &BodyReader{request: request},
-		Params:      &paramReader,
-		Headers:     &headerReader,
-		RouteParams: nil, // inject routeParams in Handler
+		Request:        request,
+		ResponseWriter: responseWriter,
+		Method:         request.Method,
+		Body:           &BodyReader{request: request},
+		Params:         &paramReader,
+		Headers:        &headerReader,
+		RouteParams:    nil, // inject routeParams in Handler
 	}
 }
 
