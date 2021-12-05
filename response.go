@@ -248,7 +248,6 @@ type redirectResponse struct {
 }
 
 func (j redirectResponse) Execute(_ *Router, r *http.Request, w *http.ResponseWriter) error {
-	(*w).WriteHeader(StatusMovedPermanently)
 	http.Redirect(*w, r, j.url, StatusMovedPermanently)
 	return nil
 }
