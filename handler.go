@@ -8,8 +8,8 @@ func (router *Router) ServeHTTP(rw http.ResponseWriter, request *http.Request) {
 	writer := &rw
 
 	write := func(response HttpResponse) {
-		writeHeader(writer, response)
 		_ = response.Execute(router, request, writer)
+		writeHeader(writer, response)
 	}
 
 	defer func() {
