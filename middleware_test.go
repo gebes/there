@@ -27,7 +27,7 @@ func TestCorsMiddleware(t *testing.T) {
 		Method: MethodGet,
 	})
 
-	if !isNextMiddleware(response) {
+	if !isNextResponse(response) {
 		log.Fatalln("response is not next middleware")
 	}
 

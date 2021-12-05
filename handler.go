@@ -4,36 +4,29 @@ import (
 	"net/http"
 )
 
-func (router *Router) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+func (router *Router) ServeHTTP(rw http.ResponseWriter, request *http.Request) {
+	writer := &rw
+
+	write := func(response HttpResponse) {
+		writeHeader(writer, response)
+		_ = response.Execute(router, request, writer)
+	}
+
 	defer func() {
 		err := recover()
 		if err == nil {
 			return
 		}
-
-		httpResponse := Error(StatusInternalServerError, err)
-		writeHeader(&writer, httpResponse)
-		_ = httpResponse.Execute(router, request, &writer)
+		write(Error(StatusInternalServerError, err))
 	}()
 
-	method := request.Method
-
 	httpRequest := NewHttpRequest(request)
-	var httpResponse HttpResponse
-
-	errorOut := func(err error) {
-		httpResponse = Error(StatusInternalServerError, err)
-		writeHeader(&writer, httpResponse)
-		_ = httpResponse.Execute(router, request, &writer)
-	}
 
 	for _, middleware := range router.GlobalMiddlewares {
-		httpResponse = middleware(httpRequest)
-		writeHeader(&writer, httpResponse)
-		if isNextMiddleware(httpResponse) {
-			_ = httpResponse.Execute(router, request, &writer)
-		} else {
-			break
+		response := middleware(httpRequest)
+		write(response)
+		if !isNextResponse(response) {
+			return
 		}
 	}
 
@@ -42,7 +35,7 @@ func (router *Router) ServeHTTP(writer http.ResponseWriter, request *http.Reques
 
 	for _, route := range router.routes {
 		routeParams, ok := route.Path.Parse(request.URL.Path)
-		if ok && CheckArrayContains(route.Methods, method) {
+		if ok && CheckArrayContains(route.Methods, request.Method) {
 			endpoint = route.Endpoint
 			middlewares = route.Middlewares
 			routeParamReader := RouteParamReader(routeParams)
@@ -52,30 +45,25 @@ func (router *Router) ServeHTTP(writer http.ResponseWriter, request *http.Reques
 	}
 
 	for _, middleware := range middlewares {
-		httpResponse = middleware(httpRequest)
-		writeHeader(&writer, httpResponse)
-
-		if isNextMiddleware(httpResponse) {
-			_ = httpResponse.Execute(router, request, &writer)
-		} else {
-			break
+		response := middleware(httpRequest)
+		write(response)
+		if !isNextResponse(response) {
+			return
 		}
 	}
 
-	if httpResponse == nil || isNextMiddleware(httpResponse) {
-		if endpoint == nil {
-			endpoint = func(_ HttpRequest) HttpResponse {
-				return Error(StatusNotFound, router.RouterConfiguration.RouteNotFound(request))
-			}
+	if endpoint == nil {
+		endpoint = func(_ HttpRequest) HttpResponse {
+			return Error(StatusNotFound, router.RouterConfiguration.RouteNotFound(request))
 		}
-		httpResponse = endpoint(httpRequest)
-		writeHeader(&writer, httpResponse)
 	}
 
-	err := httpResponse.Execute(router, request, &writer)
+	httpResponse := endpoint(httpRequest)
+	writeHeader(writer, httpResponse)
+
+	err := httpResponse.Execute(router, request, writer)
 	if err != nil {
-		errorOut(err)
-		return
+		write(Error(StatusInternalServerError, err))
 	}
 
 }
@@ -89,7 +77,7 @@ func writeHeader(w *http.ResponseWriter, httpResponse HttpResponse) {
 	}
 }
 
-func isNextMiddleware(response HttpResponse) bool {
+func isNextResponse(response HttpResponse) bool {
 	switch v := response.(type) {
 	case *nextMiddleware:
 		return true

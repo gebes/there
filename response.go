@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"html/template"
-	"log"
 	"net/http"
 )
 
@@ -121,8 +120,7 @@ type errorResponse struct {
 func (j errorResponse) Execute(router *Router, _ *http.Request, w *http.ResponseWriter) error {
 	data := router.RouterConfiguration.ErrorMarshal(j.err)
 	if data == nil {
-		log.Println("ErrorMarshal returned nil byte array")
-		data = []byte("null")
+		data = []byte{}
 	}
 	(*w).Header().Set(ResponseHeaderContentType, router.RouterConfiguration.ErrorMarshalContentType)
 	(*w).WriteHeader(j.code)

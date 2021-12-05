@@ -34,8 +34,8 @@ func Test_isNextMiddleware(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := isNextMiddleware(tt.args.response); got != tt.want {
-				t.Errorf("isNextMiddleware() = %v, want %v", got, tt.want)
+			if got := isNextResponse(tt.args.response); got != tt.want {
+				t.Errorf("isNextResponse() = %v, want %v", got, tt.want)
 			}
 		})
 	}

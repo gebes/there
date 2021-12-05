@@ -315,8 +315,8 @@ func TestErrorErrorResponse(t *testing.T) {
 	}
 	b := readStringBody(router, t, MethodGet, "/error/error/1", nil)
 
-	if b != "null" {
-		log.Fatalln("body was not null")
+	if b != "" {
+		log.Fatalln("body was not empty")
 	}
 }
 
