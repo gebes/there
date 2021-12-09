@@ -18,7 +18,7 @@ func TestNewRouteGroup(t *testing.T) {
 	}
 
 	handler := func(request HttpRequest) HttpResponse {
-		return Empty(StatusOK)
+		return Status(StatusOK)
 	}
 
 	tests := map[string]func(route string, endpoint Endpoint) *RouteRouteGroupBuilder{
@@ -68,7 +68,7 @@ func TestNewRouteGroup2(t *testing.T) {
 func TestNewRouteGroup3(t *testing.T) {
 
 	handler := func(request HttpRequest) HttpResponse {
-		return Empty(StatusOK)
+		return Status(StatusOK)
 	}
 
 	router := NewRouter()
@@ -87,10 +87,10 @@ func TestNewRouteGroup3(t *testing.T) {
 
 func TestRouteRouteGroupBuilder_AddMiddleware2(t *testing.T) {
 	handler := func(request HttpRequest) HttpResponse {
-		return Empty(StatusOK)
+		return Status(StatusOK)
 	}
-	middleware := func(request HttpRequest) HttpResponse {
-		return Next()
+	middleware := func(request HttpRequest, next HttpResponse) HttpResponse {
+		return next
 	}
 	router := NewRouter()
 	h := router.Get("/", handler).With(middleware).With(middleware)

@@ -37,7 +37,7 @@ func BenchmarkThere(b *testing.B) {
 func BenchmarkMux(b *testing.B) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		writer.Header().Set(ResponseHeaderContentType, ContentTypeApplicationJson)
+		writer.WithHeaders().Set(ResponseHeaderContentType, ContentTypeApplicationJson)
 		writer.WriteHeader(200)
 		data, err := json.Marshal(map[string]interface{}{
 			"text": "Hi",

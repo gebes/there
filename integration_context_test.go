@@ -1,9 +1,12 @@
-package there
+package there_test
 
 import (
 	"context"
 	"errors"
+	. "github.com/Gebes/there/v2"
+	"github.com/Gebes/there/v2/middlewares"
 	"io/ioutil"
+	"log"
 	"net/http/httptest"
 	"testing"
 )
@@ -17,8 +20,9 @@ var (
 
 func createRouter() *Router {
 	router := NewRouter()
+	router.Use(middlewares.Recoverer)
 	router.
-		Use(func(request HttpRequest) HttpResponse {
+		Use(func(request HttpRequest, next HttpResponse) HttpResponse {
 			authorization := request.Headers.GetDefault(RequestHeaderAuthorization, "")
 
 			user, ok := users[authorization]
@@ -26,10 +30,12 @@ func createRouter() *Router {
 				return Error(StatusUnauthorized, errors.New("not authorized"))
 			}
 
-			return WithContext(context.WithValue(request.Context(), "user", user), Next())
+			request.WithContext(context.WithValue(request.Context(), "user", user))
+			return next
 		})
 	router.
 		Get("/user", func(request HttpRequest) HttpResponse {
+			log.Println(request.Context().Value("hello"), request.Context().Value("world"))
 			user, ok := request.Context().Value("user").(simpleUser)
 
 			if !ok {
@@ -37,17 +43,18 @@ func createRouter() *Router {
 			}
 
 			return Json(StatusOK, user)
-		}).With(func(request HttpRequest) HttpResponse {
-		// Nested WithContext Test
-		ctx := context.WithValue(request.Context(), "world", "hello")
-		r := WithContext(ctx, Next())
-		return WithContext(context.WithValue(ctx, "hello", "world"), r)
+		}).With(func(request HttpRequest, next HttpResponse) HttpResponse {
+
+		request.WithContext(context.WithValue(request.Context(), "world", "hello"))
+		request.WithContext(context.WithValue(request.Context(), "hello", "world"))
+		return next
 	})
 
 	router.Get("/user/test2", func(request HttpRequest) HttpResponse {
-		return Empty(StatusOK)
-	}).With(func(request HttpRequest) HttpResponse {
-		return WithContext(context.WithValue(request.Context(), "hello", "world"), String(StatusBadRequest, "Error"))
+		return Status(StatusOK)
+	}).With(func(request HttpRequest, next HttpResponse) HttpResponse {
+		request.WithContext(context.WithValue(request.Context(), "hello", "world"))
+		return String(StatusBadRequest, "Error")
 	})
 
 	return router
@@ -72,7 +79,7 @@ func TestContextMiddleware1(t *testing.T) {
 	}
 	got := string(data)
 	want := "{\"Name\":\"Person\"}"
-	if got != want{
+	if got != want {
 		t.Errorf("%v != %v", want, got)
 	}
 }
@@ -96,7 +103,7 @@ func TestContextMiddleware2(t *testing.T) {
 	}
 	got := string(data)
 	want := "Error"
-	if got != want{
+	if got != want {
 		t.Errorf("%v != %v", want, got)
 	}
 }

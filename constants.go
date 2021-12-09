@@ -148,7 +148,7 @@ var statusText = map[int]string{
 	StatusUpgradeRequired:              "Upgrade Required",
 	StatusPreconditionRequired:         "Precondition Required",
 	StatusTooManyRequests:              "Too Many Requests",
-	StatusRequestHeaderFieldsTooLarge:  "Request Header Fields Too Large",
+	StatusRequestHeaderFieldsTooLarge:  "Request WithHeaders Fields Too Large",
 	StatusUnavailableForLegalReasons:   "Unavailable For Legal Reasons",
 
 	StatusInternalServerError:           "Internal Server Error",
