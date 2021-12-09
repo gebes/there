@@ -38,7 +38,5 @@ func GetUsers(request HttpRequest) HttpResponse {
 	// there automatically sets the Content-Type header
 	return Json(StatusOK, users) // return all the users as JSON
 	//	return Xml(StatusOK, users)
-	//	return Yaml(StatusOK, users)
-	//	return Msgpack(StatusOK, users) // Msgpack is supported out of the box
 }
 

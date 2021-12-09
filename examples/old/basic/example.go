@@ -33,16 +33,16 @@ type User struct {
 
 var count = 0
 
-func RandomMiddleware(HttpRequest) HttpResponse {
+func RandomMiddleware(request HttpRequest, next HttpResponse) HttpResponse {
 	count++
-
 	if count%2 == 0 {
-		return Error(StatusInternalServerError, errors.New("lost database connection")).
-			Header().Set(ResponseHeaderContentLanguage, "English")
+		// If you do not return Next(), then the Invocation-Chain will be broken, and the Response will be returned
+		return Error(StatusInternalServerError, errors.New("lost database connection"))
 	}
-
-	return Next()
+	// Next() means, that either the next Middleware or Handler (if it is the last Middleware) should be executed
+	return next
 }
+
 
 func GetWelcome(HttpRequest) HttpResponse {
 	return String(StatusOK, "Hello")

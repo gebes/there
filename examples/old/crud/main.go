@@ -47,11 +47,11 @@ func PostUser(request HttpRequest) HttpResponse {
 	}
 
 	users[userToAdd.Id] = userToAdd
-	return Empty(StatusOK)
+	return Status(StatusOK)
 }
 
 func DeleteUser(request HttpRequest) HttpResponse {
 	queryId, _ := request.RouteParams.Get("id")
 	delete(users, queryId)
-	return Empty(StatusOK)
+	return Status(StatusOK)
 }

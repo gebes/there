@@ -24,18 +24,18 @@ func main() {
 var count = 0
 
 //RandomMiddleware returns an example error for every second request
-func RandomMiddleware(HttpRequest) HttpResponse {
+func RandomMiddleware(request HttpRequest, next HttpResponse) HttpResponse {
 	count++
 	if count%2 == 0 {
 		// If you do not return Next(), then the Invocation-Chain will be broken, and the Response will be returned
 		return Error(StatusInternalServerError, errors.New("lost database connection"))
 	}
 	// Next() means, that either the next Middleware or Handler (if it is the last Middleware) should be executed
-	return Next()
+	return next
 }
 
 //DataMiddleware checks if the user provided an Authorization header. If so, then it will be passed on to the handler via Context
-func DataMiddleware(request HttpRequest) HttpResponse {
+func DataMiddleware(request HttpRequest, next HttpResponse) HttpResponse {
 	auth := request.Headers.GetDefault(RequestHeaderAuthorization, "")
 	if len(auth) == 0 {
 		return Error(StatusBadRequest, errors.New("no authorization header provider"))
@@ -44,7 +44,8 @@ func DataMiddleware(request HttpRequest) HttpResponse {
 	// In the GetAuthHeader Handler, we can then use the current Context to read "auth"
 	// WithContext can also be returned in a regular Handler, but it would make no sense. To where do you want to pass the context???
 	// The WithContext() and Next() HttpResponse should only be used for Middlewares
-	return WithContext(context.WithValue(request.Context(), "auth", auth), Next())
+	request.WithContext(context.WithValue(request.Context(), "auth", auth))
+	return next
 }
 
 func GetAuthHeader(request HttpRequest) HttpResponse {
