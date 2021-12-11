@@ -38,12 +38,12 @@ func (j bytesResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request){
 }
 
 // Status takes a StatusCode and renders nothing
-func Status(code int) *statusResponse {
+func Status(code int) HttpResponse {
 	return &statusResponse{code: code}
 }
 
 // StatusWithResponse writes the StatusCode and renders the HttpResponse
-func StatusWithResponse(code int, response HttpResponse) *statusResponse {
+func StatusWithResponse(code int, response HttpResponse) HttpResponse {
 	return &statusResponse{code: code, response: response}
 }
 
@@ -134,7 +134,7 @@ func Message(code int, message string) HttpResponse {
 }
 
 //Redirect redirects to the specific URL
-func Redirect(url string) *redirectResponse {
+func Redirect(url string) HttpResponse {
 	return &redirectResponse{url: url}
 }
 
@@ -148,13 +148,13 @@ func (j redirectResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request)  {
 
 //Xml takes a StatusCode and data which gets marshaled to Xml
 func Xml(code int, data interface{}) HttpResponse {
-	jsonData, err := xml.Marshal(data)
+	xmlData, err := xml.Marshal(data)
 	if err != nil {
 		panic(err)
 	}
 	return WithHeaders(MapString{
 		ResponseHeaderContentType: ContentTypeApplicationXml,
-	}, Bytes(code, jsonData))
+	}, Bytes(code, xmlData))
 }
 
 
