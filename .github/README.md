@@ -57,20 +57,20 @@ package main
 import . "github.com/Gebes/there/v2"
 
 func main() {
-	router := NewRouter().
-		Get("/", Get)
-
-	err := router.Listen(8080)
+	router := NewRouter() // Create a new router
+	
+	// Register GET route /
+	router.Get("/", func(request HttpRequest) HttpResponse {
+		return Json(StatusOK, Map{
+			"message": "Hello World!",
+		})
+	})
+	
+	err := router.Listen(8080) // Start listening on 8080
 
 	if err != nil {
 		panic(err)
 	}
-}
-
-func Get(request HttpRequest) HttpResponse {
-	return Json(StatusOK, Map{
-		"message": "Hello World!",
-    })
 }
 ```
 
@@ -147,18 +147,18 @@ A HttpResponse is basically a `http.handler`. **There** provides several handler
 ```go
 func CreatePost(request HttpRequest) HttpResponse {
 	var body Post
-	err := request.Body.BindJson(&body)
-	if err != nil {
+	err := request.Body.BindJson(&body) // Decode body
+	if err != nil { // If body was not valid json, return bad request error
 		return Error(StatusBadRequest, "Could not parse body: "+err.Error())
 	}
 
 	post := postById(body.Id)
-	if post != nil {
+	if post != nil { // if the post already exists, return conflict error
 		return Error(StatusConflict, "Post with this ID already exists")
 	}
 
-	posts = append(posts, body)
-	return Json(StatusCreated, body)
+	posts = append(posts, body) // create post
+	return Json(StatusCreated, body) // return created post as json
 }
 ```
 
@@ -180,17 +180,17 @@ import (
 
 //Msgpack takes a StatusCode and data which gets marshaled to Msgpack
 func Msgpack(code int, data interface{}) HttpResponse {
-   msgpackData, err := msgpack.Marshal(data)
+   msgpackData, err := msgpack.Marshal(data) // marshal the data
    if err != nil {
-      panic(err)
+      panic(err) // panic if the data was invalid. can be caught by Recoverer
    }
-   return WithHeaders(MapString{
+   return WithHeaders(MapString{ // set proper content-type
       ResponseHeaderContentType: "application/x-msgpack",
    }, Bytes(code, msgpackData))
 }
 
 func Get(request HttpRequest) HttpResponse {
-   return Msgpack(StatusOK, map[string]string{
+   return Msgpack(StatusOK, map[string]string{ // now use the created response
       "Hello": "World",
       "How":   "are you?",
    })
@@ -214,11 +214,13 @@ Here is an example:
 func main() {
    router := NewRouter()
 
+   // Register global middlewares
    router.Use(middlewares.Recoverer)
    router.Use(middlewares.Cors(middlewares.AllowAllConfiguration()))
    router.Use(GlobalMiddleware)
 
-   router.Get("/", Get).With(RouteSpecificMiddleware)
+   router.
+   	Get("/", Get).With(RouteSpecificMiddleware) // Register route with middleware
 
    err := router.Listen(8080)
    if err != nil {
@@ -227,18 +229,18 @@ func main() {
 }
 
 func GlobalMiddleware(request HttpRequest, next HttpResponse) HttpResponse {
-
+   // Check the request content-type
    if request.Headers.GetDefault(RequestHeaderContentType, "") != ContentTypeApplicationJson {
       return Error(StatusUnsupportedMediaType, "Header " + RequestHeaderContentType + " is not " + ContentTypeApplicationJson)
    }
-
-   return next
+   
+   return next // Everything is fine until here, continue
 }
 
 func RouteSpecificMiddleware(request HttpRequest, next HttpResponse) HttpResponse {
    return WithHeaders(MapString{
       ResponseHeaderContentLanguage: "en",
-   }, next)
+   }, next) // Set the content-language header by wrapping next with WithHeaders
 }
 ```
 

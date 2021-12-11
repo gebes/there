@@ -47,18 +47,18 @@ func GetPostById(request HttpRequest) HttpResponse {
 
 func CreatePost(request HttpRequest) HttpResponse {
 	var body Post
-	err := request.Body.BindJson(&body)
-	if err != nil {
+	err := request.Body.BindJson(&body) // Decode body
+	if err != nil { // If body was not valid json, return bad request error
 		return Error(StatusBadRequest, "Could not parse body: "+err.Error())
 	}
 
 	post := postById(body.Id)
-	if post != nil {
+	if post != nil { // if the post already exists, return conflict error
 		return Error(StatusConflict, "Post with this ID already exists")
 	}
 
-	posts = append(posts, body)
-	return Json(StatusCreated, body)
+	posts = append(posts, body) // create post
+	return Json(StatusCreated, body) // return created post as json
 }
 
 func postById(id string) *Post {

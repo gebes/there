@@ -11,13 +11,13 @@ import (
 
 //Msgpack takes a StatusCode and data which gets marshaled to Msgpack
 func Msgpack(code int, data interface{}) HttpResponse {
-	msgpackData, err := msgpack.Marshal(data)
-	if err != nil {
-		panic(err)
-	}
-	return WithHeaders(MapString{
-		ResponseHeaderContentType: "application/x-msgpack",
-	}, Bytes(code, msgpackData))
+   msgpackData, err := msgpack.Marshal(data) // marshal the data
+   if err != nil {
+      panic(err) // panic if the data was invalid. can be caught by Recoverer
+   }
+   return WithHeaders(MapString{ // set proper content-type
+      ResponseHeaderContentType: "application/x-msgpack",
+   }, Bytes(code, msgpackData))
 }
 
 func main() {
@@ -33,9 +33,9 @@ func main() {
 }
 
 func Get(request HttpRequest) HttpResponse {
-	return Msgpack(StatusOK, map[string]string{
-		"Hello": "World",
-		"How":   "are you?",
-	})
+   return Msgpack(StatusOK, map[string]string{ // now use the created response
+      "Hello": "World",
+      "How":   "are you?",
+   })
 }
 */
