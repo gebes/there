@@ -2,158 +2,105 @@ package there
 
 import (
 	"bytes"
-	"context"
+	"encoding/json"
+	"encoding/xml"
+	"fmt"
 	"html/template"
 	"net/http"
 )
 
+
 //HttpResponse is the base for every return you can make in an Endpoint.
-//Necessary to render the Response by calling Execute and for the Header Builder.
-type HttpResponse interface {
-	Header() *HeaderWrapper
-	Execute(router *Router, r *http.Request, w *http.ResponseWriter) error
-}
+//Necessary to render the Response by calling Execute and for the WithHeaders Builder.
+type HttpResponse http.Handler
 
-//HeaderWrapper for the fluent Header Builder
-type HeaderWrapper struct {
-	Values map[string][]string
-	HttpResponse
-}
+type HttpResponseFunc func(http.ResponseWriter, *http.Request)
 
-func Header(httpResponse HttpResponse) *HeaderWrapper {
-	return &HeaderWrapper{Values: map[string][]string{}, HttpResponse: httpResponse}
-}
-
-func (h *HeaderWrapper) Set(key string, values ...string) *HeaderWrapper {
-	h.Values[key] = values
-	return h
-}
-
-func (h *HeaderWrapper) SetAll(values map[string][]string) *HeaderWrapper {
-	for key, values := range values {
-		h.Set(key, values...)
-	}
-	return h
+// ServeHTTP calls f(w, r).
+func (f HttpResponseFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	f(w, r)
 }
 
 //Bytes takes a StatusCode and a series of bytes to render
-func Bytes(code int, data []byte) *bytesResponse {
-	r := &bytesResponse{data: data, code: code}
-	r.header = Header(r)
-	return r
+func Bytes(code int, data []byte) HttpResponse {
+	return StatusWithResponse(code, &bytesResponse{data: data})
 }
 
 type bytesResponse struct {
-	code   int
-	data   []byte
-	header *HeaderWrapper
+	data []byte
 }
 
-func (j bytesResponse) Execute(_ *Router, _ *http.Request, w *http.ResponseWriter) error {
-	(*w).WriteHeader(j.code)
-	_, err := (*w).Write(j.data)
-	return err
+func (j bytesResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request){
+	_, err := rw.Write(j.data)
+	if err != nil {
+		panic(err)
+	}
 }
 
-func (j *bytesResponse) Header() *HeaderWrapper {
-	return j.header
+// Status takes a StatusCode and renders nothing
+func Status(code int) *statusResponse {
+	return &statusResponse{code: code}
 }
 
-//Empty takes a StatusCode and renders nothing
-func Empty(code int) *emptyResponse {
-	r := &emptyResponse{code: code}
-	r.header = Header(r)
-	return r
+// StatusWithResponse writes the StatusCode and renders the HttpResponse
+func StatusWithResponse(code int, response HttpResponse) *statusResponse {
+	return &statusResponse{code: code, response: response}
 }
 
-type emptyResponse struct {
-	code   int
-	header *HeaderWrapper
+type statusResponse struct {
+	code     int
+	response HttpResponse
 }
 
-func (j emptyResponse) Execute(_ *Router, _ *http.Request, w *http.ResponseWriter) error {
-	(*w).WriteHeader(j.code)
-	_, err := (*w).Write([]byte(""))
-	return err
+func (j statusResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	rw.WriteHeader(j.code)
+	if j.response != nil {
+		j.response.ServeHTTP(rw, r)
+	}
 }
 
-func (j *emptyResponse) Header() *HeaderWrapper {
-	return j.header
+// WithHeaders writes the given headers and the Http Response
+func WithHeaders(headers MapString, response HttpResponse) HttpResponse {
+	return &headerResponse{headers: headers, response: response}
+}
+
+type headerResponse struct {
+	headers  MapString
+	response HttpResponse
+}
+
+func (h headerResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	for key, value := range h.headers {
+		rw.Header().Set(key, value)
+	}
+	if h.response != nil {
+		h.response.ServeHTTP(rw, r)
+	}
 }
 
 //String takes a StatusCode and renders the plain string
-func String(code int, data string) *stringResponse {
-	r := &stringResponse{data: data, code: code}
-	r.header = Header(r).Set(ResponseHeaderContentType, ContentTypeTextPlain)
-	return r
-}
-
-type stringResponse struct {
-	code   int
-	data   string
-	header *HeaderWrapper
-}
-
-func (j stringResponse) Execute(_ *Router, _ *http.Request, w *http.ResponseWriter) error {
-	(*w).WriteHeader(j.code)
-	_, err := (*w).Write([]byte(j.data))
-	return err
-}
-
-func (j stringResponse) Header() *HeaderWrapper {
-	return j.header
+func String(code int, data string) HttpResponse {
+	return Bytes(code, []byte(data))
 }
 
 //Error takes a StatusCode and err which rendering is specified by the Serializers in the RouterConfiguration
-func Error(code int, err interface{}) *errorResponse {
-	r := &errorResponse{err: err, code: code}
-	r.header = Header(r)
-	return r
-}
-
-type errorResponse struct {
-	code   int
-	err    interface{}
-	header *HeaderWrapper
-}
-
-func (j errorResponse) Execute(router *Router, _ *http.Request, w *http.ResponseWriter) error {
-	data := router.RouterConfiguration.ErrorMarshal(j.err)
-	if data == nil {
-		data = []byte{}
-	}
-	(*w).Header().Set(ResponseHeaderContentType, router.RouterConfiguration.ErrorMarshalContentType)
-	(*w).WriteHeader(j.code)
-	_, err := (*w).Write(data)
-	return err
-}
-func (j *errorResponse) Header() *HeaderWrapper {
-	return j.header
+func Error(code int, err interface{}) HttpResponse {
+	return Json(code, MapString{
+		"error": fmt.Sprint(err),
+	})
 }
 
 //Html takes a status code, the path to the html file and a map for the template parsing
-func Html(code int, file string, template interface{}) *htmlResponse {
-	r := &htmlResponse{file: file, template: template, code: code}
-	r.header = Header(r).Set(ResponseHeaderContentType, ContentTypeTextHtml)
-	return r
-}
-
-type htmlResponse struct {
-	file     string
-	template interface{} // could be a map[string]string as an example
-	code     int
-	header   *HeaderWrapper
-}
-
-func (j *htmlResponse) Execute(_ *Router, _ *http.Request, w *http.ResponseWriter) error {
-	content, err := parseTemplate(j.file, j.template)
+func Html(code int, file string, template interface{}) HttpResponse {
+	content, err := parseTemplate(file, template)
 	if err != nil {
-		return err
+		panic(err)
 	}
-	(*w).WriteHeader(j.code)
-	_, err = (*w).Write([]byte(*content))
-	return err
+	return WithHeaders(MapString{
+		ResponseHeaderContentType: ContentTypeTextHtml,
+	}, Bytes(code, []byte(*content)))
 }
+
 
 func parseTemplate(templateFileName string, data interface{}) (*string, error) {
 	t, err := template.ParseFiles(templateFileName)
@@ -168,164 +115,46 @@ func parseTemplate(templateFileName string, data interface{}) (*string, error) {
 	return &body, nil
 }
 
-func (j *htmlResponse) Header() *HeaderWrapper {
-	return j.header
-}
-
 //Json takes a StatusCode and data which gets marshaled to Json
-func Json(code int, data interface{}) *jsonResponse {
-	r := &jsonResponse{data: data, code: code}
-	r.header = Header(r).Set(ResponseHeaderContentType, ContentTypeApplicationJson)
-	return r
-}
-
-type jsonResponse struct {
-	data   interface{}
-	code   int
-	header *HeaderWrapper
-}
-
-func (j *jsonResponse) Execute(router *Router, _ *http.Request, w *http.ResponseWriter) error {
-	b, err := router.RouterConfiguration.JsonMarshal(j.data)
+func Json(code int, data interface{}) HttpResponse {
+	jsonData, err := json.Marshal(data)
 	if err != nil {
-		return err
+		panic(err)
 	}
-	(*w).WriteHeader(j.code)
-	_, err = (*w).Write(b)
-	return err
-}
-
-func (j *jsonResponse) Header() *HeaderWrapper {
-	return j.header
+	return WithHeaders(MapString{
+		ResponseHeaderContentType: ContentTypeApplicationJson,
+	}, Bytes(code, jsonData))
 }
 
 //Message takes StatusCode and a message which will be put into a JSON object
-func Message(code int, message string) *jsonResponse {
+func Message(code int, message string) HttpResponse {
 	return Json(code, map[string]interface{}{
 		"message": message,
 	})
 }
 
-//Msgpack takes a StatusCode and data which gets marshaled to Msgpack
-func Msgpack(code int, data interface{}) *msgpackResponse {
-	r := &msgpackResponse{data: data, code: code}
-	r.header = Header(r).Set(ResponseHeaderContentType, "application/msgpack")
-	return r
-}
-
-type msgpackResponse struct {
-	data   interface{}
-	code   int
-	header *HeaderWrapper
-}
-
-func (j *msgpackResponse) Execute(router *Router, _ *http.Request, w *http.ResponseWriter) error {
-	b, err := router.RouterConfiguration.MsgpackMarshal(j.data)
-	if err != nil {
-		return err
-	}
-	(*w).WriteHeader(j.code)
-	_, err = (*w).Write(b)
-	return err
-}
-
-func (j *msgpackResponse) Header() *HeaderWrapper {
-	return j.header
-}
-
 //Redirect redirects to the specific URL
 func Redirect(url string) *redirectResponse {
-	r := &redirectResponse{url: url}
-	r.header = Header(r)
-	return r
+	return &redirectResponse{url: url}
 }
 
 type redirectResponse struct {
-	url    string
-	header *HeaderWrapper
+	url string
 }
 
-func (j redirectResponse) Execute(_ *Router, r *http.Request, w *http.ResponseWriter) error {
-	http.Redirect(*w, r, j.url, StatusMovedPermanently)
-	return nil
-}
-
-func (j *redirectResponse) Header() *HeaderWrapper {
-	return j.header
+func (j redirectResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request)  {
+	http.Redirect(rw, r, j.url, StatusMovedPermanently)
 }
 
 //Xml takes a StatusCode and data which gets marshaled to Xml
-func Xml(code int, data interface{}) *xmlResponse {
-	r := &xmlResponse{data: data, code: code}
-	r.header = Header(r).Set(ResponseHeaderContentType, ContentTypeApplicationXml)
-	return r
-}
-
-type xmlResponse struct {
-	data   interface{}
-	code   int
-	header *HeaderWrapper
-}
-
-func (j *xmlResponse) Execute(router *Router, _ *http.Request, w *http.ResponseWriter) error {
-	b, err := router.RouterConfiguration.XmlMarshal(j.data)
+func Xml(code int, data interface{}) HttpResponse {
+	jsonData, err := xml.Marshal(data)
 	if err != nil {
-		return err
+		panic(err)
 	}
-	(*w).WriteHeader(j.code)
-	_, err = (*w).Write(b)
-	return err
+	return WithHeaders(MapString{
+		ResponseHeaderContentType: ContentTypeApplicationXml,
+	}, Bytes(code, jsonData))
 }
 
-func (j *xmlResponse) Header() *HeaderWrapper {
-	return j.header
-}
 
-//Yaml takes a StatusCode and data which gets marshaled to Yaml
-func Yaml(code int, data interface{}) *yamlResponse {
-	r := &yamlResponse{data: data, code: code}
-	r.header = Header(r).Set(ResponseHeaderContentType, "text/x-yaml")
-	return r
-}
-
-type yamlResponse struct {
-	data   interface{}
-	code   int
-	header *HeaderWrapper
-}
-
-func (j *yamlResponse) Execute(router *Router, _ *http.Request, w *http.ResponseWriter) error {
-	b, err := router.RouterConfiguration.YamlMarshal(j.data)
-	if err != nil {
-		return err
-	}
-	(*w).WriteHeader(j.code)
-	_, err = (*w).Write(b)
-	return err
-}
-
-func (j *yamlResponse) Header() *HeaderWrapper {
-	return j.header
-}
-
-//WithContext Context wraps a response
-func WithContext(ctx context.Context, response HttpResponse) *contextResponse {
-	return &contextResponse{
-		ctx,
-		response,
-	}
-}
-
-type contextResponse struct {
-	ctx      context.Context
-	response HttpResponse
-}
-
-func (j *contextResponse) Execute(router *Router, r *http.Request, w *http.ResponseWriter) error {
-	*r = *r.WithContext(j.ctx)
-	return j.response.Execute(router, r, w)
-}
-
-func (j *contextResponse) Header() *HeaderWrapper {
-	return j.response.Header()
-}

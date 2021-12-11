@@ -2,12 +2,8 @@ package there
 
 import (
 	"context"
-	"encoding/json"
-	"encoding/xml"
 	"errors"
 	"fmt"
-	"github.com/vmihailenco/msgpack/v5"
-	"gopkg.in/yaml.v3"
 	"net/http"
 )
 
@@ -84,44 +80,11 @@ func (router *Router) Use(middleware Middleware) *Router {
 
 //RouterConfiguration is a simple place for the user to override the behavior of the router
 type RouterConfiguration struct {
-	*Serializers
 	Handlers
 }
 
-type Serializers struct {
-	JsonMarshal    func(interface{}) ([]byte, error)
-	XmlMarshal     func(interface{}) ([]byte, error)
-	YamlMarshal    func(interface{}) ([]byte, error)
-	MsgpackMarshal func(interface{}) ([]byte, error)
-
-	ErrorMarshal            func(interface{}) []byte
-	ErrorMarshalContentType string
-}
-
 func defaultConfiguration() *RouterConfiguration {
-	c := &RouterConfiguration{Serializers: &Serializers{
-		JsonMarshal:             json.Marshal,
-		XmlMarshal:              xml.Marshal,
-		YamlMarshal:             yaml.Marshal,
-		MsgpackMarshal:          msgpack.Marshal,
-		ErrorMarshalContentType: ContentTypeApplicationJson,
-	}, Handlers: &defaultHandlers{}}
-	c.ErrorMarshal = func(err interface{}) []byte {
-		var errorString string
-		switch v := err.(type) {
-		case error:
-			errorString = v.Error()
-		default:
-			errorString = fmt.Sprint(v)
-		}
-		data, err := c.JsonMarshal(map[string]interface{}{
-			"error": errorString,
-		})
-		if err != nil {
-			data = []byte(errorString)
-		}
-		return data
-	}
+	c := &RouterConfiguration{Handlers: &defaultHandlers{}}
 	return c
 }
 

@@ -1,12 +1,12 @@
-package there
+package there_test
 
 import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
 	"errors"
-	"github.com/vmihailenco/msgpack/v5"
-	"gopkg.in/yaml.v3"
+	. "github.com/Gebes/there/v2"
+	"github.com/Gebes/there/v2/middlewares"
 	"io"
 	"io/ioutil"
 	"log"
@@ -37,45 +37,27 @@ type simpleUser struct {
 	Name string `yaml:"Name"`
 }
 
-type (
-	toMarshal struct {
-		Field           int
-		inlineToMarshal `yaml:",inline" json:",inline" xml:",inline" msgpack:",inline"`
-	}
-	inlineToMarshal struct {
-		Field string
-	}
-)
-
 func CreateRouter() *Router {
 	// Sample Data
 	json := func(request HttpRequest) HttpResponse {
 		return Json(StatusOK, sampleData)
 	}
-	yaml := func(request HttpRequest) HttpResponse {
-		return Yaml(StatusOK, sampleData)
-	}
-
 	// Samle User
 	xml := func(request HttpRequest) HttpResponse {
 		return Xml(StatusOK, sampleUser)
 	}
 
-	msgpack := func(request HttpRequest) HttpResponse {
-		return Msgpack(StatusOK, sampleUser)
-	}
-
 	router := NewRouter().
-		Use(CorsMiddleware(AllowAllConfiguration()))
+		Use(middlewares.Cors(middlewares.AllowAllConfiguration()))
+
+	router.Use(middlewares.Recoverer)
 
 	data := router.Group("/data")
 
 	data.Handle("/json", json, MethodGet, MethodPost, MethodPut, MethodDelete)
 	data.Get("/xml", xml)
-	data.Get("/yaml", yaml)
-	data.Get("/msgpack", msgpack)
 	data.Get("/empty", func(request HttpRequest) HttpResponse {
-		return Empty(StatusAccepted)
+		return Status(StatusAccepted)
 	})
 	data.Get("/message", func(request HttpRequest) HttpResponse {
 		return Message(StatusOK, "Hello there")
@@ -102,17 +84,7 @@ func CreateRouter() *Router {
 	errorGroup.Get("/xml", func(request HttpRequest) HttpResponse {
 		return Xml(StatusOK, errorData)
 	})
-	errorGroup.Get("/yaml", func(request HttpRequest) HttpResponse {
-		return Yaml(StatusOK, &toMarshal{
-			Field: 123,
-			inlineToMarshal: inlineToMarshal{
-				Field: "Hi",
-			},
-		})
-	})
-	errorGroup.Get("/msgpack", func(request HttpRequest) HttpResponse {
-		return Msgpack(StatusOK, errorData)
-	})
+
 	errorGroup.Get("/error/1", func(request HttpRequest) HttpResponse {
 		return Error(StatusOK, errors.New("test2"))
 	})
@@ -128,8 +100,8 @@ func CreateRouter() *Router {
 		return Html(StatusOK, "./examples/index.html", "A string cannot be used as a template, hence this will fail")
 	})
 	errorGroup.Get("/data", func(request HttpRequest) HttpResponse {
-		return Empty(StatusOK)
-	}).With(func(request HttpRequest) HttpResponse {
+		return Status(StatusOK)
+	}).With(func(request HttpRequest, next HttpResponse) HttpResponse {
 		return Error(StatusInternalServerError, errors.New("lol"))
 	})
 
@@ -144,22 +116,6 @@ func CreateRouter() *Router {
 	data.Post("/return/xml", func(request HttpRequest) HttpResponse {
 		var user simpleUser
 		err := request.Body.BindXml(&user)
-		if err != nil {
-			log.Fatalln("Could not bind", err)
-		}
-		return String(StatusOK, user.Name)
-	})
-	data.Post("/return/yaml", func(request HttpRequest) HttpResponse {
-		var user simpleUser
-		err := request.Body.BindYaml(&user)
-		if err != nil {
-			log.Fatalln("Could not bind", err)
-		}
-		return String(StatusOK, user.Name)
-	})
-	data.Post("/return/msgpack", func(request HttpRequest) HttpResponse {
-		var user simpleUser
-		err := request.Body.BindMsgpack(&user)
 		if err != nil {
 			log.Fatalln("Could not bind", err)
 		}
@@ -209,12 +165,6 @@ func readJsonBody(router *Router, t *testing.T, method, route string, body io.Re
 func readXmlBody(router *Router, t *testing.T, method, route string, body io.Reader, res interface{}) {
 	readAndUnmarshal(router, t, method, route, body, xml.Unmarshal, res)
 }
-func readYamlBody(router *Router, t *testing.T, method, route string, body io.Reader, res interface{}) {
-	readAndUnmarshal(router, t, method, route, body, yaml.Unmarshal, res)
-}
-func readMsgpackBody(router *Router, t *testing.T, method, route string, body io.Reader, res interface{}) {
-	readAndUnmarshal(router, t, method, route, body, msgpack.Unmarshal, res)
-}
 
 func TestJson(t *testing.T) {
 	router := CreateRouter()
@@ -242,19 +192,9 @@ func testSampleUserRoutes(t *testing.T, route string, handler func(router *Route
 
 }
 
-func TestYaml(t *testing.T) {
-	var res map[string]interface{}
-	testSampleUserRoutes(t, "yaml", readYamlBody, &res, &sampleData)
-}
-
 func TestXml(t *testing.T) {
 	var res user
 	testSampleUserRoutes(t, "xml", readXmlBody, &res, &sampleUser)
-}
-
-func TestMsgpack(t *testing.T) {
-	var res user
-	testSampleUserRoutes(t, "msgpack", readMsgpackBody, &res, &sampleUser)
 }
 
 func testErrorResponse(router *Router, t *testing.T, route string) {
@@ -282,23 +222,6 @@ func TestXmlErrorResponse(t *testing.T) {
 	testErrorResponse(router, t, "xml")
 }
 
-func TestYamlErrorResponse(t *testing.T) {
-	router := CreateRouter()
-	testErrorResponse(router, t, "yaml")
-}
-
-func TestYamlErrorResponse2(t *testing.T) {
-	router := CreateRouter()
-	router.RouterConfiguration.YamlMarshal = errorMarshal
-	testErrorResponse(router, t, "yaml")
-}
-
-func TestMsgpackErrorResponse(t *testing.T) {
-	router := CreateRouter()
-	router.RouterConfiguration.MsgpackMarshal = errorMarshal
-	testErrorResponse(router, t, "msgpack")
-}
-
 func TestHtmlErrorResponse(t *testing.T) {
 	router := CreateRouter()
 	testErrorResponse(router, t, "html/1")
@@ -306,18 +229,6 @@ func TestHtmlErrorResponse(t *testing.T) {
 func TestHtml2ErrorResponse(t *testing.T) {
 	router := CreateRouter()
 	testErrorResponse(router, t, "html/2")
-}
-
-func TestErrorErrorResponse(t *testing.T) {
-	router := CreateRouter()
-	router.RouterConfiguration.ErrorMarshal = func(i interface{}) []byte {
-		return nil
-	}
-	b := readStringBody(router, t, MethodGet, "/error/error/1", nil)
-
-	if b != "" {
-		log.Fatalln("body was not empty")
-	}
 }
 
 func TestErrorErrorResponse2(t *testing.T) {
@@ -333,9 +244,9 @@ func TestMiddlewareErrorResponse(t *testing.T) {
 func TestGlobalMiddlewareErrorResponse(t *testing.T) {
 	router := NewRouter().
 		Get("error/data/global", func(request HttpRequest) HttpResponse {
-			return Empty(StatusOK)
+			return Status(StatusOK)
 		}).
-		Use(func(request HttpRequest) HttpResponse {
+		Use(func(request HttpRequest, next HttpResponse) HttpResponse {
 			return Error(StatusInternalServerError, errors.New("errored out"))
 		})
 	testErrorResponse(router, t, "data/global")
@@ -346,20 +257,10 @@ func TestPanicErrorResponse(t *testing.T) {
 		Get("error/data/panic", func(request HttpRequest) HttpResponse {
 			panic("oh no panic")
 		}).
-		Use(func(request HttpRequest) HttpResponse {
+		Use(func(request HttpRequest, next HttpResponse) HttpResponse {
 			return Error(StatusInternalServerError, errors.New("errored out"))
 		})
 	testErrorResponse(router, t, "data/panic")
-}
-
-func TestErrorErrorResponse3(t *testing.T) {
-	router := CreateRouter()
-	router.RouterConfiguration.JsonMarshal = errorMarshal
-	b := readStringBody(router, t, MethodGet, "/error/error/2", nil)
-
-	if b != "test3" {
-		log.Fatalln("body was not expected string value")
-	}
 }
 
 type errReader int
@@ -373,7 +274,7 @@ func TestBodyToStringError(t *testing.T) {
 	router.
 		Post("/test", func(request HttpRequest) HttpResponse {
 
-			tests := 5
+			tests := 3
 			did := 0
 
 			var s interface{}
@@ -390,20 +291,13 @@ func TestBodyToStringError(t *testing.T) {
 			if err != nil {
 				did++
 			}
-			err = request.Body.BindYaml(&s)
-			if err != nil {
-				did++
-			}
-			err = request.Body.BindMsgpack(&s)
-			if err != nil {
-				did++
-			}
+
 
 			if tests != did {
 				return Error(StatusInternalServerError, "not every bind threw an error: "+strconv.Itoa(did)+"/"+strconv.Itoa(tests))
 			}
 
-			return Empty(StatusOK)
+			return Status(StatusOK)
 		})
 
 	res := readStringBody(router, t, MethodPost, "/test", errReader(0))
@@ -460,7 +354,7 @@ func TestRedirectResponse(t *testing.T) {
 	// result := recorder.Result()
 
 	// TODO FIX ASSERT
-	// assert.Equal(t, "https://google.com", result.Header.Get("Location"))
+	// assert.Equal(t, "https://google.com", result.WithHeaders.Get("Location"))
 
 }
 
@@ -509,14 +403,6 @@ func TestJsonBodyBind(t *testing.T) {
 
 func TestXmlBodyBind(t *testing.T) {
 	testBind(t, xml.Marshal, "xml")
-}
-
-func TestMsgpackBodyBind(t *testing.T) {
-	testBind(t, msgpack.Marshal, "msgpack")
-}
-
-func TestYamlBodyBind(t *testing.T) {
-	testBind(t, yaml.Marshal, "yaml")
 }
 
 func TestStringBodyBind(t *testing.T) {

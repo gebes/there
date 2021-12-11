@@ -4,15 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"encoding/xml"
-	"github.com/vmihailenco/msgpack/v5"
-	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"net/http"
 )
 
 type HttpRequest struct {
 	Request        *http.Request
-	ResponseWriter *http.ResponseWriter
+	ResponseWriter http.ResponseWriter
 
 	Method      string
 	Body        *BodyReader
@@ -21,9 +19,10 @@ type HttpRequest struct {
 	RouteParams *RouteParamReader
 }
 
-func NewHttpRequest(request *http.Request, responseWriter *http.ResponseWriter) HttpRequest {
+func NewHttpRequest(responseWriter http.ResponseWriter, request *http.Request) HttpRequest {
 	paramReader := BasicReader(request.URL.Query())
 	headerReader := BasicReader(request.Header)
+	routeParamReader := RouteParamReader(MapString{})
 	return HttpRequest{
 		Request:        request,
 		ResponseWriter: responseWriter,
@@ -31,12 +30,16 @@ func NewHttpRequest(request *http.Request, responseWriter *http.ResponseWriter) 
 		Body:           &BodyReader{request: request},
 		Params:         &paramReader,
 		Headers:        &headerReader,
-		RouteParams:    nil, // inject routeParams in Handler
+		RouteParams:    &routeParamReader,
 	}
 }
 
 func (r *HttpRequest) Context() context.Context {
 	return r.Request.Context()
+}
+
+func (r *HttpRequest) WithContext(ctx context.Context)  {
+	*r.Request = *r.Request.WithContext(ctx)
 }
 
 //BodyReader reads the body and unmarshal it to the specified destination
@@ -50,14 +53,6 @@ func (read BodyReader) BindJson(dest interface{}) error {
 
 func (read BodyReader) BindXml(dest interface{}) error {
 	return read.bind(dest, xml.Unmarshal)
-}
-
-func (read BodyReader) BindMsgpack(dest interface{}) error {
-	return read.bind(dest, msgpack.Unmarshal)
-}
-
-func (read BodyReader) BindYaml(dest interface{}) error {
-	return read.bind(dest, yaml.Unmarshal)
 }
 
 func (read BodyReader) bind(dest interface{}, formatter func(data []byte, v interface{}) error) error {

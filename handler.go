@@ -5,101 +5,36 @@ import (
 )
 
 func (router *Router) ServeHTTP(rw http.ResponseWriter, request *http.Request) {
-	writer := &rw
 
-	write := func(response HttpResponse) {
-		_ = response.Execute(router, request, writer)
-		writeHeader(writer, response)
-	}
-
-	defer func() {
-		err := recover()
-		if err == nil {
-			return
-		}
-		write(Error(StatusInternalServerError, err))
-	}()
-
-	httpRequest := NewHttpRequest(request, writer)
-
-	for _, middleware := range router.GlobalMiddlewares {
-		response := middleware(httpRequest)
-		write(response)
-		if !isNextResponse(response) {
-			return
-		}
-	}
+	httpRequest := NewHttpRequest(rw, request)
+	var middlewares = make([]Middleware, 0)
+	middlewares = append(middlewares, router.GlobalMiddlewares...)
 
 	var endpoint Endpoint = nil
-	var middlewares = make([]Middleware, 0)
 
-	for _, route := range router.routes {
-		routeParams, ok := route.Path.Parse(request.URL.Path)
-		if ok && CheckArrayContains(route.Methods, request.Method) {
-			endpoint = route.Endpoint
-			middlewares = route.Middlewares
+	for _, current := range router.routes {
+		routeParams, ok := current.Path.Parse(request.URL.Path)
+		if ok && CheckArrayContains(current.Methods, request.Method) {
+			endpoint = current.Endpoint
+			middlewares = append(middlewares, current.Middlewares...)
 			routeParamReader := RouteParamReader(routeParams)
 			httpRequest.RouteParams = &routeParamReader
 			break
 		}
 	}
 
-	for _, middleware := range middlewares {
-		response := middleware(httpRequest)
-		write(response)
-		if !isNextResponse(response) {
-			return
-		}
-	}
-
 	if endpoint == nil {
-		endpoint = func(_ HttpRequest) HttpResponse {
+		endpoint = func(HttpRequest) HttpResponse {
 			return Error(StatusNotFound, router.RouterConfiguration.RouteNotFound(request))
 		}
 	}
 
-	httpResponse := endpoint(httpRequest)
-	writeHeader(writer, httpResponse)
-
-	err := httpResponse.Execute(router, request, writer)
-	if err != nil {
-		write(Error(StatusInternalServerError, err))
+	var next HttpResponse = HttpResponseFunc(func(rw http.ResponseWriter, r *http.Request) {
+		endpoint(httpRequest).ServeHTTP(rw, r)
+	})
+	for i := len(middlewares)-1; i >= 0; i-- {
+		middleware := middlewares[i]
+		next = middleware(httpRequest, next)
 	}
-
-}
-
-func writeHeader(w *http.ResponseWriter, httpResponse HttpResponse) {
-	for key, values := range httpResponse.Header().Values {
-		(*w).Header().Del(key)
-		for _, value := range values {
-			(*w).Header().Add(key, value)
-		}
-	}
-}
-
-func isNextResponse(response HttpResponse) bool {
-	switch v := response.(type) {
-	case *nextMiddleware:
-		return true
-	case *HeaderWrapper:
-		switch v.HttpResponse.(type) {
-		case *nextMiddleware:
-			return true
-		default:
-			return false
-		}
-	case *contextResponse:
-		for {
-			switch res := v.response.(type) {
-			case *contextResponse:
-				v = res
-			case *nextMiddleware:
-				return true
-			default:
-				return false
-			}
-		}
-	default:
-		return false
-	}
+	next.ServeHTTP(rw, request)
 }

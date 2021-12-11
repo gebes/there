@@ -32,7 +32,7 @@ func TestParamReader_Get(t *testing.T) {
 			want1:  false,
 		},
 		{
-			name:   "Empty (Not Existing) Param",
+			name:   "Status (Not Existing) Param",
 			reader: exampleReader,
 			args:   args{key: "name"},
 			want:   "",
@@ -84,7 +84,7 @@ func TestParamReader_GetDefault(t *testing.T) {
 			want:   "abc",
 		},
 		{
-			name:   "Empty (Not Existing) Param",
+			name:   "Status (Not Existing) Param",
 			reader: exampleReader,
 			args:   args{key: "name", defaultValue: "abc"},
 			want:   "abc",
@@ -130,7 +130,7 @@ func TestParamReader_GetSlice(t *testing.T) {
 			want1:  false,
 		},
 		{
-			name:   "Empty (Not Existing) Param",
+			name:   "Status (Not Existing) Param",
 			reader: exampleReader,
 			args:   args{key: "name"},
 			want:   nil,
@@ -181,7 +181,7 @@ func TestParamReader_Has(t *testing.T) {
 			want:   false,
 		},
 		{
-			name:   "Empty (Not Existing) Param",
+			name:   "Status (Not Existing) Param",
 			reader: exampleReader,
 			args:   args{key: "name"},
 			want:   false,
