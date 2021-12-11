@@ -62,4 +62,5 @@ func Recoverer(request HttpRequest, next HttpResponse) HttpResponse {
    return HttpResponseFunc(fn)
 }
 ```
-It is a trivial Recovere
+
+It is a trivial Recoverer. The only things you need to change are the types and the parameters. **There** provides you all the types required, so that you don't need to import "net/http".
