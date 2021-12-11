@@ -1,9 +1,7 @@
 <p align="center">
-<font size="7px">
-<b>
-there
-</b>
-</font>
+<a href="https://there.gebes.io">
+<img src="https://github.com/Gebes/there/blob/v2.1/.github/logo/logo-compressed.png?raw=true" alt="Gopher There" height="256">
+</a>
 </p>
 <p align="center">
 <font size="4px">
