@@ -23,3 +23,5 @@ func CreatePost(request HttpRequest) HttpResponse {
 ```
 
 This handler uses `Error` and `Json`. By returning a HttpResponse, the handler chain will break and **There** will render the given response.
+
+[📚 Documentation](https://there.gebes.io/responses/status)  

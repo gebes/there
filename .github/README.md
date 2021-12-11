@@ -8,6 +8,22 @@
 ⚡️ Robust Web Framework to build Go Services with ease ⚡️
 </font>
 </p>
+<center>
+
+[![made-with-Go](https://img.shields.io/badge/Made%20with-Go-1f425f.svg)](http://golang.org)
+![GitHub go.mod Go version of a Go module](https://img.shields.io/github/go-mod/go-version/Gebes/there.svg)
+[![Generic badge](https://img.shields.io/badge/Documentation-there-blue.svg)](https://there.gebes.io/)
+[![GoDoc reference example](https://img.shields.io/badge/godoc-reference-blue.svg)](https://pkg.go.dev/github.com/Gebes/there/v2)
+[![GoReportCard example](https://goreportcard.com/badge/github.com/Gebes/there)](https://goreportcard.com/report/github.com/Gebes/there)
+[![GitHub license](https://img.shields.io/github/license/Gebes/there.svg)](https://github.com/Gebes/there/blob/master/LICENSE)
+[![GitHub release](https://img.shields.io/github/release/Gebes/there)](https://GitHub.com/Gebes/there/releases/)
+
+
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://gitHub.com/Gebes/there/graphs/commit-activity)
+[![Maintainer](https://img.shields.io/badge/maintainer-Gebes-blue)](https://github.com/Gebes)
+
+
+</center>
 
 ## 🔥 Get Started
 
@@ -45,8 +61,7 @@ func Get(request HttpRequest) HttpResponse {
 }
 ```
 
-
-
+[📚 Check the Documentation for more info](https://there.gebes.io)
 
 ## 🤔 Why There?
 
@@ -136,6 +151,7 @@ func CreatePost(request HttpRequest) HttpResponse {
 
 This handler uses `Error` and `Json`. By returning a HttpResponse, the handler chain will break and **There** will render the given response.
 
+[📚 Documentation](https://there.gebes.io/responses/status)  
 [🧑‍💻 View full code example](https://github.com/Gebes/there/tree/main/examples/minimalistic-control-flow)
 
 ### Expandable - add your own control flow
