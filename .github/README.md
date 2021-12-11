@@ -5,7 +5,7 @@
 </p>
 <p align="center">
 <font size="4px">
-⚡️ Robust Web Framework to build Go Services with ease ⚡️
+<b>There</b> is a robust and minimalistic Web Framework that helps you to build fabulous services with GoLang in no time!
 </font>
 </p>
 <p align="center">
@@ -37,6 +37,8 @@
     <img src="https://img.shields.io/badge/Maintainer-Gebes-blue" alt="Maintainer">
 </a>
 </p>
+
+
 
 ## 🔥 Get Started
 
