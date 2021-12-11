@@ -10,19 +10,32 @@
 </p>
 <p align="center">
 
-[![made-with-Go](https://img.shields.io/badge/Made%20with-Go-1f425f.svg)](http://golang.org)
-![GitHub go.mod Go version of a Go module](https://img.shields.io/github/go-mod/go-version/Gebes/there.svg)
-[![Generic badge](https://img.shields.io/badge/Documentation-there-blue.svg)](https://there.gebes.io/)
-[![GoDoc reference example](https://img.shields.io/badge/godoc-reference-blue.svg)](https://pkg.go.dev/github.com/Gebes/there/v2)
-[![GoReportCard example](https://goreportcard.com/badge/github.com/Gebes/there)](https://goreportcard.com/report/github.com/Gebes/there)
-[![GitHub license](https://img.shields.io/github/license/Gebes/there.svg)](https://github.com/Gebes/there/blob/master/LICENSE)
-[![GitHub release](https://img.shields.io/github/release/Gebes/there)](https://GitHub.com/Gebes/there/releases/)
-
-
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://gitHub.com/Gebes/there/graphs/commit-activity)
-[![Maintainer](https://img.shields.io/badge/maintainer-Gebes-blue)](https://github.com/Gebes)
-
-
+<a href="http://golang.org">
+    <img src="https://img.shields.io/badge/Made%20with-Go-1f425f.svg" alt="Made with Go">
+</a>
+<img src="https://img.shields.io/github/go-mod/go-version/Gebes/there.svg" alt="Go Version">
+<a href="https://there.gebes.io/">
+    <img src="https://img.shields.io/badge/Documentation-there-blue.svg" alt="Documentation">
+</a>
+<a href="https://pkg.go.dev/github.com/Gebes/there/v2">
+    <img src="https://img.shields.io/badge/godoc-reference-blue.svg" alt="GoDoc">
+</a>
+<a href="https://goreportcard.com/report/github.com/Gebes/there">
+    <img src="https://goreportcard.com/badge/github.com/Gebes/there" alt="GoReportCard">
+</a>
+<a href="https://github.com/Gebes/there/blob/master/LICENSE">
+    <img src="https://img.shields.io/github/license/Gebes/there.svg" alt="License">
+</a>
+<a href="https://GitHub.com/Gebes/there/releases/">
+    <img src="https://img.shields.io/github/release/Gebes/there" alt="Latest releace">
+</a>
+<br><br>
+<a href="https://gitHub.com/Gebes/there/graphs/commit-activity">
+    <img src="https://img.shields.io/badge/Maintained%3F-yes-green.svg" alt="Maintained?">
+</a>
+<a href="https://github.com/Gebes">
+    <img src="https://img.shields.io/badge/Maintainer-Gebes-blue" alt="Maintainer">
+</a>
 </p>
 
 ## 🔥 Get Started
