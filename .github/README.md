@@ -8,7 +8,7 @@
 ⚡️ Robust Web Framework to build Go Services with ease ⚡️
 </font>
 </p>
-<center>
+<p align="center">
 
 [![made-with-Go](https://img.shields.io/badge/Made%20with-Go-1f425f.svg)](http://golang.org)
 ![GitHub go.mod Go version of a Go module](https://img.shields.io/github/go-mod/go-version/Gebes/there.svg)
@@ -23,7 +23,7 @@
 [![Maintainer](https://img.shields.io/badge/maintainer-Gebes-blue)](https://github.com/Gebes)
 
 
-</center>
+</p>
 
 ## 🔥 Get Started
 
