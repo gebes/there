@@ -29,4 +29,3 @@ func AllowAllConfiguration() CorsConfiguration {
 		AccessControlAllowHeaders: "Accept, Content-Type, Content-Length, Authorization",
 	}
 }
-

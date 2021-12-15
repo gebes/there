@@ -760,3 +760,48 @@ const (
 	//	X-Frame-Options: deny
 	ResponseHeaderXFrameOptions = "X-Frame-Options"
 )
+
+var (
+	fileContentTypes = map[string]string{
+		"avi":   ContentTypeVideoXDashMsvideo,
+		"bin":   ContentTypeApplicationOctetDashStream,
+		"css":   ContentTypeTextCss,
+		"csv":   ContentTypeTextCsv,
+		"gif":   ContentTypeImageGif,
+		"html":  ContentTypeTextHtml,
+		"htm":   ContentTypeTextHtml,
+		"ico":   ContentTypeImageXDashIcon,
+		"jar":   ContentTypeApplicationJavaDashArchive,
+		"jpeg":  ContentTypeImageJpeg,
+		"jpg":   ContentTypeImageJpeg,
+		"js":    ContentTypeTextJavascript,
+		"json":  ContentTypeApplicationJson,
+		"mjs":   ContentTypeTextJavascript,
+		"mov":   ContentTypeVideoQuicktime,
+		"mp3":   ContentTypeAudioMpeg,
+		"mp4":   ContentTypeVideoMp4,
+		"mpeg":  ContentTypeVideoMpeg,
+		"ogx":   ContentTypeApplicationOgg,
+		"png":   ContentTypeImagePng,
+		"pdf":   ContentTypeApplicationPdf,
+		"qt":    ContentTypeVideoQuicktime,
+		"tif":   ContentTypeImageTiff,
+		"tiff":  ContentTypeImageTiff,
+		"txt":   ContentTypeTextPlain,
+		"wav":   ContentTypeAudioXDashWav,
+		"webm":  ContentTypeVideoWebm,
+		"xhtml": ContentTypeApplicationXhtmlPlusXml,
+		"xml":   ContentTypeTextXml,
+		"zip":   ContentTypeApplicationZip,
+	}
+)
+
+// FileContentType returns a content type header based on a given file extension.
+// The second returned var indicates, whether that content type was found in the list or not.
+func FileContentType(fileExtension string) (string, bool) {
+	if contentType, exists := fileContentTypes[fileExtension]; exists {
+		return contentType, true
+	} else {
+		return "", false
+	}
+}

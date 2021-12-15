@@ -292,7 +292,6 @@ func TestBodyToStringError(t *testing.T) {
 				did++
 			}
 
-
 			if tests != did {
 				return Error(StatusInternalServerError, "not every bind threw an error: "+strconv.Itoa(did)+"/"+strconv.Itoa(tests))
 			}

@@ -13,9 +13,9 @@ func main() {
 		Post("/", Handler).
 		Patch("/", Handler).
 		Group("/post").
-			Get("/:id", Handler).
-			Post("/", Handler)
-	
+		Get("/:id", Handler).
+		Post("/", Handler)
+
 	router.
 		Get("/details", Handler).IgnoreCase() // don't differentiate between "details", "DETAILS" or a mix of these two
 
@@ -27,8 +27,8 @@ func main() {
 
 func Handler(request HttpRequest) HttpResponse {
 	return Json(StatusOK, Map{
-		"method": request.Method,
-		"path":   request.Request.URL.Path,
+		"method":       request.Method,
+		"path":         request.Request.URL.Path,
 		"route_params": request.RouteParams,
 	})
 }
