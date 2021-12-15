@@ -12,11 +12,14 @@ type HttpRequest struct {
 	Request        *http.Request
 	ResponseWriter http.ResponseWriter
 
-	Method      string
-	Body        *BodyReader
-	Params      *BasicReader
-	Headers     *BasicReader
-	RouteParams *RouteParamReader
+	Method        string
+	Body          *BodyReader
+	Params        *BasicReader
+	Headers       *BasicReader
+	RouteParams   *RouteParamReader
+	RemoteAddress string
+	Host          string
+	URI           string
 }
 
 func NewHttpRequest(responseWriter http.ResponseWriter, request *http.Request) HttpRequest {
@@ -31,6 +34,8 @@ func NewHttpRequest(responseWriter http.ResponseWriter, request *http.Request) H
 		Params:         &paramReader,
 		Headers:        &headerReader,
 		RouteParams:    &routeParamReader,
+		RemoteAddress:  request.RemoteAddr,
+		URI:            request.RequestURI,
 	}
 }
 
@@ -38,7 +43,7 @@ func (r *HttpRequest) Context() context.Context {
 	return r.Request.Context()
 }
 
-func (r *HttpRequest) WithContext(ctx context.Context)  {
+func (r *HttpRequest) WithContext(ctx context.Context) {
 	*r.Request = *r.Request.WithContext(ctx)
 }
 

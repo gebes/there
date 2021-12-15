@@ -9,7 +9,6 @@
 </font>
 </p>
 <p align="center">
-
 <a href="http://golang.org">
     <img src="https://img.shields.io/badge/Made%20with-Go-1f425f.svg" alt="Made with Go">
 </a>
@@ -22,6 +21,9 @@
 </a>
 <a href="https://goreportcard.com/report/github.com/Gebes/there">
     <img src="https://goreportcard.com/badge/github.com/Gebes/there" alt="GoReportCard">
+</a>
+<a href="https://gocover.io/github.com/Gebes/there">
+    <img src="https://gocover.io/_badge/github.com/Gebes/there" alt="CodeCoverage">
 </a>
 <a href="https://github.com/Gebes/there/blob/master/LICENSE">
     <img src="https://img.shields.io/github/license/Gebes/there.svg" alt="License">

@@ -28,8 +28,8 @@ func main() {
 
 func Handler(request HttpRequest) HttpResponse {
 	return Json(StatusOK, Map{
-		"method": request.Method,
-		"path":   request.Request.URL.Path,
+		"method":       request.Method,
+		"path":         request.Request.URL.Path,
 		"route_params": request.RouteParams,
 	})
 }
