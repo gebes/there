@@ -21,7 +21,7 @@ func TestServer_Start(t *testing.T) {
 func TestServerTsl_Start(t *testing.T) {
 	router := NewRouter()
 	go func() {
-		err := router.ListenToTLS(8081, "./examples/server.crt", "./examples/server.key")
+		err := router.ListenToTLS(8081, "./test/server.crt", "./test/server.key")
 		if err != nil {
 			t.Error("unexpected error:", err)
 		}

@@ -6,7 +6,6 @@ import (
 	. "github.com/Gebes/there/v2"
 	"github.com/Gebes/there/v2/middlewares"
 	"io/ioutil"
-	"log"
 	"net/http/httptest"
 	"testing"
 )
@@ -35,7 +34,6 @@ func createRouter() *Router {
 		})
 	router.
 		Get("/user", func(request HttpRequest) HttpResponse {
-			log.Println(request.Context().Value("hello"), request.Context().Value("world"))
 			user, ok := request.Context().Value("user").(simpleUser)
 
 			if !ok {

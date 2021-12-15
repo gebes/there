@@ -69,7 +69,7 @@ func CreateRouter() *Router {
 		return Redirect("https://google.com")
 	})
 	data.Get("/html", func(request HttpRequest) HttpResponse {
-		return Html(StatusOK, "./examples/index.html", map[string]string{
+		return Html(StatusOK, "./test/index.html", map[string]string{
 			"user": "Hannes",
 		})
 	})
