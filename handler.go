@@ -32,7 +32,7 @@ func (router *Router) ServeHTTP(rw http.ResponseWriter, request *http.Request) {
 	var next HttpResponse = HttpResponseFunc(func(rw http.ResponseWriter, r *http.Request) {
 		endpoint(httpRequest).ServeHTTP(rw, r)
 	})
-	for i := len(middlewares)-1; i >= 0; i-- {
+	for i := len(middlewares) - 1; i >= 0; i-- {
 		middleware := middlewares[i]
 		next = middleware(httpRequest, next)
 	}

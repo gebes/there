@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"os"
+	"strings"
 )
 
 //HttpResponse is the base for every return you can make in an Endpoint.
@@ -158,3 +160,34 @@ func Xml(code int, data interface{}) HttpResponse {
 		ResponseHeaderContentType: ContentTypeApplicationXml,
 	}, Bytes(code, xmlData))
 }
+
+
+// File takes the path to a file, and sets the response equal to the bytes of it.
+// It also selects an appropriate content type header, depending on the file extension.
+// Additionally, a fallbackContentType can be passed, if the content type corresponding to
+// the file extension was not found.
+func File(path string, fallbackContentType ...string) HttpResponse {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+	var header string
+	if len(fallbackContentType) >= 1 {
+		header = fallbackContentType[0]
+	} else {
+		parts := strings.Split(path, ".")
+		if len(parts) <= 1 {
+			panic("File without extension passed!")
+		}
+		extension := parts[len(parts)-1]
+		var exists bool
+		header, exists = FileContentType(extension)
+		if !exists {
+			panic("No content type for file " + path + " found!")
+		}
+	}
+	return WithHeaders(MapString{
+		ResponseHeaderContentType: header,
+	}, Bytes(StatusOK, data))
+}
+

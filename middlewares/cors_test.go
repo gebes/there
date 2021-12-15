@@ -34,8 +34,7 @@ func TestCorsMiddleware(t *testing.T) {
 
 }
 
-
-func checkHeaders(t *testing.T, result *http.Response){
+func checkHeaders(t *testing.T, result *http.Response) {
 	if !reflect.DeepEqual(result.Header.Get(ResponseHeaderAccessControlAllowOrigin), "*") ||
 		!reflect.DeepEqual(result.Header.Get(ResponseHeaderAccessControlAllowMethods), AllMethodsString) ||
 		!reflect.DeepEqual(result.Header.Get(ResponseHeaderAccessControlAllowHeaders), "Accept, Content-Type, Content-Length, Authorization") {
