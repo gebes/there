@@ -71,7 +71,10 @@ type headerResponse struct {
 
 func (h headerResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	for key, value := range h.headers {
-		rw.Header().Set(key, value)
+		// Only set the header, if it wasn't set yet
+		if len(rw.Header().Get(key)) == 0 {
+			rw.Header().Set(key, value)
+		}
 	}
 	if h.response != nil {
 		h.response.ServeHTTP(rw, r)
