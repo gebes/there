@@ -9,7 +9,6 @@ import (
 	"net/http"
 )
 
-
 //HttpResponse is the base for every return you can make in an Endpoint.
 //Necessary to render the Response by calling Execute and for the WithHeaders Builder.
 type HttpResponse http.Handler
@@ -30,7 +29,7 @@ type bytesResponse struct {
 	data []byte
 }
 
-func (j bytesResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request){
+func (j bytesResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	_, err := rw.Write(j.data)
 	if err != nil {
 		panic(err)
@@ -104,7 +103,6 @@ func Html(code int, file string, template interface{}) HttpResponse {
 	}, Bytes(code, []byte(*content)))
 }
 
-
 func parseTemplate(templateFileName string, data interface{}) (*string, error) {
 	t, err := template.ParseFiles(templateFileName)
 	if err != nil {
@@ -137,16 +135,17 @@ func Message(code int, message string) HttpResponse {
 }
 
 //Redirect redirects to the specific URL
-func Redirect(url string) HttpResponse {
-	return &redirectResponse{url: url}
+func Redirect(code int, url string) HttpResponse {
+	return &redirectResponse{code: code, url: url}
 }
 
 type redirectResponse struct {
-	url string
+	code int
+	url  string
 }
 
-func (j redirectResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request)  {
-	http.Redirect(rw, r, j.url, StatusMovedPermanently)
+func (j redirectResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	http.Redirect(rw, r, j.url, j.code)
 }
 
 //Xml takes a StatusCode and data which gets marshaled to Xml
@@ -159,5 +158,3 @@ func Xml(code int, data interface{}) HttpResponse {
 		ResponseHeaderContentType: ContentTypeApplicationXml,
 	}, Bytes(code, xmlData))
 }
-
-

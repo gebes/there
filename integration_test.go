@@ -66,7 +66,7 @@ func CreateRouter() *Router {
 		return String(StatusOK, "Hello there")
 	})
 	data.Get("/redirect", func(request HttpRequest) HttpResponse {
-		return Redirect("https://google.com")
+		return Redirect(StatusMovedPermanently, "https://google.com")
 	})
 	data.Get("/html", func(request HttpRequest) HttpResponse {
 		return Html(StatusOK, "./test/index.html", map[string]string{
@@ -291,7 +291,6 @@ func TestBodyToStringError(t *testing.T) {
 			if err != nil {
 				did++
 			}
-
 
 			if tests != did {
 				return Error(StatusInternalServerError, "not every bind threw an error: "+strconv.Itoa(did)+"/"+strconv.Itoa(tests))
