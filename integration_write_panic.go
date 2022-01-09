@@ -1,8 +1,7 @@
-package there_test
+package there
 
 import (
 	"encoding/json"
-	. "github.com/Gebes/there/v2"
 	"io"
 	"io/ioutil"
 	"log"
