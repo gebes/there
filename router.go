@@ -9,8 +9,7 @@ import (
 type Router struct {
 	*RouteGroup
 	Configuration *RouterConfiguration
-
-	*http.Server
+	Server        *http.Server
 
 	globalMiddlewares []Middleware
 
