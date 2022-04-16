@@ -59,6 +59,6 @@ func (router *Router) Use(middleware Middleware) *Router {
 
 //RouterConfiguration is a straightforward place to override default behavior of the router
 type RouterConfiguration struct {
-	//RouteNotFoundHandler
+	//RouteNotFoundHandler gets invoked, when the specified URL and method have no handlers
 	RouteNotFoundHandler Endpoint
 }
