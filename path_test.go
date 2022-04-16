@@ -22,7 +22,7 @@ func TestConstructPath(t *testing.T) {
 				ignoreCase: false,
 			},
 			want: Path{
-				parts: []PathPart{
+				parts: []pathPart{
 					{value: "home", variable: false},
 				},
 				ignoreCase: false,
@@ -35,7 +35,7 @@ func TestConstructPath(t *testing.T) {
 				ignoreCase: false,
 			},
 			want: Path{
-				parts: []PathPart{
+				parts: []pathPart{
 					{value: "user", variable: false},
 					{value: "id", variable: true},
 				},
@@ -49,7 +49,7 @@ func TestConstructPath(t *testing.T) {
 				ignoreCase: true,
 			},
 			want: Path{
-				parts: []PathPart{
+				parts: []pathPart{
 					{value: "home", variable: false},
 				},
 				ignoreCase: true,
@@ -62,7 +62,7 @@ func TestConstructPath(t *testing.T) {
 				ignoreCase: true,
 			},
 			want: Path{
-				parts: []PathPart{
+				parts: []pathPart{
 					{value: "user", variable: false},
 					{value: "id", variable: true},
 				},
@@ -247,7 +247,7 @@ func TestPath_Parse(t *testing.T) {
 
 func TestPath_ToString(t *testing.T) {
 	type fields struct {
-		parts      []PathPart
+		parts      []pathPart
 		ignoreCase bool
 	}
 	type test struct {

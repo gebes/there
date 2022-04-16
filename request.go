@@ -38,7 +38,7 @@ func (r *HttpRequest) Context() context.Context {
 	return r.Request.Context()
 }
 
-func (r *HttpRequest) WithContext(ctx context.Context)  {
+func (r *HttpRequest) WithContext(ctx context.Context) {
 	*r.Request = *r.Request.WithContext(ctx)
 }
 

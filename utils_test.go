@@ -8,7 +8,6 @@ func AssertEquals(t *testing.T, got, want string) {
 	}
 }
 
-
 func TestAssert(t *testing.T) {
 	defer func() { recover() }()
 
@@ -116,4 +115,3 @@ func TestCheckArraysOverlap(t *testing.T) {
 		})
 	}
 }
-

@@ -616,12 +616,12 @@ func TestRoute_ToString(t *testing.T) {
 		want   string
 	}{
 		{
-			name:  "ToString Uppercase",
+			name: "ToString Uppercase",
 			fields: fields{
-				Endpoint:    nil,
-				Methods:     []string{MethodGet},
-				Path:        Path{
-					parts: []PathPart{
+				Endpoint: nil,
+				Methods:  []string{MethodGet},
+				Path: Path{
+					parts: []pathPart{
 						{
 							value:    "",
 							variable: false,
@@ -631,7 +631,7 @@ func TestRoute_ToString(t *testing.T) {
 				},
 				Middlewares: nil,
 			},
-			want:   "[GET] / *IgnoreCase",
+			want: "[GET] / *IgnoreCase",
 		},
 	}
 	for _, tt := range tests {
