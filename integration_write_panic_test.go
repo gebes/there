@@ -11,7 +11,7 @@ import (
 
 func TestWriteError(t *testing.T) {
 	router := NewRouter()
-	router.Get("/", func(request HttpRequest) HttpResponse {
+	router.Get("/", func(request Request) Response {
 		// No body with 1xx status
 		return Json(StatusContinue, "not writeable")
 	})

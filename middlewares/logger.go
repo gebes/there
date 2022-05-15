@@ -35,7 +35,7 @@ type LoggerConfiguration struct {
 	ErrorLogger *log.Logger
 }
 
-func Logger(configuration ...LoggerConfiguration) func(request HttpRequest, next HttpResponse) HttpResponse {
+func Logger(configuration ...LoggerConfiguration) func(request Request, next Response) Response {
 
 	config := &LoggerConfiguration{
 		InfoLogger:  log.Default(),
@@ -46,7 +46,7 @@ func Logger(configuration ...LoggerConfiguration) func(request HttpRequest, next
 		config = &configuration[0]
 	}
 
-	return func(request HttpRequest, next HttpResponse) HttpResponse {
+	return func(request Request, next Response) Response {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			ww := &responseWriterWrapper{
 				writer:        w,

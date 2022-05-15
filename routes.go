@@ -43,7 +43,7 @@ func NewRouteGroup(router *Router, route string) *RouteGroup {
 	}
 }
 
-type Endpoint func(request HttpRequest) HttpResponse
+type Endpoint func(request Request) Response
 
 //Route adds attributes to an Endpoint func
 type Route struct {

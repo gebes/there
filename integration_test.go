@@ -39,11 +39,11 @@ type simpleUser struct {
 
 func CreateRouter() *Router {
 	// Sample Data
-	json := func(request HttpRequest) HttpResponse {
+	json := func(request Request) Response {
 		return Json(StatusOK, sampleData)
 	}
 	// Samle User
-	xml := func(request HttpRequest) HttpResponse {
+	xml := func(request Request) Response {
 		return Xml(StatusOK, sampleUser)
 	}
 
@@ -56,56 +56,56 @@ func CreateRouter() *Router {
 
 	data.Handle("/json", json, MethodGet, MethodPost, MethodPut, MethodDelete)
 	data.Get("/xml", xml)
-	data.Get("/empty", func(request HttpRequest) HttpResponse {
+	data.Get("/empty", func(request Request) Response {
 		return Status(StatusAccepted)
 	})
-	data.Get("/message", func(request HttpRequest) HttpResponse {
+	data.Get("/message", func(request Request) Response {
 		return Message(StatusOK, "Hello there")
 	})
-	data.Get("/string", func(request HttpRequest) HttpResponse {
+	data.Get("/string", func(request Request) Response {
 		return String(StatusOK, "Hello there")
 	})
-	data.Get("/redirect", func(request HttpRequest) HttpResponse {
+	data.Get("/redirect", func(request Request) Response {
 		return Redirect(StatusMovedPermanently, "https://google.com")
 	})
-	data.Get("/html", func(request HttpRequest) HttpResponse {
+	data.Get("/html", func(request Request) Response {
 		return Html(StatusOK, "./test/index.html", map[string]string{
 			"user": "Hannes",
 		})
 	})
-	data.Get("/bytes", func(request HttpRequest) HttpResponse {
+	data.Get("/bytes", func(request Request) Response {
 		return Bytes(StatusOK, []byte{'a', 'b'})
 	})
 
 	errorGroup := router.Group("/error")
-	errorGroup.Get("/json", func(request HttpRequest) HttpResponse {
+	errorGroup.Get("/json", func(request Request) Response {
 		return Json(StatusOK, errorData)
 	})
-	errorGroup.Get("/xml", func(request HttpRequest) HttpResponse {
+	errorGroup.Get("/xml", func(request Request) Response {
 		return Xml(StatusOK, errorData)
 	})
 
-	errorGroup.Get("/error/1", func(request HttpRequest) HttpResponse {
+	errorGroup.Get("/error/1", func(request Request) Response {
 		return Error(StatusOK, errors.New("test2"))
 	})
-	errorGroup.Get("/error/2", func(request HttpRequest) HttpResponse {
+	errorGroup.Get("/error/2", func(request Request) Response {
 		return Error(StatusOK, "test3")
 	})
-	errorGroup.Get("/html/1", func(request HttpRequest) HttpResponse {
+	errorGroup.Get("/html/1", func(request Request) Response {
 		return Html(StatusOK, "./non/existing/folder/for/the/test", map[string]string{
 			"user": "Hannes",
 		})
 	})
-	errorGroup.Get("/html/2", func(request HttpRequest) HttpResponse {
+	errorGroup.Get("/html/2", func(request Request) Response {
 		return Html(StatusOK, "./examples/index.html", "A string cannot be used as a template, hence this will fail")
 	})
-	errorGroup.Get("/data", func(request HttpRequest) HttpResponse {
+	errorGroup.Get("/data", func(request Request) Response {
 		return Status(StatusOK)
-	}).With(func(request HttpRequest, next HttpResponse) HttpResponse {
+	}).With(func(request Request, next Response) Response {
 		return Error(StatusInternalServerError, errors.New("lol"))
 	})
 
-	data.Post("/return/json", func(request HttpRequest) HttpResponse {
+	data.Post("/return/json", func(request Request) Response {
 		var user simpleUser
 		err := request.Body.BindJson(&user)
 		if err != nil {
@@ -113,7 +113,7 @@ func CreateRouter() *Router {
 		}
 		return String(StatusOK, user.Name)
 	})
-	data.Post("/return/xml", func(request HttpRequest) HttpResponse {
+	data.Post("/return/xml", func(request Request) Response {
 		var user simpleUser
 		err := request.Body.BindXml(&user)
 		if err != nil {
@@ -121,7 +121,7 @@ func CreateRouter() *Router {
 		}
 		return String(StatusOK, user.Name)
 	})
-	data.Post("/return/string", func(request HttpRequest) HttpResponse {
+	data.Post("/return/string", func(request Request) Response {
 		body, err := request.Body.ToString()
 		if err != nil {
 			log.Fatalln("Could not bind", err)
@@ -243,10 +243,10 @@ func TestMiddlewareErrorResponse(t *testing.T) {
 
 func TestGlobalMiddlewareErrorResponse(t *testing.T) {
 	router := NewRouter().
-		Get("error/data/global", func(request HttpRequest) HttpResponse {
+		Get("error/data/global", func(request Request) Response {
 			return Status(StatusOK)
 		}).
-		Use(func(request HttpRequest, next HttpResponse) HttpResponse {
+		Use(func(request Request, next Response) Response {
 			return Error(StatusInternalServerError, errors.New("errored out"))
 		})
 	testErrorResponse(router, t, "data/global")
@@ -254,10 +254,10 @@ func TestGlobalMiddlewareErrorResponse(t *testing.T) {
 
 func TestPanicErrorResponse(t *testing.T) {
 	router := NewRouter().
-		Get("error/data/panic", func(request HttpRequest) HttpResponse {
+		Get("error/data/panic", func(request Request) Response {
 			panic("oh no panic")
 		}).
-		Use(func(request HttpRequest, next HttpResponse) HttpResponse {
+		Use(func(request Request, next Response) Response {
 			return Error(StatusInternalServerError, errors.New("errored out"))
 		})
 	testErrorResponse(router, t, "data/panic")
@@ -272,7 +272,7 @@ func (errReader) Read(p []byte) (n int, err error) {
 func TestBodyToStringError(t *testing.T) {
 	router := NewRouter()
 	router.
-		Post("/test", func(request HttpRequest) HttpResponse {
+		Post("/test", func(request Request) Response {
 
 			tests := 3
 			did := 0
@@ -353,7 +353,7 @@ func TestRedirectResponse(t *testing.T) {
 	// result := recorder.Result()
 
 	// TODO FIX ASSERT
-	// assert.Equal(t, "https://google.com", result.WithHeaders.Get("Location"))
+	// assert.Equal(t, "https://google.com", result.Headers.Get("Location"))
 
 }
 

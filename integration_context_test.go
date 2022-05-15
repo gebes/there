@@ -21,7 +21,7 @@ func createRouter() *Router {
 	router := NewRouter()
 	router.Use(middlewares.Recoverer)
 	router.
-		Use(func(request HttpRequest, next HttpResponse) HttpResponse {
+		Use(func(request Request, next Response) Response {
 			authorization := request.Headers.GetDefault(RequestHeaderAuthorization, "")
 
 			user, ok := users[authorization]
@@ -33,7 +33,7 @@ func createRouter() *Router {
 			return next
 		})
 	router.
-		Get("/user", func(request HttpRequest) HttpResponse {
+		Get("/user", func(request Request) Response {
 			user, ok := request.Context().Value("user").(simpleUser)
 
 			if !ok {
@@ -41,16 +41,16 @@ func createRouter() *Router {
 			}
 
 			return Json(StatusOK, user)
-		}).With(func(request HttpRequest, next HttpResponse) HttpResponse {
+		}).With(func(request Request, next Response) Response {
 
 		request.WithContext(context.WithValue(request.Context(), "world", "hello"))
 		request.WithContext(context.WithValue(request.Context(), "hello", "world"))
 		return next
 	})
 
-	router.Get("/user/test2", func(request HttpRequest) HttpResponse {
+	router.Get("/user/test2", func(request Request) Response {
 		return Status(StatusOK)
-	}).With(func(request HttpRequest, next HttpResponse) HttpResponse {
+	}).With(func(request Request, next Response) Response {
 		request.WithContext(context.WithValue(request.Context(), "hello", "world"))
 		return String(StatusBadRequest, "Error")
 	})

@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func Recoverer(request HttpRequest, next HttpResponse) HttpResponse {
+func Recoverer(request Request, next Response) Response {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {

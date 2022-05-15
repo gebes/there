@@ -12,7 +12,7 @@ func TestCorsMiddleware(t *testing.T) {
 
 	router := NewRouter()
 	router.Use(Cors(AllowAllConfiguration()))
-	router.Get("/", func(request HttpRequest) HttpResponse {
+	router.Get("/", func(request Request) Response {
 		return Status(StatusOK)
 	})
 
