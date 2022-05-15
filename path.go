@@ -1,40 +1,39 @@
 package there
 
-import "strings"
+import (
+	"strings"
+)
 
 type Path struct {
-	parts      []PathPart
+	parts      []pathPart
 	ignoreCase bool
 }
 
-type PathPart struct {
+type pathPart struct {
 	value    string
 	variable bool
 }
 
+// ConstructPath returns the path to match.
 func ConstructPath(pathString string, ignoreCase bool) Path {
-
-	parts := make([]PathPart, 0)
-
 	split := splitUrl(pathString)
-
-	for _, s := range split {
-		if strings.HasPrefix(s, ":") {
-			s = strings.TrimPrefix(s, ":")
+	parts := make([]pathPart, len(split))
+	for i, s := range split {
+		variable := false
+		const variablePrefix = ":"
+		if strings.HasPrefix(s, variablePrefix) {
+			s = s[len(variablePrefix):]
 			for _, part := range parts {
 				if part.variable && part.value == s {
 					panic(pathString + " has defined the route param \"" + s + "\" more than once")
 				}
 			}
-			parts = append(parts, PathPart{
-				value:    s,
-				variable: true,
-			})
-		} else {
-			parts = append(parts, PathPart{
-				value:    s,
-				variable: false,
-			})
+			variable = true
+		}
+
+		parts[i] = pathPart{
+			value:    s,
+			variable: variable,
 		}
 	}
 

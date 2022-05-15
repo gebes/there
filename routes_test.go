@@ -621,7 +621,7 @@ func TestRoute_ToString(t *testing.T) {
 				Endpoint: nil,
 				Methods:  []string{MethodGet},
 				Path: Path{
-					parts: []PathPart{
+					parts: []pathPart{
 						{
 							value:    "",
 							variable: false,
