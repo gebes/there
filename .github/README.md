@@ -29,6 +29,13 @@
 <a href="https://GitHub.com/Gebes/there/releases/">
     <img src="https://img.shields.io/github/release/Gebes/there" alt="Latest releace">
 </a>
+<a href="https://gocover.io/github.com/Gebes/there">
+    <img src="https://gocover.io/_badge/github.com/Gebes/there" alt="Latest releace">
+</a>
+<a href="https://www.codefactor.io/repository/github/Gebes/there">
+    <img src="https://www.codefactor.io/repository/github/Gebes/there/badge" alt="Latest releace">
+</a>
+
 <br><br>
 <a href="https://gitHub.com/Gebes/there/graphs/commit-activity">
     <img src="https://img.shields.io/badge/Maintained%3F-yes-green.svg" alt="Maintained?">
