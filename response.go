@@ -86,14 +86,14 @@ func String(code int, data string) HttpResponse {
 }
 
 //Error takes a StatusCode and err which rendering is specified by the Serializers in the RouterConfiguration
-func Error(code int, err interface{}) HttpResponse {
+func Error(code int, err any) HttpResponse {
 	return Json(code, MapString{
 		"error": fmt.Sprint(err),
 	})
 }
 
 //Html takes a status code, the path to the html file and a map for the template parsing
-func Html(code int, file string, template interface{}) HttpResponse {
+func Html(code int, file string, template any) HttpResponse {
 	content, err := parseTemplate(file, template)
 	if err != nil {
 		panic(err)
@@ -103,7 +103,7 @@ func Html(code int, file string, template interface{}) HttpResponse {
 	}, Bytes(code, []byte(*content)))
 }
 
-func parseTemplate(templateFileName string, data interface{}) (*string, error) {
+func parseTemplate(templateFileName string, data any) (*string, error) {
 	t, err := template.ParseFiles(templateFileName)
 	if err != nil {
 		return nil, err
@@ -117,7 +117,7 @@ func parseTemplate(templateFileName string, data interface{}) (*string, error) {
 }
 
 //Json takes a StatusCode and data which gets marshaled to Json
-func Json(code int, data interface{}) HttpResponse {
+func Json(code int, data any) HttpResponse {
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		panic(err)
@@ -129,7 +129,7 @@ func Json(code int, data interface{}) HttpResponse {
 
 //Message takes StatusCode and a message which will be put into a JSON object
 func Message(code int, message string) HttpResponse {
-	return Json(code, map[string]interface{}{
+	return Json(code, map[string]any{
 		"message": message,
 	})
 }
@@ -149,7 +149,7 @@ func (j redirectResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 }
 
 //Xml takes a StatusCode and data which gets marshaled to Xml
-func Xml(code int, data interface{}) HttpResponse {
+func Xml(code int, data any) HttpResponse {
 	xmlData, err := xml.Marshal(data)
 	if err != nil {
 		panic(err)
