@@ -168,7 +168,7 @@ func Xml(code int, data interface{}) Response {
 func File(path string, fallbackContentType ...string) Response {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return Error(StatusNotFound, "File isn't found!")
+		return Error(StatusNotFound, err.Error())
 	}
 	var header string
 	if len(fallbackContentType) >= 1 {
