@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/Gebes/there/v2"
 	"strings"
+
+	"github.com/Gebes/there/v2"
 )
 
 type method uint8
@@ -40,7 +41,6 @@ func methodToInt(method string) method {
 		return methodOptions
 	case there.MethodTrace:
 		return methodTrace
-
 	}
 }
 
@@ -99,7 +99,6 @@ func findHandler(currentNode *node, parts *[]string, index int) *handlerResult {
 
 func (n *node) AddHandler(method method, path string, endpoint there.Endpoint) {
 
-
 }
 
-func addHandler(currentNode *node, )
+func addHandler(currentNode *node)

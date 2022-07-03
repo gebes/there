@@ -1,18 +1,19 @@
 package middlewares
 
 import (
-	. "github.com/Gebes/there/v2"
 	"net/http"
+
+	"github.com/Gebes/there/v2"
 )
 
-func Recoverer(request Request, next Response) Response {
+func Recoverer(request there.Request, next there.Response) there.Response {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {
-				Error(StatusInternalServerError, rvr).ServeHTTP(w, r)
+				there.Error(there.StatusInternalServerError, rvr).ServeHTTP(w, r)
 			}
 		}()
 		next.ServeHTTP(w, r)
 	}
-	return HttpResponseFunc(fn)
+	return there.HttpResponseFunc(fn)
 }

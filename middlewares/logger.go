@@ -2,12 +2,13 @@ package middlewares
 
 import (
 	"fmt"
-	. "github.com/Gebes/there/v2"
-	"github.com/Gebes/there/v2/utils/color"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/Gebes/there/v2"
+	"github.com/Gebes/there/v2/utils/color"
 )
 
 type responseWriterWrapper struct {
@@ -35,7 +36,7 @@ type LoggerConfiguration struct {
 	ErrorLogger *log.Logger
 }
 
-func Logger(configuration ...LoggerConfiguration) func(request Request, next Response) Response {
+func Logger(configuration ...LoggerConfiguration) func(request there.Request, next there.Response) there.Response {
 
 	config := &LoggerConfiguration{
 		InfoLogger:  log.Default(),
@@ -46,20 +47,20 @@ func Logger(configuration ...LoggerConfiguration) func(request Request, next Res
 		config = &configuration[0]
 	}
 
-	return func(request Request, next Response) Response {
+	return func(request there.Request, next there.Response) there.Response {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			ww := &responseWriterWrapper{
 				writer:        w,
-				writtenHeader: StatusOK,
+				writtenHeader: there.StatusOK,
 				writtenBytes:  &[]byte{},
 			}
 			start := time.Now()
 			defer func() {
 				code := ww.writtenHeader
 				diff := time.Now().Sub(start)
-				toLog := color.Blue(r.Method+" "+r.URL.Path) + " resulted in " + statusCodeToColoredString(code) + " (" + StatusText(code) + ") after " + fmt.Sprint(diff)
+				toLog := color.Blue(r.Method+" "+r.URL.Path) + " resulted in " + statusCodeToColoredString(code) + " (" + there.StatusText(code) + ") after " + fmt.Sprint(diff)
 
-				if code == StatusInternalServerError {
+				if code == there.StatusInternalServerError {
 					config.ErrorLogger.Println(toLog+":", string(*ww.writtenBytes))
 				} else {
 					config.InfoLogger.Println(toLog)
@@ -67,7 +68,7 @@ func Logger(configuration ...LoggerConfiguration) func(request Request, next Res
 			}()
 			next.ServeHTTP(ww, r)
 		}
-		return HttpResponseFunc(fn)
+		return there.HttpResponseFunc(fn)
 	}
 }
 
