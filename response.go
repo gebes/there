@@ -15,10 +15,10 @@ import (
 //Necessary to render the Response by calling Execute and for the Headers Builder.
 type Response http.Handler
 
-type HttpResponseFunc func(http.ResponseWriter, *http.Request)
+type ResponseFunc func(http.ResponseWriter, *http.Request)
 
 // ServeHTTP calls f(w, r).
-func (f HttpResponseFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (f ResponseFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	f(w, r)
 }
 
