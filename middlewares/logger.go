@@ -68,7 +68,7 @@ func Logger(configuration ...LoggerConfiguration) func(request there.Request, ne
 			}()
 			next.ServeHTTP(ww, r)
 		}
-		return there.HttpResponseFunc(fn)
+		return there.ResponseFunc(fn)
 	}
 }
 

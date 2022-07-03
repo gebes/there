@@ -64,7 +64,7 @@ func main() {
 	router := there.NewRouter() // Create a new router
 	
 	// Register GET route /
-	router.Get("/", func(request there.HttpRequest) there.HttpResponse {
+	router.Get("/", func(request there.Request) there.Response {
 		return there.Json(there.StatusOK, Map{
 			"message": "Hello World!",
 		})
@@ -149,7 +149,7 @@ Controlling your route's flow with **There** is a delight! It is easy to underst
 A HttpResponse is basically a `http.handler`. **There** provides several handlers out of the box!
 
 ```go
-func CreatePost(request there.HttpRequest) there.HttpResponse {
+func CreatePost(request there.Request) there.Response {
 	var body Post
 	err := request.Body.BindJson(&body) // Decode body
 	if err != nil { // If body was not valid json, return bad request error
@@ -183,7 +183,7 @@ import (
 )
 
 //Msgpack takes a StatusCode and data which gets marshaled to Msgpack
-func Msgpack(code int, data interface{}) there.HttpResponse {
+func Msgpack(code int, data interface{}) there.Response {
    msgpackData, err := msgpack.Marshal(data) // marshal the data
    if err != nil {
       panic(err) // panic if the data was invalid. can be caught by Recoverer
@@ -193,7 +193,7 @@ func Msgpack(code int, data interface{}) there.HttpResponse {
    }, there.Bytes(code, msgpackData))
 }
 
-func Get(request there.HttpRequest) there.HttpResponse {
+func Get(request there.Request) there.Response {
    return Msgpack(there.StatusOK, map[string]string{ // now use the created response
       "Hello": "World",
       "How":   "are you?",
@@ -232,7 +232,7 @@ func main() {
    }
 }
 
-func GlobalMiddleware(request there.HttpRequest, next there.HttpResponse) there.HttpResponse {
+func GlobalMiddleware(request there.Request, next there.Response) there.Response {
    // Check the request content-type
    if request.Headers.GetDefault(there.RequestHeaderContentType, "") != there.ContentTypeApplicationJson {
       return there.Error(there.StatusUnsupportedMediaType, "Header " + there.RequestHeaderContentType + " is not " + there.ContentTypeApplicationJson)
@@ -241,7 +241,7 @@ func GlobalMiddleware(request there.HttpRequest, next there.HttpResponse) there.
    return next // Everything is fine until here, continue
 }
 
-func RouteSpecificMiddleware(request there.HttpRequest, next there.HttpResponse) there.HttpResponse {
+func RouteSpecificMiddleware(request there.Request, next there.Response) there.Response {
    return there.WithHeaders(MapString{
       there.ResponseHeaderContentLanguage: "en",
    }, next) // Set the content-language header by wrapping next with WithHeaders
@@ -262,7 +262,7 @@ If you have other middlewares, which you created using other routers, then there
 As an example, let us have a look at the Recoverer middleware.
 
 ```go
-func Recoverer(request there.HttpRequest, next there.HttpResponse) there.HttpResponse {
+func Recoverer(request there.Request, next there.Response) there.Response {
    fn := func(w http.ResponseWriter, r *http.Request) {
       defer func() {
          if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {

@@ -10,7 +10,7 @@ import (
 )
 
 //Msgpack takes a StatusCode and data which gets marshaled to Msgpack
-func Msgpack(code int, data interface{}) there.HttpResponse {
+func Msgpack(code int, data interface{}) there.Response {
    msgpackData, err := msgpack.Marshal(data)
    if err != nil {
       panic(err)
@@ -20,7 +20,7 @@ func Msgpack(code int, data interface{}) there.HttpResponse {
    }, there.Bytes(code, msgpackData))
 }
 
-func Get(request there.HttpRequest) there.HttpResponse {
+func Get(request there.Request) there.Response {
    return Msgpack(StatusOK, map[string]string{
       "Hello": "World",
       "How":   "are you?",

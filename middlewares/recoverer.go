@@ -15,5 +15,5 @@ func Recoverer(request there.Request, next there.Response) there.Response {
 		}()
 		next.ServeHTTP(w, r)
 	}
-	return there.HttpResponseFunc(fn)
+	return there.ResponseFunc(fn)
 }
