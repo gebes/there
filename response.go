@@ -176,12 +176,12 @@ func File(path string, fallbackContentType ...string) Response {
 	} else {
 		parts := strings.Split(path, ".")
 		if len(parts) <= 1 {
-			header = ""
+			header = ContentTypeTextPlain
 		}
 		extension := parts[len(parts)-1]
 		header = ContentType(extension)
 		if len(header) == 0 {
-			header = ""
+			header = ContentTypeTextPlain
 		}
 	}
 	return Headers(map[string]string{
