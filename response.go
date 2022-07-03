@@ -165,14 +165,14 @@ func Xml(code int, data interface{}) Response {
 // It also selects an appropriate content type header, depending on the file-serving extension.
 // Additionally, a fallbackContentType can be passed, if the content type corresponding to
 // the file-serving extension was not found.
-func File(path string, fallbackContentType ...string) Response {
+func File(path string, contentType ...string) Response {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return Error(StatusNotFound, err.Error())
 	}
 	var header string
-	if len(fallbackContentType) >= 1 {
-		header = fallbackContentType[0]
+	if len(contentType) >= 1 {
+		header = contentType[0]
 	} else {
 		extension := filepath.Ext(path)
 		if extension != "" {
