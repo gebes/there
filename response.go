@@ -8,7 +8,7 @@ import (
 	"html/template"
 	"net/http"
 	"os"
-	"strings"
+	"path/filepath"
 )
 
 //Response is the base for every return you can make in an Endpoint.
@@ -174,11 +174,11 @@ func File(path string, fallbackContentType ...string) Response {
 	if len(fallbackContentType) >= 1 {
 		header = fallbackContentType[0]
 	} else {
-		parts := strings.Split(path, ".")
-		if len(parts) <= 1 {
-			header = ContentTypeTextPlain
+		extension := filepath.Ext(path)
+		if extension != "" {
+			extension = extension[1:]
 		}
-		extension := parts[len(parts)-1]
+
 		header = ContentType(extension)
 		if len(header) == 0 {
 			header = ContentTypeTextPlain
