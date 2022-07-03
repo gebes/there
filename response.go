@@ -124,9 +124,16 @@ func Json(code int, data interface{}) Response {
 	if err != nil {
 		panic(err)
 	}
-	return Headers(map[string]string{
+
+	headers := map[string]string{
 		ResponseHeaderContentType: ContentTypeApplicationJson,
-	}, Bytes(code, jsonData))
+	}
+	response := Bytes(code, jsonData)
+
+	return &headerResponse{
+		headers,
+		response,
+	}
 }
 
 //Message takes StatusCode and a message which will be put into a JSON object
