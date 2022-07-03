@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/Gebes/there/v2"
 	"log"
+
+	"github.com/Gebes/there/v2"
 )
 
 func main() {
