@@ -168,7 +168,7 @@ func Xml(code int, data interface{}) Response {
 func File(path string, fallbackContentType ...string) Response {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		panic(err)
+		return Error(StatusNotFound, "File isn't found!")
 	}
 	var header string
 	if len(fallbackContentType) >= 1 {
@@ -176,12 +176,12 @@ func File(path string, fallbackContentType ...string) Response {
 	} else {
 		parts := strings.Split(path, ".")
 		if len(parts) <= 1 {
-			panic("File without extension passed!")
+			header = ""
 		}
 		extension := parts[len(parts)-1]
 		header = ContentType(extension)
 		if len(header) == 0 {
-			panic("No content type for file-serving " + path + " found!")
+			header = ""
 		}
 	}
 	return Headers(map[string]string{
