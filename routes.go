@@ -70,10 +70,12 @@ func (e Route) ToString() string {
 }
 
 func (group *RouteGroup) Handle(path string, endpoint Endpoint, methods ...string) *RouteRouteGroupBuilder {
-	Assert(path != "", "path must not be empty")
-	path = strings.TrimPrefix(path, "/")
-	path = strings.TrimSuffix(path, "/")
-	Assert(len(methods) != 0, "path must have at least one method")
+	if path == "" {
+		path = "/"
+	}
+	if path[0] != '/' {
+		path = "/" + path
+	}
 
 	path = group.prefix + path
 
