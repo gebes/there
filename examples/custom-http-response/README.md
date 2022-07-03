@@ -17,7 +17,7 @@ func Msgpack(code int, data interface{}) there.HttpResponse {
    }
    return there.WithHeaders(MapString{
       there.ResponseHeaderContentType: "application/x-msgpack",
-   }, Bytes(code, msgpackData))
+   }, there.Bytes(code, msgpackData))
 }
 
 func Get(request there.HttpRequest) there.HttpResponse {

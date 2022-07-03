@@ -1,4 +1,4 @@
-package there_test
+package there
 
 /* Useful for testing. Commented for dependency cleanup
 import (
@@ -89,4 +89,4 @@ func BenchmarkGin(b *testing.B) {
 		result.Body.Close()
 	}
 }
-/*
+*/
