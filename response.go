@@ -118,15 +118,30 @@ func parseTemplate(templateFileName string, data interface{}) (*string, error) {
 	return &body, nil
 }
 
+type jsonResponse struct {
+	code int
+	data []byte
+}
+
+func (j jsonResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	_, err := rw.Write(j.data)
+
+	if err != nil {
+		panic(err)
+	}
+
+	rw.Header().Set(ResponseHeaderContentType, ContentTypeApplicationJson)
+	rw.WriteHeader(j.code)
+}
+
 //Json takes a StatusCode and data which gets marshaled to Json
 func Json(code int, data interface{}) Response {
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		panic(err)
 	}
-	return Headers(map[string]string{
-		ResponseHeaderContentType: ContentTypeApplicationJson,
-	}, Bytes(code, jsonData))
+
+	return jsonResponse{code: code, data: jsonData}
 }
 
 //Message takes StatusCode and a message which will be put into a JSON object
