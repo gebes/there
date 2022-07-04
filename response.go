@@ -80,16 +80,61 @@ func (h headerResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type stringResponse struct {
+	code int
+	data []byte
+}
+
+func (s stringResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	rw.WriteHeader(s.code)
+	rw.Header().Set(ResponseHeaderContentType, ContentTypeTextPlain)
+	_, err := rw.Write(s.data)
+	if err != nil {
+		panic(err)
+	}
+}
+
 //String takes a StatusCode and renders the plain string
 func String(code int, data string) HttpResponse {
-	return Bytes(code, []byte(data))
+	return stringResponse{code: code, data: []byte(data)}
+}
+
+type errorResponse struct {
+	code int
+	data []byte
+}
+
+func (m errorResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	rw.WriteHeader(m.code)
+	rw.Header().Set(ResponseHeaderContentType, ContentTypeApplicationJson)
+	data, err := json.Marshal(m.data)
+	rw.Write(data)
+	if err != nil {
+		panic(err)
+	}
 }
 
 //Error takes a StatusCode and err which rendering is specified by the Serializers in the RouterConfiguration
 func Error(code int, err any) HttpResponse {
-	return Json(code, MapString{
+	errMap := MapString{
 		"error": fmt.Sprint(err),
-	})
+	}
+	jsonData, err := json.Marshal(errMap)
+	return errorResponse{code: code, data: jsonData}
+}
+
+type htmlResponse struct {
+	code int
+	data []byte
+}
+
+func (h htmlResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	rw.WriteHeader(h.code)
+	rw.Header().Set(ResponseHeaderContentType, ContentTypeTextHtml)
+	_, err := rw.Write(h.data)
+	if err != nil {
+		panic(err)
+	}
 }
 
 //Html takes a status code, the path to the html file and a map for the template parsing
@@ -98,9 +143,7 @@ func Html(code int, file string, template any) HttpResponse {
 	if err != nil {
 		panic(err)
 	}
-	return WithHeaders(MapString{
-		ResponseHeaderContentType: ContentTypeTextHtml,
-	}, Bytes(code, []byte(*content)))
+	return htmlResponse{code: code, data: []byte(*content)}
 }
 
 func parseTemplate(templateFileName string, data any) (*string, error) {
@@ -116,22 +159,54 @@ func parseTemplate(templateFileName string, data any) (*string, error) {
 	return &body, nil
 }
 
+type jsonResponse struct {
+	code int
+	data []byte
+}
+
+func (j jsonResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	rw.WriteHeader(j.code)
+	rw.Header().Set(ResponseHeaderContentType, ContentTypeTextHtml)
+	_, err := rw.Write(j.data)
+	if err != nil {
+		panic(err)
+	}
+}
+
 //Json takes a StatusCode and data which gets marshaled to Json
 func Json(code int, data any) HttpResponse {
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		panic(err)
 	}
-	return WithHeaders(MapString{
-		ResponseHeaderContentType: ContentTypeApplicationJson,
-	}, Bytes(code, jsonData))
+	return jsonResponse{code: code, data: jsonData}
+}
+
+type messageResponse struct {
+	code int
+	data []byte
+}
+
+func (m messageResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	rw.WriteHeader(m.code)
+	rw.Header().Set(ResponseHeaderContentType, ContentTypeApplicationJson)
+	data, err := json.Marshal(m.data)
+	rw.Write(data)
+	if err != nil {
+		panic(err)
+	}
 }
 
 //Message takes StatusCode and a message which will be put into a JSON object
 func Message(code int, message string) HttpResponse {
-	return Json(code, map[string]any{
+	messageMap := map[string]any{
 		"message": message,
-	})
+	}
+	jsonData, err := json.Marshal(messageMap)
+	if err != nil {
+		panic(err)
+	}
+	return messageResponse{code: code, data: []byte(jsonData)}
 }
 
 //Redirect redirects to the specific URL
@@ -148,13 +223,25 @@ func (j redirectResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	http.Redirect(rw, r, j.url, j.code)
 }
 
+type xmlResponse struct {
+	code int
+	data []byte
+}
+
+func (x xmlResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	rw.WriteHeader(x.code)
+	rw.Header().Set(ResponseHeaderContentType, ContentTypeTextHtml)
+	_, err := rw.Write(x.data)
+	if err != nil {
+		panic(err)
+	}
+}
+
 //Xml takes a StatusCode and data which gets marshaled to Xml
 func Xml(code int, data any) HttpResponse {
 	xmlData, err := xml.Marshal(data)
 	if err != nil {
 		panic(err)
 	}
-	return WithHeaders(MapString{
-		ResponseHeaderContentType: ContentTypeApplicationXml,
-	}, Bytes(code, xmlData))
+	return xmlResponse{code: code, data: xmlData}
 }
