@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
+	. "github.com/Gebes/there/v2"
+	"github.com/Gebes/there/v2/middlewares"
 	"io"
 	"io/ioutil"
 	"log"
@@ -12,19 +14,16 @@ import (
 	"reflect"
 	"strconv"
 	"testing"
-
-	"github.com/Gebes/there/v2"
-	"github.com/Gebes/there/v2/middlewares"
 )
 
 var (
-	sampleData = map[string]interface{}{
+	sampleData = map[string]any{
 		"Hello": "There",
 	}
 	sampleUser       = user{"Hannes", "A cool user"}
 	sampleSimpleUser = simpleUser{"Hannes"}
-	errorData        = map[interface{}]interface{}{}
-	errorMarshal     = func(i interface{}) ([]byte, error) {
+	errorData        = map[any]any{}
+	errorMarshal     = func(i any) ([]byte, error) {
 		return nil, errors.New("test")
 	}
 )
@@ -38,102 +37,102 @@ type simpleUser struct {
 	Name string `yaml:"Name"`
 }
 
-func CreateRouter() *there.Router {
+func CreateRouter() *Router {
 	// Sample Data
-	json := func(request there.Request) there.Response {
-		return there.Json(there.StatusOK, sampleData)
+	json := func(request HttpRequest) HttpResponse {
+		return Json(StatusOK, sampleData)
 	}
 	// Samle User
-	xml := func(request there.Request) there.Response {
-		return there.Xml(there.StatusOK, sampleUser)
+	xml := func(request HttpRequest) HttpResponse {
+		return Xml(StatusOK, sampleUser)
 	}
 
-	router := there.NewRouter().
+	router := NewRouter().
 		Use(middlewares.Cors(middlewares.AllowAllConfiguration()))
 
 	router.Use(middlewares.Recoverer)
 
 	data := router.Group("/data")
 
-	data.Handle("/json", json, there.MethodGet, there.MethodPost, there.MethodPut, there.MethodDelete)
+	data.Handle("/json", json, MethodGet, MethodPost, MethodPut, MethodDelete)
 	data.Get("/xml", xml)
-	data.Get("/empty", func(request there.Request) there.Response {
-		return there.Status(there.StatusAccepted)
+	data.Get("/empty", func(request HttpRequest) HttpResponse {
+		return Status(StatusAccepted)
 	})
-	data.Get("/message", func(request there.Request) there.Response {
-		return there.Message(there.StatusOK, "Hello there")
+	data.Get("/message", func(request HttpRequest) HttpResponse {
+		return Message(StatusOK, "Hello there")
 	})
-	data.Get("/string", func(request there.Request) there.Response {
-		return there.String(there.StatusOK, "Hello there")
+	data.Get("/string", func(request HttpRequest) HttpResponse {
+		return String(StatusOK, "Hello there")
 	})
-	data.Get("/redirect", func(request there.Request) there.Response {
-		return there.Redirect(there.StatusMovedPermanently, "https://google.com")
+	data.Get("/redirect", func(request HttpRequest) HttpResponse {
+		return Redirect(StatusMovedPermanently, "https://google.com")
 	})
-	data.Get("/html", func(request there.Request) there.Response {
-		return there.Html(there.StatusOK, "./test/index.html", map[string]string{
+	data.Get("/html", func(request HttpRequest) HttpResponse {
+		return Html(StatusOK, "./test/index.html", map[string]string{
 			"user": "Hannes",
 		})
 	})
-	data.Get("/bytes", func(request there.Request) there.Response {
-		return there.Bytes(there.StatusOK, []byte{'a', 'b'})
+	data.Get("/bytes", func(request HttpRequest) HttpResponse {
+		return Bytes(StatusOK, []byte{'a', 'b'})
 	})
 
 	errorGroup := router.Group("/error")
-	errorGroup.Get("/json", func(request there.Request) there.Response {
-		return there.Json(there.StatusOK, errorData)
+	errorGroup.Get("/json", func(request HttpRequest) HttpResponse {
+		return Json(StatusOK, errorData)
 	})
-	errorGroup.Get("/xml", func(request there.Request) there.Response {
-		return there.Xml(there.StatusOK, errorData)
+	errorGroup.Get("/xml", func(request HttpRequest) HttpResponse {
+		return Xml(StatusOK, errorData)
 	})
 
-	errorGroup.Get("/error/1", func(request there.Request) there.Response {
-		return there.Error(there.StatusOK, errors.New("test2"))
+	errorGroup.Get("/error/1", func(request HttpRequest) HttpResponse {
+		return Error(StatusOK, errors.New("test2"))
 	})
-	errorGroup.Get("/error/2", func(request there.Request) there.Response {
-		return there.Error(there.StatusOK, "test3")
+	errorGroup.Get("/error/2", func(request HttpRequest) HttpResponse {
+		return Error(StatusOK, "test3")
 	})
-	errorGroup.Get("/html/1", func(request there.Request) there.Response {
-		return there.Html(there.StatusOK, "./non/existing/folder/for/the/test", map[string]string{
+	errorGroup.Get("/html/1", func(request HttpRequest) HttpResponse {
+		return Html(StatusOK, "./non/existing/folder/for/the/test", map[string]string{
 			"user": "Hannes",
 		})
 	})
-	errorGroup.Get("/html/2", func(request there.Request) there.Response {
-		return there.Html(there.StatusOK, "./examples/index.html", "A string cannot be used as a template, hence this will fail")
+	errorGroup.Get("/html/2", func(request HttpRequest) HttpResponse {
+		return Html(StatusOK, "./examples/index.html", "A string cannot be used as a template, hence this will fail")
 	})
-	errorGroup.Get("/data", func(request there.Request) there.Response {
-		return there.Status(there.StatusOK)
-	}).With(func(request there.Request, next there.Response) there.Response {
-		return there.Error(there.StatusInternalServerError, errors.New("lol"))
+	errorGroup.Get("/data", func(request HttpRequest) HttpResponse {
+		return Status(StatusOK)
+	}).With(func(request HttpRequest, next HttpResponse) HttpResponse {
+		return Error(StatusInternalServerError, errors.New("lol"))
 	})
 
-	data.Post("/return/json", func(request there.Request) there.Response {
+	data.Post("/return/json", func(request HttpRequest) HttpResponse {
 		var user simpleUser
 		err := request.Body.BindJson(&user)
 		if err != nil {
 			log.Fatalln("Could not bind", err)
 		}
-		return there.String(there.StatusOK, user.Name)
+		return String(StatusOK, user.Name)
 	})
-	data.Post("/return/xml", func(request there.Request) there.Response {
+	data.Post("/return/xml", func(request HttpRequest) HttpResponse {
 		var user simpleUser
 		err := request.Body.BindXml(&user)
 		if err != nil {
 			log.Fatalln("Could not bind", err)
 		}
-		return there.String(there.StatusOK, user.Name)
+		return String(StatusOK, user.Name)
 	})
-	data.Post("/return/string", func(request there.Request) there.Response {
+	data.Post("/return/string", func(request HttpRequest) HttpResponse {
 		body, err := request.Body.ToString()
 		if err != nil {
 			log.Fatalln("Could not bind", err)
 		}
-		return there.String(there.StatusOK, body)
+		return String(StatusOK, body)
 	})
 
-	return router
+	return router.Router
 }
 
-func readBody(router *there.Router, t *testing.T, method, route string, body io.Reader) []byte {
+func readBody(router *Router, t *testing.T, method, route string, body io.Reader) []byte {
 
 	request := httptest.NewRequest(method, route, body)
 	recorder := httptest.NewRecorder()
@@ -150,7 +149,7 @@ func readBody(router *there.Router, t *testing.T, method, route string, body io.
 	return data
 }
 
-func readAndUnmarshal(router *there.Router, t *testing.T, method, route string, body io.Reader, unmarshal func(data []byte, v interface{}) error, res interface{}) {
+func readAndUnmarshal(router *Router, t *testing.T, method, route string, body io.Reader, unmarshal func(data []byte, v any) error, res any) {
 	data := readBody(router, t, method, route, body)
 	err := unmarshal(data, res)
 
@@ -160,20 +159,20 @@ func readAndUnmarshal(router *there.Router, t *testing.T, method, route string, 
 
 }
 
-func readJsonBody(router *there.Router, t *testing.T, method, route string, body io.Reader, res interface{}) {
+func readJsonBody(router *Router, t *testing.T, method, route string, body io.Reader, res any) {
 	readAndUnmarshal(router, t, method, route, body, json.Unmarshal, res)
 }
-func readXmlBody(router *there.Router, t *testing.T, method, route string, body io.Reader, res interface{}) {
+func readXmlBody(router *Router, t *testing.T, method, route string, body io.Reader, res any) {
 	readAndUnmarshal(router, t, method, route, body, xml.Unmarshal, res)
 }
 
 func TestJson(t *testing.T) {
 	router := CreateRouter()
 
-	methods := []string{there.MethodGet, there.MethodPost, there.MethodPut, there.MethodDelete}
+	methods := []string{MethodGet, MethodPost, MethodPut, MethodDelete}
 
 	for _, method := range methods {
-		var res map[string]interface{}
+		var res map[string]any
 		readJsonBody(router, t, method, "/data/json", nil, &res)
 
 		if !reflect.DeepEqual(res, sampleData) {
@@ -183,9 +182,9 @@ func TestJson(t *testing.T) {
 
 }
 
-func testSampleUserRoutes(t *testing.T, route string, handler func(router *there.Router, t *testing.T, method, route string, body io.Reader, res interface{}), res, expected interface{}) {
+func testSampleUserRoutes(t *testing.T, route string, handler func(router *Router, t *testing.T, method, route string, body io.Reader, res any), res, expected any) {
 	router := CreateRouter()
-	handler(router, t, there.MethodGet, "/data/"+route, nil, res)
+	handler(router, t, MethodGet, "/data/"+route, nil, res)
 
 	if !reflect.DeepEqual(res, expected) {
 		t.Fatal(res, "does not equal", expected)
@@ -198,9 +197,9 @@ func TestXml(t *testing.T) {
 	testSampleUserRoutes(t, "xml", readXmlBody, &res, &sampleUser)
 }
 
-func testErrorResponse(router *there.Router, t *testing.T, route string) {
-	var res map[string]interface{}
-	readJsonBody(router, t, there.MethodGet, "/error/"+route, nil, &res)
+func testErrorResponse(router *Router, t *testing.T, route string) {
+	var res map[string]any
+	readJsonBody(router, t, MethodGet, "/error/"+route, nil, &res)
 
 	_, ok := res["error"]
 	if !ok {
@@ -243,23 +242,23 @@ func TestMiddlewareErrorResponse(t *testing.T) {
 }
 
 func TestGlobalMiddlewareErrorResponse(t *testing.T) {
-	router := there.NewRouter().
-		Get("error/data/global", func(request there.Request) there.Response {
-			return there.Status(there.StatusOK)
+	router := NewRouter().
+		Get("error/data/global", func(request HttpRequest) HttpResponse {
+			return Status(StatusOK)
 		}).
-		Use(func(request there.Request, next there.Response) there.Response {
-			return there.Error(there.StatusInternalServerError, errors.New("errored out"))
+		Use(func(request HttpRequest, next HttpResponse) HttpResponse {
+			return Error(StatusInternalServerError, errors.New("errored out"))
 		})
 	testErrorResponse(router, t, "data/global")
 }
 
 func TestPanicErrorResponse(t *testing.T) {
-	router := there.NewRouter().
-		Get("error/data/panic", func(request there.Request) there.Response {
+	router := NewRouter().
+		Get("error/data/panic", func(request HttpRequest) HttpResponse {
 			panic("oh no panic")
 		}).
-		Use(func(request there.Request, next there.Response) there.Response {
-			return there.Error(there.StatusInternalServerError, errors.New("errored out"))
+		Use(func(request HttpRequest, next HttpResponse) HttpResponse {
+			return Error(StatusInternalServerError, errors.New("errored out"))
 		})
 	testErrorResponse(router, t, "data/panic")
 }
@@ -271,14 +270,14 @@ func (errReader) Read(p []byte) (n int, err error) {
 }
 
 func TestBodyToStringError(t *testing.T) {
-	router := there.NewRouter()
+	router := NewRouter()
 	router.
-		Post("/test", func(request there.Request) there.Response {
+		Post("/test", func(request HttpRequest) HttpResponse {
 
 			tests := 3
 			did := 0
 
-			var s interface{}
+			var s any
 
 			_, err := request.Body.ToString()
 			if err != nil {
@@ -294,13 +293,13 @@ func TestBodyToStringError(t *testing.T) {
 			}
 
 			if tests != did {
-				return there.Error(there.StatusInternalServerError, "not every bind threw an error: "+strconv.Itoa(did)+"/"+strconv.Itoa(tests))
+				return Error(StatusInternalServerError, "not every bind threw an error: "+strconv.Itoa(did)+"/"+strconv.Itoa(tests))
 			}
 
-			return there.Status(there.StatusOK)
+			return Status(StatusOK)
 		})
 
-	res := readStringBody(router, t, there.MethodPost, "/test", errReader(0))
+	res := readStringBody(router, t, MethodPost, "/test", errReader(0))
 	if len(res) != 0 {
 		log.Fatalln("res was empty but shouldn't be", res)
 	}
@@ -308,7 +307,7 @@ func TestBodyToStringError(t *testing.T) {
 
 func TestStringResponse(t *testing.T) {
 	router := CreateRouter()
-	r := readBody(router, t, there.MethodGet, "/data/string", nil)
+	r := readBody(router, t, MethodGet, "/data/string", nil)
 	res := string(r)
 	shouldBe := "Hello there"
 	if res != shouldBe {
@@ -319,8 +318,8 @@ func TestStringResponse(t *testing.T) {
 func TestJsonResponse(t *testing.T) {
 
 	router := CreateRouter()
-	var jsonBody map[string]interface{}
-	readJsonBody(router, t, there.MethodGet, "/data/message", nil, &jsonBody)
+	var jsonBody map[string]any
+	readJsonBody(router, t, MethodGet, "/data/message", nil, &jsonBody)
 
 	v, ok := jsonBody["message"]
 	if !ok {
@@ -336,7 +335,7 @@ func TestJsonResponse(t *testing.T) {
 
 func TestEmptyResponse(t *testing.T) {
 	router := CreateRouter()
-	r := readBody(router, t, there.MethodGet, "/data/empty", nil)
+	r := readBody(router, t, MethodGet, "/data/empty", nil)
 	res := string(r)
 	if len(res) != 0 {
 		log.Fatalln("res was", res, "and not empty \"\"")
@@ -346,7 +345,7 @@ func TestEmptyResponse(t *testing.T) {
 func TestRedirectResponse(t *testing.T) {
 	router := CreateRouter()
 
-	request := httptest.NewRequest(there.MethodGet, "/data/redirect", nil)
+	request := httptest.NewRequest(MethodGet, "/data/redirect", nil)
 	recorder := httptest.NewRecorder()
 
 	router.ServeHTTP(recorder, request)
@@ -354,24 +353,24 @@ func TestRedirectResponse(t *testing.T) {
 	// result := recorder.Result()
 
 	// TODO FIX ASSERT
-	// assert.Equal(t, "https://google.com", result.Headers.Get("Location"))
+	// assert.Equal(t, "https://google.com", result.WithHeaders.Get("Location"))
 
 }
 
 func TestHtmlResponse(t *testing.T) {
 	router := CreateRouter()
-	r := readBody(router, t, there.MethodGet, "/data/html", nil)
+	r := readBody(router, t, MethodGet, "/data/html", nil)
 	res := string(r)
-	there.AssertEquals(t, "Hello Hannes", res)
+	AssertEquals(t, "Hello Hannes", res)
 }
 func TestBytesResponse(t *testing.T) {
 	router := CreateRouter()
-	r := readBody(router, t, there.MethodGet, "/data/bytes", nil)
+	r := readBody(router, t, MethodGet, "/data/bytes", nil)
 	res := string(r)
-	there.AssertEquals(t, "ab", res)
+	AssertEquals(t, "ab", res)
 }
 
-func readStringBody(router *there.Router, t *testing.T, method, route string, body io.Reader) string {
+func readStringBody(router *Router, t *testing.T, method, route string, body io.Reader) string {
 
 	request := httptest.NewRequest(method, route, body)
 	recorder := httptest.NewRecorder()
@@ -388,13 +387,13 @@ func readStringBody(router *there.Router, t *testing.T, method, route string, bo
 	return string(data)
 }
 
-func testBind(t *testing.T, marshaller func(v interface{}) ([]byte, error), route string) {
+func testBind(t *testing.T, marshaller func(v any) ([]byte, error), route string) {
 	router := CreateRouter()
 	data, err := marshaller(sampleSimpleUser)
 	if err != nil {
 		t.Fatal(err)
 	}
-	there.AssertEquals(t, readStringBody(router, t, there.MethodPost, "/data/return/"+route, bytes.NewReader(data)), sampleSimpleUser.Name)
+	AssertEquals(t, readStringBody(router, t, MethodPost, "/data/return/"+route, bytes.NewReader(data)), sampleSimpleUser.Name)
 }
 
 func TestJsonBodyBind(t *testing.T) {
@@ -408,5 +407,5 @@ func TestXmlBodyBind(t *testing.T) {
 func TestStringBodyBind(t *testing.T) {
 	router := CreateRouter()
 	s := "Hello !!!"
-	there.AssertEquals(t, readStringBody(router, t, there.MethodPost, "/data/return/string", bytes.NewReader([]byte(s))), s)
+	AssertEquals(t, readStringBody(router, t, MethodPost, "/data/return/string", bytes.NewReader([]byte(s))), s)
 }

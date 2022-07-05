@@ -1,8 +1,7 @@
 package main
 
 import (
-	"fmt"
-	"github.com/Gebes/there/v2"
+	. "github.com/Gebes/there/v2"
 	"log"
 )
 
@@ -18,7 +17,7 @@ type (
 var posts = make(Posts, 0)
 
 func main() {
-	router := there.NewRouter()
+	router := NewRouter()
 
 	router.Group("/post").
 		Get("/", GetPosts).
@@ -27,39 +26,39 @@ func main() {
 
 	err := router.Listen(8080)
 	if err != nil {
-		log.Fatalln("Could not listen to 8080:", err)
+		log.Fatalln("Could not listen to 8080", err)
 	}
 }
 
-func GetPosts(request there.Request) there.Response {
-	return there.Json(there.StatusOK, posts)
+func GetPosts(request HttpRequest) HttpResponse {
+	return Json(StatusOK, posts)
 }
 
-func GetPostById(request there.Request) there.Response {
+func GetPostById(request HttpRequest) HttpResponse {
 	id := request.RouteParams.GetDefault("id", "")
 
 	post := postById(id)
 	if post == nil {
-		return there.Error(there.StatusNotFound, "could not find post")
+		return Error(StatusNotFound, "Could not find post")
 	}
 
-	return there.Json(there.StatusOK, post)
+	return Json(StatusOK, post)
 }
 
-func CreatePost(request there.Request) there.Response {
+func CreatePost(request HttpRequest) HttpResponse {
 	var body Post
 	err := request.Body.BindJson(&body) // Decode body
 	if err != nil {                     // If body was not valid json, return bad request error
-		return there.Error(there.StatusBadRequest, fmt.Errorf("could not parse body: %w", err))
+		return Error(StatusBadRequest, "Could not parse body: "+err.Error())
 	}
 
 	post := postById(body.Id)
 	if post != nil { // if the post already exists, return conflict error
-		return there.Error(there.StatusConflict, "post with this ID already exists")
+		return Error(StatusConflict, "Post with this ID already exists")
 	}
 
-	posts = append(posts, body)                  // create post
-	return there.Json(there.StatusCreated, body) // return created post as json
+	posts = append(posts, body)      // create post
+	return Json(StatusCreated, body) // return created post as json
 }
 
 func postById(id string) *Post {
