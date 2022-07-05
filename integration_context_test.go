@@ -3,12 +3,11 @@ package there_test
 import (
 	"context"
 	"errors"
+	. "github.com/Gebes/there/v2"
+	"github.com/Gebes/there/v2/middlewares"
 	"io/ioutil"
 	"net/http/httptest"
 	"testing"
-
-	"github.com/Gebes/there/v2"
-	"github.com/Gebes/there/v2/middlewares"
 )
 
 var (
@@ -18,42 +17,42 @@ var (
 	}
 )
 
-func createRouter() *there.Router {
-	router := there.NewRouter()
+func createRouter() *Router {
+	router := NewRouter()
 	router.Use(middlewares.Recoverer)
 	router.
-		Use(func(request there.Request, next there.Response) there.Response {
-			authorization := request.Headers.GetDefault(there.RequestHeaderAuthorization, "")
+		Use(func(request HttpRequest, next HttpResponse) HttpResponse {
+			authorization := request.Headers.GetDefault(RequestHeaderAuthorization, "")
 
 			user, ok := users[authorization]
 			if !ok {
-				return there.Error(there.StatusUnauthorized, errors.New("not authorized"))
+				return Error(StatusUnauthorized, errors.New("not authorized"))
 			}
 
 			request.WithContext(context.WithValue(request.Context(), "user", user))
 			return next
 		})
 	router.
-		Get("/user", func(request there.Request) there.Response {
+		Get("/user", func(request HttpRequest) HttpResponse {
 			user, ok := request.Context().Value("user").(simpleUser)
 
 			if !ok {
-				return there.Error(there.StatusUnprocessableEntity, errors.New("could not get user from context"))
+				return Error(StatusUnprocessableEntity, errors.New("could not get user from context"))
 			}
 
-			return there.Json(there.StatusOK, user)
-		}).With(func(request there.Request, next there.Response) there.Response {
+			return Json(StatusOK, user)
+		}).With(func(request HttpRequest, next HttpResponse) HttpResponse {
 
 		request.WithContext(context.WithValue(request.Context(), "world", "hello"))
 		request.WithContext(context.WithValue(request.Context(), "hello", "world"))
 		return next
 	})
 
-	router.Get("/user/test2", func(request there.Request) there.Response {
-		return there.Status(there.StatusOK)
-	}).With(func(request there.Request, next there.Response) there.Response {
+	router.Get("/user/test2", func(request HttpRequest) HttpResponse {
+		return Status(StatusOK)
+	}).With(func(request HttpRequest, next HttpResponse) HttpResponse {
 		request.WithContext(context.WithValue(request.Context(), "hello", "world"))
-		return there.String(there.StatusBadRequest, "there.Error")
+		return String(StatusBadRequest, "Error")
 	})
 
 	return router
@@ -63,7 +62,7 @@ func TestContextMiddleware1(t *testing.T) {
 
 	router := createRouter()
 
-	request := httptest.NewRequest(there.MethodGet, "/user", nil)
+	request := httptest.NewRequest(MethodGet, "/user", nil)
 	request.Header.Set("Authorization", "1")
 	recorder := httptest.NewRecorder()
 
@@ -87,7 +86,7 @@ func TestContextMiddleware2(t *testing.T) {
 
 	router := createRouter()
 
-	request := httptest.NewRequest(there.MethodGet, "/user/test2", nil)
+	request := httptest.NewRequest(MethodGet, "/user/test2", nil)
 	request.Header.Set("Authorization", "1")
 	recorder := httptest.NewRecorder()
 
@@ -101,7 +100,7 @@ func TestContextMiddleware2(t *testing.T) {
 		t.Fatalf("could not read body %v", err)
 	}
 	got := string(data)
-	want := "there.Error"
+	want := "Error"
 	if got != want {
 		t.Errorf("%v != %v", want, got)
 	}

@@ -1,20 +1,18 @@
 package middlewares
 
-import (
-	"github.com/Gebes/there/v2"
-)
+import . "github.com/Gebes/there/v2"
 
-func Cors(configuration CorsConfiguration) there.Middleware {
-	return func(request there.Request, next there.Response) there.Response {
-		headers := map[string]string{
-			there.ResponseHeaderAccessControlAllowOrigin:  configuration.AccessControlAllowOrigin,
-			there.ResponseHeaderAccessControlAllowMethods: configuration.AccessControlAllowMethods,
-			there.ResponseHeaderAccessControlAllowHeaders: configuration.AccessControlAllowHeaders,
+func Cors(configuration CorsConfiguration) Middleware {
+	return func(request HttpRequest, next HttpResponse) HttpResponse {
+		headers := MapString{
+			ResponseHeaderAccessControlAllowOrigin:  configuration.AccessControlAllowOrigin,
+			ResponseHeaderAccessControlAllowMethods: configuration.AccessControlAllowMethods,
+			ResponseHeaderAccessControlAllowHeaders: configuration.AccessControlAllowHeaders,
 		}
-		if request.Method == there.MethodOptions {
-			return there.Headers(headers, there.Status(there.StatusOK))
+		if request.Method == MethodOptions {
+			return WithHeaders(headers, Status(StatusOK))
 		}
-		return there.Headers(headers, next)
+		return WithHeaders(headers, next)
 	}
 }
 
@@ -27,7 +25,7 @@ type CorsConfiguration struct {
 func AllowAllConfiguration() CorsConfiguration {
 	return CorsConfiguration{
 		AccessControlAllowOrigin:  "*",
-		AccessControlAllowMethods: there.AllMethodsString,
+		AccessControlAllowMethods: AllMethodsString,
 		AccessControlAllowHeaders: "Accept, Content-Type, Content-Length, Authorization",
 	}
 }

@@ -148,7 +148,7 @@ var statusText = map[int]string{
 	StatusUpgradeRequired:              "Upgrade Required",
 	StatusPreconditionRequired:         "Precondition Required",
 	StatusTooManyRequests:              "Too Many Requests",
-	StatusRequestHeaderFieldsTooLarge:  "Request Headers Fields Too Large",
+	StatusRequestHeaderFieldsTooLarge:  "Request WithHeaders Fields Too Large",
 	StatusUnavailableForLegalReasons:   "Unavailable For Legal Reasons",
 
 	StatusInternalServerError:           "Internal Server Error",
@@ -215,45 +215,6 @@ const (
 	ContentTypeVideoXDashFlv                             = "video/x-flv"
 	ContentTypeVideoWebm                                 = "video/webm"
 )
-
-var fileContentTypes = map[string]string{
-	"avi":   ContentTypeVideoXDashMsvideo,
-	"bin":   ContentTypeApplicationOctetDashStream,
-	"css":   ContentTypeTextCss,
-	"csv":   ContentTypeTextCsv,
-	"gif":   ContentTypeImageGif,
-	"html":  ContentTypeTextHtml,
-	"htm":   ContentTypeTextHtml,
-	"ico":   ContentTypeImageXDashIcon,
-	"jar":   ContentTypeApplicationJavaDashArchive,
-	"jpeg":  ContentTypeImageJpeg,
-	"jpg":   ContentTypeImageJpeg,
-	"js":    ContentTypeTextJavascript,
-	"json":  ContentTypeApplicationJson,
-	"mjs":   ContentTypeTextJavascript,
-	"mov":   ContentTypeVideoQuicktime,
-	"mp3":   ContentTypeAudioMpeg,
-	"mp4":   ContentTypeVideoMp4,
-	"mpeg":  ContentTypeVideoMpeg,
-	"ogx":   ContentTypeApplicationOgg,
-	"png":   ContentTypeImagePng,
-	"pdf":   ContentTypeApplicationPdf,
-	"qt":    ContentTypeVideoQuicktime,
-	"tif":   ContentTypeImageTiff,
-	"tiff":  ContentTypeImageTiff,
-	"txt":   ContentTypeTextPlain,
-	"wav":   ContentTypeAudioXDashWav,
-	"webm":  ContentTypeVideoWebm,
-	"xhtml": ContentTypeApplicationXhtmlPlusXml,
-	"xml":   ContentTypeTextXml,
-	"zip":   ContentTypeApplicationZip,
-}
-
-// ContentType returns a content type header based on a given file-serving extension.
-// The second returned var indicates, whether that content type was found in the list or not.
-func ContentType(extension string) string {
-	return fileContentTypes[extension]
-}
 
 // Request Headers
 // https://en.wikipedia.org/wiki/List_of_HTTP_header_fields

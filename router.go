@@ -24,7 +24,7 @@ func NewRouter() *Router {
 		routes:            make([]*Route, 0),
 		Server:            &http.Server{},
 		Configuration: &RouterConfiguration{
-			RouteNotFoundHandler: func(request Request) Response {
+			RouteNotFoundHandler: func(request HttpRequest) HttpResponse {
 				return Error(StatusNotFound, errors.New("could not find route "+request.Method+" "+request.Request.URL.Path))
 			},
 		},

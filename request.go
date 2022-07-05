@@ -8,25 +8,22 @@ import (
 	"net/http"
 )
 
-type Request struct {
+type HttpRequest struct {
 	Request        *http.Request
 	ResponseWriter http.ResponseWriter
 
-	Method        string
-	Body          *BodyReader
-	Params        *BasicReader
-	Headers       *BasicReader
-	RouteParams   *RouteParamReader
-	RemoteAddress string
-	Host          string
-	URI           string
+	Method      string
+	Body        *BodyReader
+	Params      *BasicReader
+	Headers     *BasicReader
+	RouteParams *RouteParamReader
 }
 
-func NewHttpRequest(responseWriter http.ResponseWriter, request *http.Request) Request {
+func NewHttpRequest(responseWriter http.ResponseWriter, request *http.Request) HttpRequest {
 	paramReader := BasicReader(request.URL.Query())
 	headerReader := BasicReader(request.Header)
-	routeParamReader := RouteParamReader(map[string]string{})
-	return Request{
+	routeParamReader := RouteParamReader(MapString{})
+	return HttpRequest{
 		Request:        request,
 		ResponseWriter: responseWriter,
 		Method:         request.Method,
@@ -34,16 +31,14 @@ func NewHttpRequest(responseWriter http.ResponseWriter, request *http.Request) R
 		Params:         &paramReader,
 		Headers:        &headerReader,
 		RouteParams:    &routeParamReader,
-		RemoteAddress:  request.RemoteAddr,
-		URI:            request.RequestURI,
 	}
 }
 
-func (r *Request) Context() context.Context {
+func (r *HttpRequest) Context() context.Context {
 	return r.Request.Context()
 }
 
-func (r *Request) WithContext(ctx context.Context) {
+func (r *HttpRequest) WithContext(ctx context.Context) {
 	*r.Request = *r.Request.WithContext(ctx)
 }
 

@@ -1,17 +1,16 @@
 package main
 
 import (
-	"github.com/Gebes/there/v2"
+	. "github.com/Gebes/there/v2"
 	"github.com/Gebes/there/v2/middlewares"
 	"log"
 )
 
 func main() {
-	router := there.NewRouter()
+	router := NewRouter()
 
 	// Register global middlewares
 	router.Use(middlewares.Recoverer)
-	router.Use(middlewares.RequireHost("localhost:8080"))
 	router.Use(middlewares.Cors(middlewares.AllowAllConfiguration()))
 	router.Use(GlobalMiddleware)
 
@@ -24,23 +23,23 @@ func main() {
 	}
 }
 
-func GlobalMiddleware(request there.Request, next there.Response) there.Response {
+func GlobalMiddleware(request HttpRequest, next HttpResponse) HttpResponse {
 	// Check the request content-type
-	if request.Headers.GetDefault(there.RequestHeaderContentType, "") != there.ContentTypeApplicationJson {
-		return there.Error(there.StatusUnsupportedMediaType, "header "+there.RequestHeaderContentType+" is not "+there.ContentTypeApplicationJson)
+	if request.Headers.GetDefault(RequestHeaderContentType, "") != ContentTypeApplicationJson {
+		return Error(StatusUnsupportedMediaType, "Header "+RequestHeaderContentType+" is not "+ContentTypeApplicationJson)
 	}
 
 	return next // Everything is fine until here, continue
 }
 
-func RouteSpecificMiddleware(request there.Request, next there.Response) there.Response {
-	return there.Headers(map[string]string{
-		there.ResponseHeaderContentLanguage: "en",
-	}, next) // Set the content-language header by wrapping next with Headers
+func RouteSpecificMiddleware(request HttpRequest, next HttpResponse) HttpResponse {
+	return WithHeaders(MapString{
+		ResponseHeaderContentLanguage: "en",
+	}, next) // Set the content-language header by wrapping next with WithHeaders
 }
 
-func Get(request there.Request) there.Response {
-	return there.Json(there.StatusOK, map[string]string{
+func Get(request HttpRequest) HttpResponse {
+	return Json(StatusOK, map[string]string{
 		"Hello": "World",
 		"How":   "are you?",
 	})
