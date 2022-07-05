@@ -111,7 +111,7 @@ func Error(code int, err error) HttpResponse {
 		}
 		b.WriteByte(e[i])
 	}
-	return jsonResponse{code: code, data: []byte(jsonLeft + e + jsonRight)}
+	return jsonResponse{code: code, data: []byte(jsonLeft + b.String() + jsonRight)}
 }
 
 type htmlResponse struct {
