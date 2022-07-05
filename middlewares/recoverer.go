@@ -8,7 +8,7 @@ import (
 	. "github.com/Gebes/there/v2"
 )
 
-func Recoverer(request HttpRequest, next HttpResponse) HttpResponse {
+func Recoverer(request there.Request, next there.Response) there.Response {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {
@@ -18,5 +18,5 @@ func Recoverer(request HttpRequest, next HttpResponse) HttpResponse {
 		}()
 		next.ServeHTTP(w, r)
 	}
-	return HttpResponseFunc(fn)
+	return there.ResponseFunc(fn)
 }

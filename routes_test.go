@@ -17,7 +17,7 @@ func TestNewRouteGroup(t *testing.T) {
 		log.Fatalln("Route prefix is not /home/ but", subGroup.prefix)
 	}
 
-	handler := func(request HttpRequest) HttpResponse {
+	handler := func(request Request) Response {
 		return Status(StatusOK)
 	}
 
@@ -67,7 +67,7 @@ func TestNewRouteGroup2(t *testing.T) {
 
 func TestNewRouteGroup3(t *testing.T) {
 
-	handler := func(request HttpRequest) HttpResponse {
+	handler := func(request Request) Response {
 		return Status(StatusOK)
 	}
 
@@ -86,10 +86,10 @@ func TestNewRouteGroup3(t *testing.T) {
 }
 
 func TestRouteRouteGroupBuilder_AddMiddleware2(t *testing.T) {
-	handler := func(request HttpRequest) HttpResponse {
+	handler := func(request Request) Response {
 		return Status(StatusOK)
 	}
-	middleware := func(request HttpRequest, next HttpResponse) HttpResponse {
+	middleware := func(request Request, next Response) Response {
 		return next
 	}
 	router := NewRouter()
