@@ -1,12 +1,13 @@
 package main
 
 import (
-	. "github.com/Gebes/there/v2"
 	"log"
+
+	"github.com/Gebes/there/v2"
 )
 
 func main() {
-	router := NewRouter()
+	router := there.NewRouter()
 
 	router.Group("/user").
 		Get("/", Handler). // /user

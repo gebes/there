@@ -9,7 +9,6 @@
 </font>
 </p>
 <p align="center">
-
 <a href="http://golang.org">
     <img src="https://img.shields.io/badge/Made%20with-Go-1f425f.svg" alt="Made with Go">
 </a>
@@ -22,6 +21,9 @@
 </a>
 <a href="https://goreportcard.com/report/github.com/Gebes/there">
     <img src="https://goreportcard.com/badge/github.com/Gebes/there" alt="GoReportCard">
+</a>
+<a href="https://gocover.io/github.com/Gebes/there">
+    <img src="https://gocover.io/_badge/github.com/Gebes/there" alt="CodeCoverage">
 </a>
 <a href="https://github.com/Gebes/there/blob/master/LICENSE">
     <img src="https://img.shields.io/github/license/Gebes/there.svg" alt="License">
@@ -63,14 +65,14 @@ go get -u github.com/Gebes/there/v2
 ```go
 package main
 
-import . "github.com/Gebes/there/v2"
+import "github.com/Gebes/there/v2"
 
 func main() {
-	router := NewRouter() // Create a new router
+	router := there.NewRouter() // Create a new router
 	
 	// Register GET route /
-	router.Get("/", func(request HttpRequest) HttpResponse {
-		return Json(StatusOK, Map{
+	router.Get("/", func(request there.Request) there.Response {
+		return there.Json(there.StatusOK, Map{
 			"message": "Hello World!",
 		})
 	})
@@ -99,7 +101,7 @@ This type of control flow is way easier to read, and it doesn't take away any fr
 ### Imports
 If you create an API with **There** you do not need to import `net/http` even once! Simply import
 ```go
-import . "github.com/Gebes/there/v2"
+import "github.com/Gebes/there/v2"
 ```
 and **There** provides you with all the handlers, constants and interfaces you need to create a router, middleware or anything else!  
 **There** provides enough constants for you! In total there are 140 of them.
@@ -130,7 +132,7 @@ Routing with **There** is easy! Simply create a new router and add `GET`, `POST`
 Define route variables with `:` and you have all the things you need for routing.
 
 ```go
-	router := NewRouter()
+	router := there.NewRouter()
 
 	router.Group("/user").
 		Get("/", Handler). // /user
@@ -154,20 +156,20 @@ Controlling your route's flow with **There** is a delight! It is easy to underst
 A HttpResponse is basically a `http.handler`. **There** provides several handlers out of the box!
 
 ```go
-func CreatePost(request HttpRequest) HttpResponse {
+func CreatePost(request there.Request) there.Response {
 	var body Post
 	err := request.Body.BindJson(&body) // Decode body
 	if err != nil { // If body was not valid json, return bad request error
-		return Error(StatusBadRequest, "Could not parse body: "+err.Error())
+		return there.Error(there.StatusBadRequest, "Could not parse body: "+err.Error())
 	}
 
 	post := postById(body.Id)
 	if post != nil { // if the post already exists, return conflict error
-		return Error(StatusConflict, "Post with this ID already exists")
+		return there.Error(there.StatusConflict, "Post with this ID already exists")
 	}
 
 	posts = append(posts, body) // create post
-	return Json(StatusCreated, body) // return created post as json
+	return there.Json(there.StatusCreated, body) // return created post as json
 }
 ```
 
@@ -183,23 +185,23 @@ Simply create your own HttpResponse to save time. However, if you need some insp
 For example, let us create a Msgpack response. By default, there does not provide a Msgpack response, because this would require a third-party dependency. But it is not much work to create your own Msgpack HttpResponse:
 ```go
 import (
-    . "github.com/Gebes/there/v2"
+    "github.com/Gebes/there/v2"
     "github.com/vmihailenco/msgpack/v5"
 )
 
 //Msgpack takes a StatusCode and data which gets marshaled to Msgpack
-func Msgpack(code int, data interface{}) HttpResponse {
+func Msgpack(code int, data interface{}) there.Response {
    msgpackData, err := msgpack.Marshal(data) // marshal the data
    if err != nil {
       panic(err) // panic if the data was invalid. can be caught by Recoverer
    }
-   return WithHeaders(MapString{ // set proper content-type
-      ResponseHeaderContentType: "application/x-msgpack",
-   }, Bytes(code, msgpackData))
+   return there.WithHeaders(MapString{ // set proper content-type
+      there.ResponseHeaderContentType: "application/x-msgpack",
+   }, there.Bytes(code, msgpackData))
 }
 
-func Get(request HttpRequest) HttpResponse {
-   return Msgpack(StatusOK, map[string]string{ // now use the created response
+func Get(request there.Request) there.Response {
+   return Msgpack(there.StatusOK, map[string]string{ // now use the created response
       "Hello": "World",
       "How":   "are you?",
    })
@@ -221,7 +223,7 @@ Here is an example:
 ```go
 
 func main() {
-   router := NewRouter()
+   router := there.NewRouter()
 
    // Register global middlewares
    router.Use(middlewares.Recoverer)
@@ -237,18 +239,18 @@ func main() {
    }
 }
 
-func GlobalMiddleware(request HttpRequest, next HttpResponse) HttpResponse {
+func GlobalMiddleware(request there.Request, next there.Response) there.Response {
    // Check the request content-type
-   if request.Headers.GetDefault(RequestHeaderContentType, "") != ContentTypeApplicationJson {
-      return Error(StatusUnsupportedMediaType, "Header " + RequestHeaderContentType + " is not " + ContentTypeApplicationJson)
+   if request.Headers.GetDefault(there.RequestHeaderContentType, "") != there.ContentTypeApplicationJson {
+      return there.Error(there.StatusUnsupportedMediaType, "Header " + there.RequestHeaderContentType + " is not " + there.ContentTypeApplicationJson)
    }
    
    return next // Everything is fine until here, continue
 }
 
-func RouteSpecificMiddleware(request HttpRequest, next HttpResponse) HttpResponse {
-   return WithHeaders(MapString{
-      ResponseHeaderContentLanguage: "en",
+func RouteSpecificMiddleware(request there.Request, next there.Response) there.Response {
+   return there.WithHeaders(MapString{
+      there.ResponseHeaderContentLanguage: "en",
    }, next) // Set the content-language header by wrapping next with WithHeaders
 }
 ```
@@ -267,11 +269,11 @@ If you have other middlewares, which you created using other routers, then there
 As an example, let us have a look at the Recoverer middleware.
 
 ```go
-func Recoverer(request HttpRequest, next HttpResponse) HttpResponse {
+func Recoverer(request there.Request, next there.Response) there.Response {
    fn := func(w http.ResponseWriter, r *http.Request) {
       defer func() {
          if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {
-            Error(StatusInternalServerError, rvr).ServeHTTP(w, r)
+            there.Error(there.StatusInternalServerError, rvr).ServeHTTP(w, r)
          }
       }()
       next.ServeHTTP(w, r)

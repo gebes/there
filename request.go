@@ -8,22 +8,25 @@ import (
 	"net/http"
 )
 
-type HttpRequest struct {
+type Request struct {
 	Request        *http.Request
 	ResponseWriter http.ResponseWriter
 
-	Method      string
-	Body        *BodyReader
-	Params      *BasicReader
-	Headers     *BasicReader
-	RouteParams *RouteParamReader
+	Method        string
+	Body          *BodyReader
+	Params        *BasicReader
+	Headers       *BasicReader
+	RouteParams   *RouteParamReader
+	RemoteAddress string
+	Host          string
+	URI           string
 }
 
-func NewHttpRequest(responseWriter http.ResponseWriter, request *http.Request) HttpRequest {
+func NewHttpRequest(responseWriter http.ResponseWriter, request *http.Request) Request {
 	paramReader := BasicReader(request.URL.Query())
 	headerReader := BasicReader(request.Header)
-	routeParamReader := RouteParamReader(MapString{})
-	return HttpRequest{
+	routeParamReader := RouteParamReader(map[string]string{})
+	return Request{
 		Request:        request,
 		ResponseWriter: responseWriter,
 		Method:         request.Method,
@@ -31,10 +34,12 @@ func NewHttpRequest(responseWriter http.ResponseWriter, request *http.Request) H
 		Params:         &paramReader,
 		Headers:        &headerReader,
 		RouteParams:    &routeParamReader,
+		RemoteAddress:  request.RemoteAddr,
+		URI:            request.RequestURI,
 	}
 }
 
-func (r *HttpRequest) Context() context.Context {
+func (r *Request) Context() context.Context {
 	return r.Request.Context()
 }
 

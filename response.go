@@ -15,19 +15,19 @@ const (
 	jsonRight = "\"}"
 )
 
-//HttpResponse is the base for every return you can make in an Endpoint.
-//Necessary to render the Response by calling Execute and for the WithHeaders Builder.
-type HttpResponse http.Handler
+//Response is the base for every return you can make in an Endpoint.
+//Necessary to render the Response by calling Execute and for the Headers Builder.
+type Response http.Handler
 
-type HttpResponseFunc func(http.ResponseWriter, *http.Request)
+type ResponseFunc func(http.ResponseWriter, *http.Request)
 
 // ServeHTTP calls f(w, r).
-func (f HttpResponseFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (f ResponseFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	f(w, r)
 }
 
 //Bytes takes a StatusCode and a series of bytes to render
-func Bytes(code int, data []byte) HttpResponse {
+func Bytes(code int, data []byte) Response {
 	return StatusWithResponse(code, &bytesResponse{data: data})
 }
 
@@ -40,18 +40,18 @@ func (j bytesResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 }
 
 // Status takes a StatusCode and renders nothing
-func Status(code int) HttpResponse {
+func Status(code int) Response {
 	return &statusResponse{code: code}
 }
 
-// StatusWithResponse writes the StatusCode and renders the HttpResponse
-func StatusWithResponse(code int, response HttpResponse) HttpResponse {
+// StatusWithResponse writes the StatusCode and renders the Response
+func StatusWithResponse(code int, response Response) Response {
 	return &statusResponse{code: code, response: response}
 }
 
 type statusResponse struct {
 	code     int
-	response HttpResponse
+	response Response
 }
 
 func (j statusResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
@@ -61,14 +61,14 @@ func (j statusResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// WithHeaders writes the given headers and the Http Response
-func WithHeaders(headers MapString, response HttpResponse) HttpResponse {
+// Headers writes the given headers and the Http Response
+func Headers(headers map[string]string, response Response) Response {
 	return &headerResponse{headers: headers, response: response}
 }
 
 type headerResponse struct {
-	headers  MapString
-	response HttpResponse
+	headers  map[string]string
+	response Response
 }
 
 func (h headerResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
@@ -180,7 +180,7 @@ func Message(code int, message string) HttpResponse {
 }
 
 //Redirect redirects to the specific URL
-func Redirect(code int, url string) HttpResponse {
+func Redirect(code int, url string) Response {
 	return &redirectResponse{code: code, url: url}
 }
 
@@ -211,4 +211,50 @@ func Xml(code int, data any) HttpResponse {
 		return Error(StatusInternalServerError, fmt.Errorf("xml marshall: %v", err))
 	}
 	return xmlResponse{code: code, data: xmlData}
+}
+
+// File takes the path to a file-serving, and sets the response equal to the bytes of it.
+// It also selects an appropriate content type header, depending on the file-serving extension.
+// Additionally, a fallbackContentType can be passed, if the content type corresponding to
+// the file-serving extension was not found.
+
+type fileResponse struct {
+	code   int
+	header string
+	data   []byte
+}
+
+func (f fileResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	rw.Header().Set(ResponseHeaderContentType, f.header)
+	rw.WriteHeader(f.code)
+	_, err := rw.Write(f.data)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func File(path string, contentType ...string) Response {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return Error(StatusNotFound, err.Error())
+	}
+	var header string
+	if len(contentType) >= 1 {
+		header = contentType[0]
+	} else {
+		extension := filepath.Ext(path)
+		if extension != "" {
+			extension = extension[1:]
+		}
+
+		header = ContentType(extension)
+		if len(header) == 0 {
+			header = ContentTypeTextPlain
+		}
+	}
+	return fileResponse{
+		code:   StatusOK,
+		header: header,
+		data:   data,
+	}
 }

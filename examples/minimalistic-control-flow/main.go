@@ -19,7 +19,7 @@ type (
 var posts = make(Posts, 0)
 
 func main() {
-	router := NewRouter()
+	router := there.NewRouter()
 
 	router.Group("/post").
 		Get("/", GetPosts).
@@ -28,15 +28,15 @@ func main() {
 
 	err := router.Listen(8080)
 	if err != nil {
-		log.Fatalln("Could not listen to 8080", err)
+		log.Fatalln("Could not listen to 8080:", err)
 	}
 }
 
-func GetPosts(request HttpRequest) HttpResponse {
-	return Json(StatusOK, posts)
+func GetPosts(request there.Request) there.Response {
+	return there.Json(there.StatusOK, posts)
 }
 
-func GetPostById(request HttpRequest) HttpResponse {
+func GetPostById(request there.Request) there.Response {
 	id := request.RouteParams.GetDefault("id", "")
 
 	post := postById(id)
@@ -44,10 +44,10 @@ func GetPostById(request HttpRequest) HttpResponse {
 		return Error(StatusNotFound, errors.New("Could not find post"))
 	}
 
-	return Json(StatusOK, post)
+	return there.Json(there.StatusOK, post)
 }
 
-func CreatePost(request HttpRequest) HttpResponse {
+func CreatePost(request there.Request) there.Response {
 	var body Post
 	err := request.Body.BindJson(&body) // Decode body
 	if err != nil {                     // If body was not valid json, return bad request error

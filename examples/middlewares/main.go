@@ -9,10 +9,11 @@ import (
 )
 
 func main() {
-	router := NewRouter()
+	router := there.NewRouter()
 
 	// Register global middlewares
 	router.Use(middlewares.Recoverer)
+	router.Use(middlewares.RequireHost("localhost:8080"))
 	router.Use(middlewares.Cors(middlewares.AllowAllConfiguration()))
 	router.Use(GlobalMiddleware)
 
@@ -25,7 +26,7 @@ func main() {
 	}
 }
 
-func GlobalMiddleware(request HttpRequest, next HttpResponse) HttpResponse {
+func GlobalMiddleware(request there.Request, next there.Response) there.Response {
 	// Check the request content-type
 	if request.Headers.GetDefault(RequestHeaderContentType, "") != ContentTypeApplicationJson {
 		return Error(StatusUnsupportedMediaType, errors.New("Header "+RequestHeaderContentType+" is not "+ContentTypeApplicationJson))
@@ -34,14 +35,14 @@ func GlobalMiddleware(request HttpRequest, next HttpResponse) HttpResponse {
 	return next // Everything is fine until here, continue
 }
 
-func RouteSpecificMiddleware(request HttpRequest, next HttpResponse) HttpResponse {
-	return WithHeaders(MapString{
-		ResponseHeaderContentLanguage: "en",
-	}, next) // Set the content-language header by wrapping next with WithHeaders
+func RouteSpecificMiddleware(request there.Request, next there.Response) there.Response {
+	return there.Headers(map[string]string{
+		there.ResponseHeaderContentLanguage: "en",
+	}, next) // Set the content-language header by wrapping next with Headers
 }
 
-func Get(request HttpRequest) HttpResponse {
-	return Json(StatusOK, map[string]string{
+func Get(request there.Request) there.Response {
+	return there.Json(there.StatusOK, map[string]string{
 		"Hello": "World",
 		"How":   "are you?",
 	})
