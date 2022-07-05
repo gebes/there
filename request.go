@@ -52,15 +52,15 @@ type BodyReader struct {
 	request *http.Request
 }
 
-func (read BodyReader) BindJson(dest interface{}) error {
+func (read BodyReader) BindJson(dest any) error {
 	return read.bind(dest, json.Unmarshal)
 }
 
-func (read BodyReader) BindXml(dest interface{}) error {
+func (read BodyReader) BindXml(dest any) error {
 	return read.bind(dest, xml.Unmarshal)
 }
 
-func (read BodyReader) bind(dest interface{}, formatter func(data []byte, v interface{}) error) error {
+func (read BodyReader) bind(dest any, formatter func(data []byte, v any) error) error {
 	body, err := read.ToBytes()
 	if err != nil {
 		return err

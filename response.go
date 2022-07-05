@@ -102,10 +102,18 @@ func String(code int, data string) Response {
 }
 
 //Error takes a StatusCode and err which rendering is specified by the Serializers in the RouterConfiguration
-func Error(code int, err interface{}) Response {
-	return Json(code, map[string]string{
-		"error": fmt.Sprint(err),
-	})
+func Error(code int, err error) HttpResponse {
+	e := err.Error()
+	var b strings.Builder
+	b.Grow(len(e))
+	for i := range e {
+		if e[i] == '"' {
+			b.WriteString("\"")
+			continue
+		}
+		b.WriteByte(e[i])
+	}
+	return jsonResponse{code: code, data: []byte(jsonLeft + b.String() + jsonRight)}
 }
 
 type htmlResponse struct {
@@ -116,15 +124,11 @@ type htmlResponse struct {
 func (h htmlResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	rw.WriteHeader(h.code)
 	rw.Header().Set(ResponseHeaderContentType, ContentTypeTextHtml)
-	_, err := rw.Write(h.data)
-	if err != nil {
-		panic(err)
-	}
-
+	rw.Write(h.data)
 }
 
-//Html takes a status code, the path to the html file-serving and a map for the template parsing
-func Html(code int, file string, template interface{}) Response {
+//Html takes a status code, the path to the html file and a map for the template parsing
+func Html(code int, file string, template any) HttpResponse {
 	content, err := parseTemplate(file, template)
 	if err != nil {
 		panic(err)
@@ -132,7 +136,7 @@ func Html(code int, file string, template interface{}) Response {
 	return htmlResponse{code: code, data: []byte(*content)}
 }
 
-func parseTemplate(templateFileName string, data interface{}) (*string, error) {
+func parseTemplate(templateFileName string, data any) (*string, error) {
 	t, err := template.ParseFiles(templateFileName)
 	if err != nil {
 		return nil, err
@@ -169,8 +173,10 @@ func Json(code int, data interface{}) Response {
 }
 
 //Message takes StatusCode and a message which will be put into a JSON object
-func Message(code int, message string) Response {
-	return jsonResponse{code: code, data: []byte(message)}
+func Message(code int, message string) HttpResponse {
+	return Json(code, map[string]any{
+		"message": message,
+	})
 }
 
 //Redirect redirects to the specific URL
@@ -208,6 +214,52 @@ func Xml(code int, data interface{}) Response {
 		panic(err)
 	}
 	return xmlResponse{code: code, data: xmlData}
+}
+
+// File takes the path to a file-serving, and sets the response equal to the bytes of it.
+// It also selects an appropriate content type header, depending on the file-serving extension.
+// Additionally, a fallbackContentType can be passed, if the content type corresponding to
+// the file-serving extension was not found.
+
+type fileResponse struct {
+	code   int
+	header string
+	data   []byte
+}
+
+func (f fileResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	rw.Header().Set(ResponseHeaderContentType, f.header)
+	rw.WriteHeader(f.code)
+	_, err := rw.Write(f.data)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func File(path string, contentType ...string) Response {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return Error(StatusNotFound, err.Error())
+	}
+	var header string
+	if len(contentType) >= 1 {
+		header = contentType[0]
+	} else {
+		extension := filepath.Ext(path)
+		if extension != "" {
+			extension = extension[1:]
+		}
+
+		header = ContentType(extension)
+		if len(header) == 0 {
+			header = ContentTypeTextPlain
+		}
+	}
+	return fileResponse{
+		code:   StatusOK,
+		header: header,
+		data:   data,
+	}
 }
 
 // File takes the path to a file-serving, and sets the response equal to the bytes of it.
