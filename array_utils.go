@@ -18,9 +18,3 @@ func CheckArraysOverlap(a []string, b []string) bool {
 	}
 	return false
 }
-
-func Assert(check bool, message string) {
-	if !check {
-		panic(message)
-	}
-}

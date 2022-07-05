@@ -1,7 +1,6 @@
 package there
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"encoding/xml"
@@ -297,7 +296,7 @@ func TestBodyToStringError(t *testing.T) {
 			}
 
 			if tests != did {
-				return Error(StatusInternalServerError, "not every bind threw an error: "+strconv.Itoa(did)+"/"+strconv.Itoa(tests))
+				return Error(StatusInternalServerError, errors.New("not every bind threw an error: "+strconv.Itoa(did)+"/"+strconv.Itoa(tests)))
 			}
 
 			return Status(StatusOK)
@@ -361,19 +360,6 @@ func TestRedirectResponse(t *testing.T) {
 
 }
 
-func TestHtmlResponse(t *testing.T) {
-	router := CreateRouter()
-	r := readBody(router, t, MethodGet, "/data/html", nil)
-	res := string(r)
-	AssertEquals(t, "Hello Hannes", res)
-}
-func TestBytesResponse(t *testing.T) {
-	router := CreateRouter()
-	r := readBody(router, t, MethodGet, "/data/bytes", nil)
-	res := string(r)
-	AssertEquals(t, "ab", res)
-}
-
 func readStringBody(router *Router, t *testing.T, method, route string, body io.Reader) string {
 
 	request := httptest.NewRequest(method, route, body)
@@ -389,29 +375,6 @@ func readStringBody(router *Router, t *testing.T, method, route string, body io.
 		t.Fatalf("could not read body %v", err)
 	}
 	return string(data)
-}
-
-func testBind(t *testing.T, marshaller func(v interface{}) ([]byte, error), route string) {
-	router := CreateRouter()
-	data, err := marshaller(sampleSimpleUser)
-	if err != nil {
-		t.Fatal(err)
-	}
-	AssertEquals(t, readStringBody(router, t, MethodPost, "/data/return/"+route, bytes.NewReader(data)), sampleSimpleUser.Name)
-}
-
-func TestJsonBodyBind(t *testing.T) {
-	testBind(t, json.Marshal, "json")
-}
-
-func TestXmlBodyBind(t *testing.T) {
-	testBind(t, xml.Marshal, "xml")
-}
-
-func TestStringBodyBind(t *testing.T) {
-	router := CreateRouter()
-	s := "Hello !!!"
-	AssertEquals(t, readStringBody(router, t, MethodPost, "/data/return/string", bytes.NewReader([]byte(s))), s)
 }
 
 func TestServer_Start(t *testing.T) {
@@ -1705,34 +1668,13 @@ func TestRouteGroup_Trace(t *testing.T) {
 	}
 }
 
-func TestRouteManager_AddRoute(t *testing.T) {
-	type args struct {
-		routeToAdd *Route
-	}
-	tests := []struct {
-		name string
-		r    RouteManager
-		args args
-		want *Route
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.r.AddRoute(tt.args.routeToAdd); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("AddRoute() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestRouteManager_FindOverlappingRoute(t *testing.T) {
 	type args struct {
 		routeToCheck *Route
 	}
 	tests := []struct {
 		name string
-		r    RouteManager
+		r    routeManager
 		args args
 		want *Route
 	}{
@@ -1753,7 +1695,7 @@ func TestRouteManager_RemoveRoute(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		r    RouteManager
+		r    routeManager
 		args args
 	}{
 		// TODO: Add test cases.
@@ -1897,25 +1839,7 @@ func TestRoute_ToString(t *testing.T) {
 	}
 }
 
-// Tests for utils.go
-
-func AssertEquals(t *testing.T, got, want string) {
-	if got != want {
-		t.Errorf("%v != %v", want, got)
-	}
-}
-
-func TestAssert(t *testing.T) {
-	defer func() { recover() }()
-
-	Assert(false, "assertion failure")
-
-	t.Errorf("did not panic")
-}
-
-func TestAssert2(t *testing.T) {
-	Assert(true, "assertion failure")
-}
+// Tests for array_utils.go
 
 func TestCheckArrayContains(t *testing.T) {
 	type args struct {

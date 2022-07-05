@@ -11,11 +11,13 @@ type Router struct {
 	Configuration *RouterConfiguration
 	Server        *http.Server
 
+	assertionErrors
+
 	globalMiddlewares []Middleware
 
 	//routes is a list of Routes which checks for duplicate entries
 	//on insert.
-	routes RouteManager
+	routes routeManager
 }
 
 func NewRouter() *Router {
@@ -41,11 +43,19 @@ func (p Port) ToAddr() string {
 }
 
 func (router *Router) Listen(port Port) error {
+	err := router.HasError()
+	if err != nil {
+		return err
+	}
 	router.Server.Addr = port.ToAddr()
 	return router.Server.ListenAndServe()
 }
 
 func (router *Router) ListenToTLS(port Port, certFile, keyFile string) error {
+	err := router.HasError()
+	if err != nil {
+		return err
+	}
 	router.Server.Addr = port.ToAddr()
 	return router.Server.ListenAndServeTLS(certFile, keyFile)
 }
@@ -60,4 +70,21 @@ func (router *Router) Use(middleware Middleware) *Router {
 type RouterConfiguration struct {
 	//RouteNotFoundHandler gets invoked, when the specified URL and method have no handlers
 	RouteNotFoundHandler Endpoint
+}
+
+type assertionErrors []error
+
+func (a *assertionErrors) HasError() error {
+	if len(*a) == 0 {
+		return nil
+	}
+	var err error
+	err, *a = (*a)[0], (*a)[1:]
+	return err
+}
+
+func (a *assertionErrors) Assert(condition bool, errorString string) {
+	if !condition {
+		*a = append(*a, errors.New(errorString))
+	}
 }

@@ -1,9 +1,11 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"github.com/Gebes/there/v2"
 	"log"
+
+	"github.com/Gebes/there/v2"
 )
 
 type (
@@ -40,7 +42,7 @@ func GetPostById(request there.Request) there.Response {
 
 	post := postById(id)
 	if post == nil {
-		return there.Error(there.StatusNotFound, "could not find post")
+		return there.Error(there.StatusNotFound, errors.New("could not find post"))
 	}
 
 	return there.Json(there.StatusOK, post)
@@ -55,7 +57,7 @@ func CreatePost(request there.Request) there.Response {
 
 	post := postById(body.Id)
 	if post != nil { // if the post already exists, return conflict error
-		return there.Error(there.StatusConflict, "post with this ID already exists")
+		return there.Error(there.StatusConflict, errors.New("post with this ID already exists"))
 	}
 
 	posts = append(posts, body)                  // create post

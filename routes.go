@@ -14,7 +14,7 @@ func (group RouteGroup) Group(prefix string) *RouteGroup {
 
 	prefix = strings.TrimPrefix(prefix, "/")
 
-	Assert(len(prefix) > 1, "route group needs to have at least one symbol")
+	group.Assert(len(prefix) > 1, "route group needs to have at least one symbol")
 
 	if !strings.HasSuffix(prefix, "/") {
 		prefix += "/"
@@ -28,7 +28,7 @@ func (group RouteGroup) Group(prefix string) *RouteGroup {
 
 func NewRouteGroup(router *Router, route string) *RouteGroup {
 
-	Assert(route != "", "route must not be empty")
+	router.Assert(route != "", "route \""+route+"\" must not be empty")
 
 	if !strings.HasPrefix(route, "/") {
 		route = "/" + route
@@ -89,7 +89,7 @@ func (group *RouteGroup) Handle(path string, endpoint Endpoint, methods ...strin
 		ConstructPath(path, false),
 		make([]Middleware, 0),
 	}
-	group.routes.AddRoute(route)
+	group.routes.AddRoute(route, group.Router)
 
 	return &RouteRouteGroupBuilder{
 		route,
@@ -154,14 +154,14 @@ func (group *RouteRouteGroupBuilder) IgnoreCase() *RouteRouteGroupBuilder {
 	group.routes.RemoveRoute(group.Route)
 
 	group.Route.Path.ignoreCase = true
-	group.routes.AddRoute(group.Route)
+	group.routes.AddRoute(group.Route, group.Router)
 
 	return group
 }
 
-type RouteManager []*Route
+type routeManager []*Route
 
-func (r *RouteManager) FindOverlappingRoute(routeToCheck *Route) *Route {
+func (r *routeManager) FindOverlappingRoute(routeToCheck *Route) *Route {
 	for _, toCompare := range *r {
 		if toCompare.OverlapsWith(*routeToCheck) {
 			return toCompare
@@ -170,23 +170,17 @@ func (r *RouteManager) FindOverlappingRoute(routeToCheck *Route) *Route {
 	return nil
 }
 
-func (r *RouteManager) AddRoute(routeToAdd *Route) *Route {
-
-	if overlapsWith := r.FindOverlappingRoute(routeToAdd); overlapsWith != nil {
-		panic("The route \"" + routeToAdd.ToString() + "\" overlaps with the existing route \"" + overlapsWith.ToString() + "\"")
-	}
-
+func (r *routeManager) AddRoute(routeToAdd *Route, router *Router) *Route {
+	overlapsWith := r.FindOverlappingRoute(routeToAdd)
+	router.Assert(overlapsWith == nil, "the route \""+routeToAdd.ToString()+"\" overlaps with the existing route \""+overlapsWith.ToString()+"\"")
 	*r = append(*r, routeToAdd)
-
 	return routeToAdd
 }
 
-func (r *RouteManager) RemoveRoute(toRemove *Route) {
-
+func (r *routeManager) RemoveRoute(toRemove *Route) {
 	for i, container := range *r {
 		if container.Path.Equals(toRemove.Path) {
 			*r = append((*r)[:i], (*r)[i+1:]...)
 		}
 	}
-
 }
