@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"log"
 
 	. "github.com/Gebes/there/v2"
@@ -40,7 +41,7 @@ func GetPostById(request HttpRequest) HttpResponse {
 
 	post := postById(id)
 	if post == nil {
-		return Error(StatusNotFound, "Could not find post")
+		return Error(StatusNotFound, errors.New("Could not find post"))
 	}
 
 	return Json(StatusOK, post)
@@ -50,12 +51,12 @@ func CreatePost(request HttpRequest) HttpResponse {
 	var body Post
 	err := request.Body.BindJson(&body) // Decode body
 	if err != nil {                     // If body was not valid json, return bad request error
-		return Error(StatusBadRequest, "Could not parse body: "+err.Error())
+		return Error(StatusBadRequest, errors.New("Could not parse body: "+err.Error()))
 	}
 
 	post := postById(body.Id)
 	if post != nil { // if the post already exists, return conflict error
-		return Error(StatusConflict, "Post with this ID already exists")
+		return Error(StatusConflict, errors.New("Post with this ID already exists"))
 	}
 
 	posts = append(posts, body)      // create post
