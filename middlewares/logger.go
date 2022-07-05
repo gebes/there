@@ -2,13 +2,13 @@ package middlewares
 
 import (
 	"fmt"
+	"github.com/Gebes/there/v2/middlewares/color"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/Gebes/there/v2"
-	"github.com/Gebes/there/v2/utils/color"
 )
 
 type responseWriterWrapper struct {

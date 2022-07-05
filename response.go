@@ -6,6 +6,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -34,7 +35,7 @@ type bytesResponse struct {
 func (j bytesResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	_, err := rw.Write(j.data)
 	if err != nil {
-		panic(err)
+		log.Printf("bytesResponse: write failed: %v", err)
 	}
 }
 
@@ -92,7 +93,7 @@ func (s stringResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	rw.Header().Set(ResponseHeaderContentType, ContentTypeTextPlain)
 	_, err := rw.Write(s.data)
 	if err != nil {
-		panic(err)
+		log.Printf("stringResponse: write failed: %v", err)
 	}
 }
 

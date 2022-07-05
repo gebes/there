@@ -23,8 +23,6 @@ const (
 
 func methodToInt(method string) method {
 	switch method {
-	case there.MethodGet:
-		return methodGet
 	case there.MethodHead:
 		return methodHead
 	case there.MethodPost:
@@ -41,6 +39,8 @@ func methodToInt(method string) method {
 		return methodOptions
 	case there.MethodTrace:
 		return methodTrace
+	default:
+		return methodGet
 	}
 }
 
@@ -101,4 +101,4 @@ func (n *node) AddHandler(method method, path string, endpoint there.Endpoint) {
 
 }
 
-func addHandler(currentNode *node)
+func addHandler(currentNode *node) {}
