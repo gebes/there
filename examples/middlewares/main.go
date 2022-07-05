@@ -1,11 +1,9 @@
 package main
 
 import (
-	"errors"
-	"log"
-
 	. "github.com/Gebes/there/v2"
 	"github.com/Gebes/there/v2/middlewares"
+	"log"
 )
 
 func main() {
@@ -28,7 +26,7 @@ func main() {
 func GlobalMiddleware(request HttpRequest, next HttpResponse) HttpResponse {
 	// Check the request content-type
 	if request.Headers.GetDefault(RequestHeaderContentType, "") != ContentTypeApplicationJson {
-		return Error(StatusUnsupportedMediaType, errors.New("Header "+RequestHeaderContentType+" is not "+ContentTypeApplicationJson))
+		return Error(StatusUnsupportedMediaType, "Header "+RequestHeaderContentType+" is not "+ContentTypeApplicationJson)
 	}
 
 	return next // Everything is fine until here, continue
