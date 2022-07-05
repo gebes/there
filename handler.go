@@ -27,7 +27,7 @@ func (router *Router) ServeHTTP(rw http.ResponseWriter, request *http.Request) {
 		endpoint = router.Configuration.RouteNotFoundHandler
 	}
 
-	var next HttpResponse = HttpResponseFunc(func(rw http.ResponseWriter, r *http.Request) {
+	var next Response = ResponseFunc(func(rw http.ResponseWriter, r *http.Request) {
 		endpoint(httpRequest).ServeHTTP(rw, r)
 	})
 	for i := len(middlewares) - 1; i >= 0; i-- {

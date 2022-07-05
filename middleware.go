@@ -1,3 +1,3 @@
 package there
 
-type Middleware func(request HttpRequest, next HttpResponse) HttpResponse
+type Middleware func(request Request, next Response) Response

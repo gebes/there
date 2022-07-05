@@ -1,12 +1,13 @@
 package main
 
 import (
-	. "github.com/Gebes/there/v2"
 	"log"
+
+	"github.com/Gebes/there/v2"
 )
 
 func main() {
-	router := NewRouter()
+	router := there.NewRouter()
 
 	router.Group("/user").
 		Get("/", Handler). // /user
@@ -26,8 +27,8 @@ func main() {
 	}
 }
 
-func Handler(request HttpRequest) HttpResponse {
-	return Json(StatusOK, Map{
+func Handler(request there.Request) there.Response {
+	return there.Json(there.StatusOK, map[string]any{
 		"method":       request.Method,
 		"path":         request.Request.URL.Path,
 		"route_params": request.RouteParams,
