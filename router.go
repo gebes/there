@@ -83,8 +83,12 @@ func (a *assertionErrors) HasError() error {
 	return err
 }
 
-func (a *assertionErrors) Assert(condition bool, errorString string) {
+func (a *assertionErrors) assert(condition bool, errorString string) {
 	if !condition {
 		*a = append(*a, errors.New(errorString))
 	}
+}
+
+func (a *assertionErrors) addError(err error) {
+	*a = append(*a, err)
 }

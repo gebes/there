@@ -60,7 +60,8 @@ func CreatePost(request there.Request) there.Response {
 		return there.Error(there.StatusConflict, errors.New("post with this ID already exists"))
 	}
 
-	posts = append(posts, body)                  // create post
+	posts = append(posts, body) // create post
+
 	return there.Json(there.StatusCreated, body) // return created post as json
 }
 
@@ -73,4 +74,12 @@ func postById(id string) *Post {
 		}
 	}
 	return post
+}
+
+func ExampleGet(request there.Request) there.Response{
+	user := map[string]string{
+		"firstname": "John",
+		"surname": "Smith",
+	}
+	return there.Json(there.StatusOK, user)
 }
