@@ -5,8 +5,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
-	. "github.com/Gebes/there/v2"
-	"github.com/Gebes/there/v2/middlewares"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -14,6 +13,9 @@ import (
 	"reflect"
 	"strconv"
 	"testing"
+
+	. "github.com/Gebes/there/v2"
+	"github.com/Gebes/there/v2/middlewares"
 )
 
 var (
@@ -89,7 +91,7 @@ func CreateRouter() *Router {
 		return Error(StatusOK, errors.New("test2"))
 	})
 	errorGroup.Get("/error/2", func(request HttpRequest) HttpResponse {
-		return Error(StatusOK, "test3")
+		return Error(StatusOK, errors.New("test3"))
 	})
 	errorGroup.Get("/html/1", func(request HttpRequest) HttpResponse {
 		return Html(StatusOK, "./non/existing/folder/for/the/test", map[string]string{
@@ -293,7 +295,8 @@ func TestBodyToStringError(t *testing.T) {
 			}
 
 			if tests != did {
-				return Error(StatusInternalServerError, "not every bind threw an error: "+strconv.Itoa(did)+"/"+strconv.Itoa(tests))
+				err := fmt.Errorf("not every bind threw an error: \"%v\"/\"%v", strconv.Itoa(did), strconv.Itoa(tests))
+				return Error(StatusInternalServerError, err)
 			}
 
 			return Status(StatusOK)

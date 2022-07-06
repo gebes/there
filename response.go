@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"strings"
 )
 
 //HttpResponse is the base for every return you can make in an Endpoint.
@@ -30,10 +31,7 @@ type bytesResponse struct {
 }
 
 func (j bytesResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	_, err := rw.Write(j.data)
-	if err != nil {
-		panic(err)
-	}
+	rw.Write(j.data)
 }
 
 // Status takes a StatusCode and renders nothing
@@ -82,25 +80,58 @@ func (h headerResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 //String takes a StatusCode and renders the plain string
 func String(code int, data string) HttpResponse {
-	return Bytes(code, []byte(data))
+	return stringResponse{code, []byte(data)}
 }
 
+type stringResponse struct {
+	code int
+	data []byte
+}
+
+func (s stringResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	rw.WriteHeader(s.code)
+	rw.Header().Set(ResponseHeaderContentType, ContentTypeTextPlain)
+	rw.Write(s.data)
+}
+
+const (
+    jsonLeft  = "{\"error\":\""
+    jsonRight = "\"}"
+)
+
 //Error takes a StatusCode and err which rendering is specified by the Serializers in the RouterConfiguration
-func Error(code int, err any) HttpResponse {
-	return Json(code, MapString{
-		"error": fmt.Sprint(err),
-	})
+func Error(code int, err error) HttpResponse {
+	e := err.Error()
+	var b strings.Builder
+	b.Grow(len(e))
+	for i := range e {
+		if e[i] == '"' {
+			b.WriteString("\"")
+			continue
+		}
+		b.WriteByte(e[i])
+	}
+	return jsonResponse{code, []byte(jsonLeft + b.String() + jsonRight)}
 }
 
 //Html takes a status code, the path to the html file and a map for the template parsing
 func Html(code int, file string, template any) HttpResponse {
 	content, err := parseTemplate(file, template)
 	if err != nil {
-		panic(err)
+		return Error(StatusInternalServerError, fmt.Errorf("template parse: %v", err))
 	}
-	return WithHeaders(MapString{
-		ResponseHeaderContentType: ContentTypeTextHtml,
-	}, Bytes(code, []byte(*content)))
+	return htmlResponse{code, []byte(*content)}
+}
+
+type htmlResponse struct {
+	code int
+	data []byte
+}
+
+func (h htmlResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	rw.WriteHeader(h.code)
+	rw.Header().Set(ResponseHeaderContentType, ContentTypeTextPlain)
+	rw.Write(h.data)
 }
 
 func parseTemplate(templateFileName string, data any) (*string, error) {
@@ -120,18 +151,26 @@ func parseTemplate(templateFileName string, data any) (*string, error) {
 func Json(code int, data any) HttpResponse {
 	jsonData, err := json.Marshal(data)
 	if err != nil {
-		panic(err)
+		return Error(StatusInternalServerError, fmt.Errorf("json marshall: %v", err))
 	}
-	return WithHeaders(MapString{
-		ResponseHeaderContentType: ContentTypeApplicationJson,
-	}, Bytes(code, jsonData))
+	return jsonResponse{code, jsonData}
 }
+
+type jsonResponse struct {
+	code int
+	data []byte
+}
+
+func (j jsonResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	rw.WriteHeader(j.code)
+	rw.Header().Set(ResponseHeaderContentType, ContentTypeApplicationJson)
+	rw.Write(j.data)
+}
+
 
 //Message takes StatusCode and a message which will be put into a JSON object
 func Message(code int, message string) HttpResponse {
-	return Json(code, map[string]any{
-		"message": message,
-	})
+	return jsonResponse{code, []byte(message)}
 }
 
 //Redirect redirects to the specific URL
@@ -152,9 +191,18 @@ func (j redirectResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 func Xml(code int, data any) HttpResponse {
 	xmlData, err := xml.Marshal(data)
 	if err != nil {
-		panic(err)
+		return Error(StatusInternalServerError, fmt.Errorf("xml marshall: %v", err))
 	}
-	return WithHeaders(MapString{
-		ResponseHeaderContentType: ContentTypeApplicationXml,
-	}, Bytes(code, xmlData))
+	return xmlResponse{code, xmlData}
+}
+
+type xmlResponse struct {
+	code int
+	data []byte
+}
+
+func (x xmlResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	rw.WriteHeader(x.code)
+	rw.Header().Set(ResponseHeaderContentType, ContentTypeApplicationXml)
+	rw.Write(x.data)
 }

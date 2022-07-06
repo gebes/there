@@ -1,15 +1,17 @@
 package middlewares
 
 import (
-	. "github.com/Gebes/there/v2"
+	"fmt"
 	"net/http"
+
+	. "github.com/Gebes/there/v2"
 )
 
 func Recoverer(request HttpRequest, next HttpResponse) HttpResponse {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {
-				Error(StatusInternalServerError, rvr).ServeHTTP(w, r)
+				Error(StatusInternalServerError, fmt.Errorf("%v", rvr)).ServeHTTP(w, r)
 			}
 		}()
 		next.ServeHTTP(w, r)
