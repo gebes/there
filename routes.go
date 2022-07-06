@@ -21,11 +21,10 @@ func (group RouteGroup) Group(prefix string) *RouteGroup {
 		prefix += "/"
 	}
 
-	return &RouteGroup{
-		Router: group.Router,
-		prefix: group.prefix + prefix,
-	}
+	group.prefix += prefix
+	return &group
 }
+
 
 func NewRouteGroup(router *Router, route string) *RouteGroup {
 
