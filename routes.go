@@ -1,6 +1,7 @@
 package there
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -14,7 +15,7 @@ func (group RouteGroup) Group(prefix string) *RouteGroup {
 
 	prefix = strings.TrimPrefix(prefix, "/")
 
-	group.Assert(len(prefix) > 1, "route group needs to have at least one symbol")
+	group.assert(len(prefix) > 1, "route group needs to have at least one symbol")
 
 	if !strings.HasSuffix(prefix, "/") {
 		prefix += "/"
@@ -28,7 +29,7 @@ func (group RouteGroup) Group(prefix string) *RouteGroup {
 
 func NewRouteGroup(router *Router, route string) *RouteGroup {
 
-	router.Assert(route != "", "route \""+route+"\" must not be empty")
+	router.assert(route != "", "route \""+route+"\" must not be empty")
 
 	if !strings.HasPrefix(route, "/") {
 		route = "/" + route
@@ -170,7 +171,10 @@ func (r *routeManager) FindOverlappingRoute(routeToCheck *Route) *Route {
 
 func (r *routeManager) AddRoute(routeToAdd *Route, router *Router) *Route {
 	overlapsWith := r.FindOverlappingRoute(routeToAdd)
-	router.Assert(overlapsWith == nil, "the route \""+routeToAdd.ToString()+"\" overlaps with the existing route \""+overlapsWith.ToString()+"\"")
+	if overlapsWith != nil {
+		router.addError(errors.New("the route \""+routeToAdd.ToString()+"\" overlaps with the existing route \""+overlapsWith.ToString()+"\""))
+		return nil
+	}
 	*r = append(*r, routeToAdd)
 	return routeToAdd
 }

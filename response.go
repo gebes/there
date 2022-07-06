@@ -1,3 +1,4 @@
+// This file contains all responses there provides by default.
 package there
 
 import (
@@ -25,14 +26,24 @@ func (f ResponseFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	f(w, r)
 }
 
-//Bytes takes a status code and a byte array to write to the ResponseWriter
+// Bytes writes the data parameter with the given status code
+// to the http.ResponseWriter
+//
+// The Content-Type header is set to nothing at all.
+//
+//	func ExampleStringGet(request there.Request) there.Response {
+//		return there.String(there.StatusOK, "Hello there")
+//	}
+//
+// When this handler gets called, the final rendered result will be
+//	Hello there
 func Bytes(code int, data []byte) Response {
-	return &bytesResponse{status: code, data: data}
+	return &bytesResponse{code: code, data: data}
 }
 
 type bytesResponse struct {
-	status int
-	data   []byte
+	code int
+	data []byte
 }
 
 func (j bytesResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
@@ -42,29 +53,47 @@ func (j bytesResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Status takes a status code and renders nothing
+// String sets the given status code to the http.ResponseWriter.
+//
+// No Content-Type header is set at all.
+//
+//	func ExampleStatusGet(request there.Request) there.Response {
+//		return there.Status(there.StatusOK)
+//	}
+//
+// When this handler gets called, the final rendered result will be
+// a empty body with the status 200
 func Status(code int) Response {
 	return &statusResponse{code: code}
 }
 
-// StatusWithResponse writes the status code and renders the Response
-func StatusWithResponse(code int, response Response) Response {
-	return &statusResponse{code: code, response: response}
-}
-
 type statusResponse struct {
-	code     int
-	response Response
+	code int
 }
 
 func (j statusResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	rw.WriteHeader(j.code)
-	if j.response != nil {
-		j.response.ServeHTTP(rw, r)
-	}
 }
 
-// Headers adds the given map of headers to the current http.ResponseWriter and Response
+// Headers wraps around your current Response and sets all the headers
+// parsed in the headers parameter provided they are not set. If a header
+// was already set by a previous Resopnse, then it will be skipped.
+//
+//	func Cors(configuration CorsConfiguration) there.Middleware {
+//		return func(request there.Request, next there.Response) there.Response {
+//			headers := map[string]string{
+//				there.ResponseHeaderAccessControlAllowOrigin:  configuration.AccessControlAllowOrigin,
+//				there.ResponseHeaderAccessControlAllowMethods: configuration.AccessControlAllowMethods,
+//				there.ResponseHeaderAccessControlAllowHeaders: configuration.AccessControlAllowHeaders,
+//			}
+//			if request.Method == there.MethodOptions {
+//				return there.Headers(headers, there.Status(there.StatusOK))
+//			}
+//			return there.Headers(headers, next)
+//		}
+//	}
+//
+// When this middleware gets called, all the Cors Headers will be set.
 func Headers(headers map[string]string, response Response) Response {
 	return &headerResponse{headers: headers, response: response}
 }
@@ -86,6 +115,21 @@ func (h headerResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// String writes the data parameter with the given status code
+// to the http.ResponseWriter
+//
+// The Content-Type header is set accordingly to text/plain
+//
+//	func ExampleStringGet(request there.Request) there.Response {
+//		return there.String(there.StatusOK, "Hello there")
+//	}
+//
+// When this handler gets called, the final rendered result will be
+//	Hello there
+func String(code int, data string) Response {
+	return stringResponse{code: code, data: []byte(data)}
+}
+
 type stringResponse struct {
 	code int
 	data []byte
@@ -100,29 +144,45 @@ func (s stringResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//String takes a status code and renders the plain string
-func String(code int, data string) Response {
-	return stringResponse{code: code, data: []byte(data)}
-}
-
-//Error takes a status code and err which rendering is specified by the Serializers in the RouterConfiguration
+// Error builds a json response using the err parameter and writes
+// the result with the given status code to the http.ResponseWriter
+//
+// The Content-Type header is set accordingly to application/json
+//
+//	func ExampleErrorGet(request there.Request) there.Response {
+//		if 1 != 2 {
+//			return there.Error(there.StatusInternalServerError, errors.New("something went wrong"))
+//		}
+//		return there.Status(there.StatusOK)
+//	}
+//
+// When this handler gets called, the final rendered result will be
+//	{"error":"something went wrong"}
+//
+// For optimal performance the use of json.Marshal is avoided and the response
+// body is built directly. With this way, there is no error that could occur.
 func Error(code int, err error) Response {
 	e := err.Error()
-	var b strings.Builder
-	b.Grow(len(e))
+	var b bytes.Buffer
+	b.Grow(len(e) + errorJsonLength)
+	b.Write(errorJsonOpen)
 	for i := range e {
 		if e[i] == '"' {
-			b.WriteString("\"")
+			b.WriteString("\\\"")
 			continue
 		}
 		b.WriteByte(e[i])
 	}
-	const (
-		jsonOpen  = "{\"error\":\""
-		jsonClose = "\"}"
-	)
-	return jsonResponse{code: code, data: []byte(jsonOpen + b.String() + jsonClose)}
+	b.Write(errorJsonClose)
+	return &jsonResponse{code: code, data: b.Bytes()}
 }
+
+var (
+	errorJsonOpen  = []byte("{\"error\":\"")
+	errorJsonClose = []byte("\"}")
+)
+
+const errorJsonLength = 14 // the total length of errorJsonOpen + errorJsonClose
 
 type htmlResponse struct {
 	code int
@@ -160,6 +220,60 @@ func parseTemplate(templateFileName string, data any) (*string, error) {
 	return &body, nil
 }
 
+// Json marshalls the given data parameter with the json.Marshal function
+// and writes the result with the given status code to the http.ResponseWriter
+//
+// The Content-Type header is set accordingly to application/json
+//
+//	func ExampleGet(request there.Request) there.Response {
+//		user := map[string]string{
+//			"firstname": "John",
+//			"surname": "Smith",
+//		}
+//		return there.Json(there.StatusOK, user)
+//	}
+//
+// When this handler gets called, the final rendered result will be
+//	{"firstname":"John","surname":"Smith"}
+//
+// If the json.Marshal fails with an error, then an Error with StatusInternalServerError will be returned, with the error format "json: json.Marshal: %v"
+func Json(code int, data any) Response {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return Error(StatusInternalServerError, fmt.Errorf("json: json.Marshal: %v", err))
+	}
+	return jsonResponse{code: code, data: jsonData}
+}
+
+// JsonError marshalls the given data parameter with the json.Marshal function
+// and writes the result with the given status code to the http.ResponseWriter
+//
+// The Content-Type header is set accordingly to application/json
+//
+//	func ExampleJsonErrorGet(request there.Request) there.Response{
+//		user := map[string]string{
+//			"firstname": "John",
+//			"surname": "Smith",
+//		}
+//		resp, err := there.JsonError(there.StatusOK, user)
+//		if err != nil {
+//			return there.Error(there.StatusInternalServerError, fmt.Errorf("something went wrong: %v", err))
+//		}
+//		return resp
+//	}
+//
+// When this handler gets called, the final rendered result will be
+//	{"firstname":"John","surname":"Smith"}
+//
+// If the json.Marshal fails with an error, then a nil response with a non-nil error will be returned to handle.
+func JsonError(code int, data any) (Response, error) {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	return jsonResponse{code: code, data: jsonData}, nil
+}
+
 type jsonResponse struct {
 	code int
 	data []byte
@@ -174,20 +288,35 @@ func (j jsonResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//Json takes a status code and data which gets marshaled to Json
-func Json(code int, data interface{}) Response {
-	jsonData, err := json.Marshal(data)
-	if err != nil {
-		return Error(StatusInternalServerError, fmt.Errorf("json: json.Marshal: %v", err))
-	}
-	return jsonResponse{code: code, data: jsonData}
-}
-
-//Message takes status code and a message which will be put into a JSON object
+// Message builds a json response using the message parameter and writes
+// the result with the given status code to the http.ResponseWriter
+//
+// The Content-Type header is set accordingly to application/json
+//
+//	func ExampleMessageGet(request there.Request) there.Response {
+//		return there.Message(there.StatusOK, "Hello there")
+//	}
+//
+// When this handler gets called, the final rendered result will be
+//	{"message":"Hello there"}
+//
+// For optimal performance the use of json.Marshal is avoided and the response
+// body is built directly. With this way, there is no error that could occur.
 func Message(code int, message string) Response {
-	return Json(code, map[string]any{
-		"message": message,
-	})
+	var b strings.Builder
+	b.Grow(len(message))
+	for i := range message {
+		if message[i] == '"' {
+			b.WriteString("\\\"")
+			continue
+		}
+		b.WriteByte(message[i])
+	}
+	const (
+		jsonOpen  = "{\"message\":\""
+		jsonClose = "\"}"
+	)
+	return jsonResponse{code: code, data: []byte(jsonOpen + b.String() + jsonClose)}
 }
 
 //Redirect redirects to the specific URL
@@ -204,6 +333,64 @@ func (j redirectResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	http.Redirect(rw, r, j.url, j.code)
 }
 
+// Xml marshalls the given data parameter with the xml.Marshal function and
+// writes the result with the given status code to the http.ResponseWriter
+//
+// The Content-Type header is set accordingly to application/xml
+//
+//	type User struct {
+//		Firstname string `xml:"firstname"`
+//		Surname string  `xml:"surname"`
+//	}
+//
+//	func ExampleXmlGet(request there.Request) there.Response{
+//		user := User{"John", "Smith"}
+//		return there.Xml(there.StatusOK, user)
+//	}
+//
+// When this handler gets called, the final rendered result will be
+//	<User><firstname>John</firstname><surname>Smith</surname></User>
+//
+// If the xml.Marshal fails with an error, then an Error with StatusInternalServerError will be returned, with the error format "xml: xml.Marshal: %v"
+func Xml(code int, data any) Response {
+	xmlData, err := xml.Marshal(data)
+	if err != nil {
+		return Error(StatusInternalServerError, fmt.Errorf("xml: xml.Marshal: %v", err))
+	}
+	return xmlResponse{code: code, data: xmlData}
+}
+
+// Xml marshalls the given data parameter with the xml.Marshal function and
+// writes the result with the given status code to the http.ResponseWriter
+//
+// The Content-Type header is set accordingly to application/xml
+//
+//	type User struct {
+//		Firstname string `xml:"firstname"`
+//		Surname   string `xml:"surname"`
+//	}
+//
+//	func ExampleXmlErrorGet(request there.Request) there.Response {
+//		user := User{"John", "Smith"}
+//		resp, err := there.XmlError(there.StatusOK, user)
+//		if err != nil {
+//			return there.Error(there.StatusInternalServerError, fmt.Errorf("something went wrong: %v", err))
+//		}
+//		return resp
+//	}
+//
+// When this handler gets called, the final rendered result will be
+//	<User><firstname>John</firstname><surname>Smith</surname></User>
+//
+// If the xml.Marshal fails with an error, then a nil response with a non-nil error will be returned to handle.
+func XmlError(code int, data any) (Response, error) {
+	xmlData, err := xml.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	return xmlResponse{code: code, data: xmlData}, nil
+}
+
 type xmlResponse struct {
 	code int
 	data []byte
@@ -216,15 +403,6 @@ func (x xmlResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("xmlResponse: ServeHttp write failed: %v", err)
 	}
-}
-
-//Xml takes a status code and data which gets marshaled to Xml
-func Xml(code int, data interface{}) Response {
-	xmlData, err := xml.Marshal(data)
-	if err != nil {
-		return Error(StatusInternalServerError, fmt.Errorf("xml: xml.Marshal: %v", err))
-	}
-	return xmlResponse{code: code, data: xmlData}
 }
 
 type fileResponse struct {

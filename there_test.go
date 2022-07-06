@@ -49,13 +49,13 @@ func TestWriteError(t *testing.T) {
 		// No body with 1xx status
 		return Json(StatusContinue, "not writeable")
 	})
-	var data interface{}
+	var data any
 	readJsonBody(router, t, MethodGet, "/", nil, &data)
 	log.Println(data)
 }
 
 var (
-	sampleData = map[string]interface{}{
+	sampleData = map[string]any{
 		"Hello": "There",
 	}
 	sampleUser       = user{"Hannes", "A cool user"}
@@ -152,7 +152,7 @@ func readBody(router *Router, t *testing.T, method, route string, body io.Reader
 	return data
 }
 
-func readAndUnmarshal(router *Router, t *testing.T, method, route string, body io.Reader, unmarshal func(data []byte, v interface{}) error, res interface{}) {
+func readAndUnmarshal(router *Router, t *testing.T, method, route string, body io.Reader, unmarshal func(data []byte, v any) error, res any) {
 	data := readBody(router, t, method, route, body)
 	err := unmarshal(data, res)
 
@@ -162,10 +162,10 @@ func readAndUnmarshal(router *Router, t *testing.T, method, route string, body i
 
 }
 
-func readJsonBody(router *Router, t *testing.T, method, route string, body io.Reader, res interface{}) {
+func readJsonBody(router *Router, t *testing.T, method, route string, body io.Reader, res any) {
 	readAndUnmarshal(router, t, method, route, body, json.Unmarshal, res)
 }
-func readXmlBody(router *Router, t *testing.T, method, route string, body io.Reader, res interface{}) {
+func readXmlBody(router *Router, t *testing.T, method, route string, body io.Reader, res any) {
 	readAndUnmarshal(router, t, method, route, body, xml.Unmarshal, res)
 }
 
@@ -175,7 +175,7 @@ func TestJson(t *testing.T) {
 	methods := []string{MethodGet, MethodPost, MethodPut, MethodDelete}
 
 	for _, method := range methods {
-		var res map[string]interface{}
+		var res map[string]any
 		readJsonBody(router, t, method, "/data/json", nil, &res)
 
 		if !reflect.DeepEqual(res, sampleData) {
@@ -185,7 +185,7 @@ func TestJson(t *testing.T) {
 
 }
 
-func testSampleUserRoutes(t *testing.T, route string, handler func(router *Router, t *testing.T, method, route string, body io.Reader, res interface{}), res, expected interface{}) {
+func testSampleUserRoutes(t *testing.T, route string, handler func(router *Router, t *testing.T, method, route string, body io.Reader, res any), res, expected any) {
 	router := CreateRouter()
 	handler(router, t, MethodGet, "/data/"+route, nil, res)
 
@@ -201,7 +201,7 @@ func TestXml(t *testing.T) {
 }
 
 func testErrorResponse(router *Router, t *testing.T, route string) {
-	var res map[string]interface{}
+	var res map[string]any
 	readJsonBody(router, t, MethodGet, "/error/"+route, nil, &res)
 
 	_, ok := res["error"]
@@ -280,7 +280,7 @@ func TestBodyToStringError(t *testing.T) {
 			tests := 3
 			did := 0
 
-			var s interface{}
+			var s any
 
 			_, err := request.Body.ToString()
 			if err != nil {
@@ -321,7 +321,7 @@ func TestStringResponse(t *testing.T) {
 func TestJsonResponse(t *testing.T) {
 
 	router := CreateRouter()
-	var jsonBody map[string]interface{}
+	var jsonBody map[string]any
 	readJsonBody(router, t, MethodGet, "/data/message", nil, &jsonBody)
 
 	v, ok := jsonBody["message"]
