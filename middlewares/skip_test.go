@@ -70,5 +70,5 @@ func dummyMiddleware(request there.Request, next there.Response) there.Response 
 }
 
 func dummyEndpointHandler(request there.Request) there.Response {
-	return there.Json(there.StatusOK, "Skip")
+	return there.Json(there.StatusOK, dummyData)
 }
