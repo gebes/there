@@ -42,7 +42,7 @@ func TestSkipFalse(t *testing.T) {
 	router.ServeHTTP(recorder, request)
 	result := recorder.Result()
 
-	reflect.DeepEqual(result.StatusCode, there.StatusOK)
+	reflect.DeepEqual(result.Body, dummyData)
 }
 
 func TestSkipNil(t *testing.T) {
