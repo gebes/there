@@ -12,9 +12,7 @@ import (
 func TestSkip(t *testing.T) {
 	router := there.NewRouter()
 
-	router.Use(Skip(dummyMiddleware, func(request there.Request) bool {
-		return false
-	}))
+	router.Use(Skip(dummyMiddleware, dummyValidatorFalse))
 
 	router.Get("/", dummyEndpointHandler)
 
@@ -30,9 +28,7 @@ func TestSkip(t *testing.T) {
 func TestSkipFalse(t *testing.T) {
 	router := there.NewRouter()
 
-	router.Use(Skip(dummyMiddleware, func(request there.Request) bool {
-		return true
-	}))
+	router.Use(Skip(dummyMiddleware, dummyValidatorTrue))
 
 	router.Get("/", dummyEndpointHandler)
 
@@ -66,9 +62,17 @@ var dummyData  = map[string]interface{}{
 }
 
 func dummyMiddleware(request there.Request, next there.Response) there.Response {
-	return there.Error(there.StatusInternalServerError, errors.New("I'm just a dummy"))
+	return there.Error(there.StatusInternalServerError, errors.New("i'm just a dummy"))
 }
 
 func dummyEndpointHandler(request there.Request) there.Response {
 	return there.Json(there.StatusOK, dummyData)
+}
+
+func dummyValidatorFalse(request there.Request) bool {
+	return false
+}
+
+func dummyValidatorTrue(request there.Request) bool {
+	return true
 }
