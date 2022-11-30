@@ -5,7 +5,7 @@
 </p>
 <p align="center">
 <font size="4px">
-<b>There</b> is a robust and minimalistic Web Framework that helps you to build fabulous services with GoLang in no time!
+A robust and minimalistic Web Framework that helps you to build fabulous Go services in no time!
 </font>
 </p>
 <p align="center">
@@ -35,15 +35,11 @@
     <img src="https://gocover.io/_badge/github.com/Gebes/there" alt="Latest releace">
 </a>
 
-
-
-
-
 ## 🔥 Get Started
 
 ### 🔨 Create a Project
 1. Ensure you have [Go](https://go.dev/dl/) installed.
-2. Create a project with `go mod init github.com/user/repository`
+2. Create a project with `go mod init github.com/{user}/{repository}`
 3. Install **There** with the `go get` command
 
 ```sh
@@ -55,18 +51,21 @@ go get -u github.com/Gebes/there/v2
 ```go
 package main
 
-import "github.com/Gebes/there/v2"
+import (
+	"github.com/Gebes/there/v2"
+	"github.com/Gebes/there/v2/status"
+)
 
 func main() {
 	router := there.NewRouter() // Create a new router
-	
+
 	// Register GET route /
 	router.Get("/", func(request there.Request) there.Response {
 		return there.Json(status.OK, map[string]string{
 			"message": "Hello World!",
 		})
 	})
-	
+
 	err := router.Listen(8080) // Start listening on 8080
 
 	if err != nil {
@@ -108,7 +107,7 @@ and **There** provides you with all the handlers, constants and interfaces you n
 The goal of **There** is to save time and provide all the functionality a backend developer needs daily. Therefore, **There** should always keep it simple and only add complexity if there is no reasonable workaround.  
 New Go Developers often struggle with chores they are not used to, and **There** should help them make life easier.
 
-So **There** should be something for everyone.
+From beginner to expert, **There** should be something for everyone.
 
 ## ⭐️ Features
 * [Straightforward **routing**](#straightforward-routing)

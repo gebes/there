@@ -30,7 +30,7 @@ router.Get("/details", Handler)
 ```
 
 ### ❌ Bad
-Most linters will break the manual intends you placed.
+Most formatters will break the manual intends you placed.
 ```go
 router.Group("/user").
     Get("/all", Handler).
@@ -72,7 +72,7 @@ Looks stuffed and typos can happen more easily.
 router.Get("/user/all", Handler).
 router.Get("/user/:id", Handler).
 router.Post("/user", Handler).
-router.ch("/user/:id", Handler).
+router.Patch("/user/:id", Handler).
 router.Delete("/user/:id", Handler)
 
 router.Get("/user/post/:id", Handler)

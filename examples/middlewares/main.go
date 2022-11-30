@@ -16,7 +16,7 @@ func main() {
 	// Register global middlewares
 	router.Use(middlewares.Recoverer)
 	router.Use(middlewares.RequireHost("localhost:8080"))
-	router.Use(middlewares.Cors(middlewares.AllowAllConfiguration()))
+	router.Use(middlewares.Cors(middlewares.CorsAllowAllConfiguration()))
 	router.Use(GlobalMiddleware)
 
 	router.
