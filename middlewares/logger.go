@@ -3,6 +3,7 @@ package middlewares
 import (
 	"fmt"
 	"github.com/Gebes/there/v2/middlewares/color"
+	"github.com/Gebes/there/v2/status"
 	"log"
 	"net/http"
 	"strconv"
@@ -51,16 +52,16 @@ func Logger(configuration ...LoggerConfiguration) func(request there.Request, ne
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			ww := &responseWriterWrapper{
 				writer:        w,
-				writtenHeader: there.StatusOK,
+				writtenHeader: status.OK,
 				writtenBytes:  &[]byte{},
 			}
 			start := time.Now()
 			defer func() {
 				code := ww.writtenHeader
 				diff := time.Now().Sub(start)
-				toLog := color.Blue(r.Method+" "+r.URL.Path) + " resulted in " + statusCodeToColoredString(code) + " (" + there.StatusText(code) + ") after " + fmt.Sprint(diff)
+				toLog := color.Blue(r.Method+" "+r.URL.Path) + " resulted in " + statusCodeToColoredString(code) + " (" + status.Text(code) + ") after " + fmt.Sprint(diff)
 
-				if code == there.StatusInternalServerError {
+				if code == status.InternalServerError {
 					config.ErrorLogger.Println(toLog+":", string(*ww.writtenBytes))
 				} else {
 					config.InfoLogger.Println(toLog)
