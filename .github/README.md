@@ -29,11 +29,9 @@ A robust and minimalistic Web Framework that helps you to build fabulous Go serv
     <img src="https://img.shields.io/github/license/Gebes/there.svg" alt="License">
 </a>
 <a href="https://GitHub.com/Gebes/there/releases/">
-    <img src="https://img.shields.io/github/release/Gebes/there" alt="Latest releace">
+    <img src="https://img.shields.io/github/release/Gebes/there" alt="Latest release">
 </a>
-<a href="https://gocover.io/github.com/Gebes/there">
-    <img src="https://gocover.io/_badge/github.com/Gebes/there" alt="Latest releace">
-</a>
+
 
 ## 🔥 Get Started
 
