@@ -1,14 +1,18 @@
-// This file contains all responses there provides by default.
 package there
+
+// This file contains all responses there provides by default.
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"github.com/Gebes/there/v2/header"
 	"github.com/Gebes/there/v2/status"
 	"html/template"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -56,7 +60,7 @@ func (j bytesResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// String sets the given status code to the http.ResponseWriter.
+// Status sets the given status code to the http.ResponseWriter.
 //
 // No Content-Type header is set at all.
 //
@@ -85,9 +89,9 @@ func (j statusResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 //	func Cors(configuration CorsConfiguration) there.Middleware {
 //		return func(request there.Request, next there.Response) there.Response {
 //			headers := map[string]string{
-//				there.ResponseHeaderAccessControlAllowOrigin:  configuration.AccessControlAllowOrigin,
-//				there.ResponseHeaderAccessControlAllowMethods: configuration.AccessControlAllowMethods,
-//				there.ResponseHeaderAccessControlAllowHeaders: configuration.AccessControlAllowHeaders,
+//				header.ResponseAccessControlAllowOrigin:  configuration.AccessControlAllowOrigin,
+//				header.ResponseAccessControlAllowMethods: configuration.AccessControlAllowMethods,
+//				header.ResponseAccessControlAllowHeaders: configuration.AccessControlAllowHeaders,
 //			}
 //			if request.Method == there.MethodOptions {
 //				return there.Headers(headers, there.Status(status.OK))
@@ -116,6 +120,42 @@ func (h headerResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if h.response != nil {
 		h.response.ServeHTTP(rw, r)
 	}
+}
+
+// Gzip wraps around your current Response and compresses all the data
+// written to it, if the client has specified 'gzip' in the Accept-Encoding
+// header.
+func Gzip(response Response) Response {
+	r := &gzipMiddleware{response}
+	return r
+}
+
+type gzipMiddleware struct {
+	response Response
+}
+
+type gzipResponseWriter struct {
+	io.Writer
+	http.ResponseWriter
+}
+
+func (w gzipResponseWriter) Write(b []byte) (int, error) {
+	return w.Writer.Write(b)
+}
+
+func (j gzipMiddleware) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	if !strings.Contains(r.Header.Get(header.RequestAcceptEncoding), "gzip") {
+		j.response.ServeHTTP(rw, r)
+		return
+	}
+
+	gz := gzip.NewWriter(rw)
+	defer gz.Close()
+
+	rw.Header().Set(header.ContentEncoding, "gzip")
+
+	var responseWriter http.ResponseWriter = gzipResponseWriter{Writer: gz, ResponseWriter: rw}
+	j.response.ServeHTTP(responseWriter, r)
 }
 
 // String writes the data parameter with the given status code
@@ -172,11 +212,28 @@ func Error(code int, err error) Response {
 	b.Grow(len(e) + errorJsonLength)
 	b.Write(errorJsonOpen)
 	for i := range e {
-		if e[i] == '"' {
+		switch e[i] {
+		case '"':
 			b.WriteString("\\\"")
-			continue
+		case '\'':
+			b.WriteString("\\'")
+		case '\v':
+			b.WriteString("\\v")
+		case '\f':
+			b.WriteString("\\f")
+		case '\r':
+			b.WriteString("\\r")
+		case '\n':
+			b.WriteString("\\n")
+		case '\t':
+			b.WriteString("\\t")
+		case '\b':
+			b.WriteString("\\b")
+		case '\a':
+			b.WriteString("\\a")
+		default:
+			b.WriteByte(e[i])
 		}
-		b.WriteByte(e[i])
 	}
 	b.Write(errorJsonClose)
 	return &jsonResponse{code: code, data: b.Bytes()}
@@ -188,6 +245,15 @@ var (
 )
 
 const errorJsonLength = 14 // the total length of errorJsonOpen + errorJsonClose
+
+// Html takes a status code, the path to the html file and a map for the template parsing
+func Html(code int, file string, template any) Response {
+	content, err := parseTemplate(file, template)
+	if err != nil {
+		return Error(status.InternalServerError, fmt.Errorf("html: parseTemplate: %v", err))
+	}
+	return htmlResponse{code: code, data: []byte(*content)}
+}
 
 type htmlResponse struct {
 	code int
@@ -201,15 +267,6 @@ func (h htmlResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("htmlResponse: ServeHttp write failed: %v", err)
 	}
-}
-
-// Html takes a status code, the path to the html file and a map for the template parsing
-func Html(code int, file string, template any) Response {
-	content, err := parseTemplate(file, template)
-	if err != nil {
-		return Error(status.InternalServerError, fmt.Errorf("html: parseTemplate: %v", err))
-	}
-	return htmlResponse{code: code, data: []byte(*content)}
 }
 
 func parseTemplate(templateFileName string, data any) (*string, error) {
@@ -314,11 +371,28 @@ func Message(code int, message string) Response {
 	var b strings.Builder
 	b.Grow(len(message))
 	for i := range message {
-		if message[i] == '"' {
+		switch message[i] {
+		case '"':
 			b.WriteString("\\\"")
-			continue
+		case '\'':
+			b.WriteString("\\'")
+		case '\v':
+			b.WriteString("\\v")
+		case '\f':
+			b.WriteString("\\f")
+		case '\r':
+			b.WriteString("\\r")
+		case '\n':
+			b.WriteString("\\n")
+		case '\t':
+			b.WriteString("\\t")
+		case '\b':
+			b.WriteString("\\b")
+		case '\a':
+			b.WriteString("\\a")
+		default:
+			b.WriteByte(message[i])
 		}
-		b.WriteByte(message[i])
 	}
 	const (
 		jsonOpen  = "{\"message\":\""
@@ -369,7 +443,7 @@ func Xml(code int, data any) Response {
 	return xmlResponse{code: code, data: xmlData}
 }
 
-// Xml marshalls the given data parameter with the xml.Marshal function and
+// XmlError marshalls the given data parameter with the xml.Marshal function and
 // writes the result with the given status code to the http.ResponseWriter
 //
 // The Content-Type header is set accordingly to application/xml
@@ -415,18 +489,208 @@ func (x xmlResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type fileResponse struct {
-	code   int
-	header string
-	data   []byte
+var AutoHandlers = map[string]func(code int, data any) Response{
+	"fallback":                 Json,
+	ContentTypeApplicationJson: Json,
+	ContentTypeApplicationXml:  Xml,
 }
 
-func (f fileResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	rw.Header().Set(header.ContentType, f.header)
-	rw.WriteHeader(f.code)
-	_, err := rw.Write(f.data)
-	if err != nil {
-		log.Printf("fileResponse: ServeHttp write failed: %v", err)
+func Auto(code int, data any) Response {
+	return autoResponse{code, data}
+}
+
+type autoResponse struct {
+	code int
+	data any
+}
+
+func (a autoResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	contentTypes := make([]string, 0, len(AutoHandlers))
+	for s, _ := range AutoHandlers {
+		contentTypes = append(contentTypes, s)
+	}
+
+	contentType := NegotiateContentType(r.Header[header.RequestAccept], contentTypes, "fallback")
+	handler, ok := AutoHandlers[contentType]
+	if !ok {
+		Error(status.BadRequest, errors.New("no suitable content-type provided")).ServeHTTP(rw, r)
+	} else {
+		handler(a.code, a.data).ServeHTTP(rw, r)
+	}
+}
+
+// NegotiateContentType returns the best offered content type for the request's
+// Accept header. If two offers match with equal weight, then the more specific
+// offer is preferred.  For example, text/* trumps */*. If two offers match
+// with equal weight and specificity, then the offer earlier in the list is
+// preferred. If no offers match, then defaultOffer is returned.
+func NegotiateContentType(headerValue []string, offers []string, defaultOffer string) string {
+	bestOffer := defaultOffer
+	bestQ := -1.0
+	bestWild := 3
+	specs := ParseAccept(headerValue)
+	for _, offer := range offers {
+		for _, spec := range specs {
+			switch {
+			case spec.Q == 0.0:
+				// ignore
+			case spec.Q < bestQ:
+				// better match found
+			case spec.Value == "*/*":
+				if spec.Q > bestQ || bestWild > 2 {
+					bestQ = spec.Q
+					bestWild = 2
+					bestOffer = offer
+				}
+			case strings.HasSuffix(spec.Value, "/*"):
+				if strings.HasPrefix(offer, spec.Value[:len(spec.Value)-1]) &&
+					(spec.Q > bestQ || bestWild > 1) {
+					bestQ = spec.Q
+					bestWild = 1
+					bestOffer = offer
+				}
+			default:
+				if spec.Value == offer &&
+					(spec.Q > bestQ || bestWild > 0) {
+					bestQ = spec.Q
+					bestWild = 0
+					bestOffer = offer
+				}
+			}
+		}
+	}
+	return bestOffer
+}
+
+// AcceptSpec describes an Accept* header.
+type AcceptSpec struct {
+	Value string
+	Q     float64
+}
+
+// ParseAccept parses Accept* headers.
+func ParseAccept(header []string) (specs []AcceptSpec) {
+loop:
+	for _, s := range header {
+		for {
+			var spec AcceptSpec
+			spec.Value, s = expectTokenSlash(s)
+			if spec.Value == "" {
+				continue loop
+			}
+			spec.Q = 1.0
+			s = skipSpace(s)
+			if strings.HasPrefix(s, ";") {
+				s = skipSpace(s[1:])
+				if !strings.HasPrefix(s, "q=") {
+					continue loop
+				}
+				spec.Q, s = expectQuality(s[2:])
+				if spec.Q < 0.0 {
+					continue loop
+				}
+			}
+			specs = append(specs, spec)
+			s = skipSpace(s)
+			if !strings.HasPrefix(s, ",") {
+				continue loop
+			}
+			s = skipSpace(s[1:])
+		}
+	}
+	return
+}
+
+func skipSpace(s string) (rest string) {
+	i := 0
+	for ; i < len(s); i++ {
+		if octetTypes[s[i]]&isSpace == 0 {
+			break
+		}
+	}
+	return s[i:]
+}
+
+func expectTokenSlash(s string) (token, rest string) {
+	i := 0
+	for ; i < len(s); i++ {
+		b := s[i]
+		if (octetTypes[b]&isToken == 0) && b != '/' {
+			break
+		}
+	}
+	return s[:i], s[i:]
+}
+
+func expectQuality(s string) (q float64, rest string) {
+	switch {
+	case len(s) == 0:
+		return -1, ""
+	case s[0] == '0':
+		q = 0
+	case s[0] == '1':
+		q = 1
+	default:
+		return -1, ""
+	}
+	s = s[1:]
+	if !strings.HasPrefix(s, ".") {
+		return q, s
+	}
+	s = s[1:]
+	i := 0
+	n := 0
+	d := 1
+	for ; i < len(s); i++ {
+		b := s[i]
+		if b < '0' || b > '9' {
+			break
+		}
+		n = n*10 + int(b) - '0'
+		d *= 10
+	}
+	return q + float64(n)/float64(d), s[i:]
+}
+
+// Octet types from RFC 2616.
+var octetTypes [256]octetType
+
+type octetType byte
+
+const (
+	isToken octetType = 1 << iota
+	isSpace
+)
+
+func init() {
+	// OCTET      = <any 8-bit sequence of data>
+	// CHAR       = <any US-ASCII character (octets 0 - 127)>
+	// CTL        = <any US-ASCII control character (octets 0 - 31) and DEL (127)>
+	// CR         = <US-ASCII CR, carriage return (13)>
+	// LF         = <US-ASCII LF, linefeed (10)>
+	// SP         = <US-ASCII SP, space (32)>
+	// HT         = <US-ASCII HT, horizontal-tab (9)>
+	// <">        = <US-ASCII double-quote mark (34)>
+	// CRLF       = CR LF
+	// LWS        = [CRLF] 1*( SP | HT )
+	// TEXT       = <any OCTET except CTLs, but including LWS>
+	// separators = "(" | ")" | "<" | ">" | "@" | "," | ";" | ":" | "\" | <">
+	//              | "/" | "[" | "]" | "?" | "=" | "{" | "}" | SP | HT
+	// token      = 1*<any CHAR except CTLs or separators>
+	// qdtext     = <any TEXT except <">>
+
+	for c := 0; c < 256; c++ {
+		var t octetType
+		isCtl := c <= 31 || c == 127
+		isChar := 0 <= c && c <= 127
+		isSeparator := strings.IndexRune(" \t\"(),/:;<=>?@[]\\{}", rune(c)) >= 0
+		if strings.IndexRune(" \t\r\n", rune(c)) >= 0 {
+			t |= isSpace
+		}
+		if isChar && !isCtl && !isSeparator {
+			t |= isToken
+		}
+		octetTypes[c] = t
 	}
 }
 
@@ -456,5 +720,20 @@ func File(path string, contentType ...string) Response {
 		code:   status.OK,
 		header: header,
 		data:   data,
+	}
+}
+
+type fileResponse struct {
+	code   int
+	header string
+	data   []byte
+}
+
+func (f fileResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	rw.Header().Set(header.ContentType, f.header)
+	rw.WriteHeader(f.code)
+	_, err := rw.Write(f.data)
+	if err != nil {
+		log.Printf("fileResponse: ServeHttp write failed: %v", err)
 	}
 }
