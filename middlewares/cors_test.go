@@ -19,7 +19,7 @@ func TestCorsMiddleware(t *testing.T) {
 		return there.Status(status.OK)
 	})
 
-	request := httptest.NewRequest(there.MethodGet, "/", nil)
+	request := httptest.NewRequest(string(there.MethodGet), "/", nil)
 	recorder := httptest.NewRecorder()
 
 	router.ServeHTTP(recorder, request)
@@ -27,7 +27,7 @@ func TestCorsMiddleware(t *testing.T) {
 	result := recorder.Result()
 	checkHeaders(t, result)
 
-	request = httptest.NewRequest(there.MethodOptions, "/", nil)
+	request = httptest.NewRequest(string(there.MethodOptions), "/", nil)
 	recorder = httptest.NewRecorder()
 
 	router.ServeHTTP(recorder, request)
