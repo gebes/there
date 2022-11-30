@@ -20,7 +20,7 @@ const (
 	methods
 )
 
-func methodToInt(method Method) method {
+func methodToInt(method string) method {
 	switch method {
 	case MethodHead:
 		return methodHead
@@ -43,7 +43,7 @@ func methodToInt(method Method) method {
 	}
 }
 
-func methodToString(method method) Method {
+func methodToString(method method) string {
 	switch method {
 	case methodHead:
 		return MethodHead

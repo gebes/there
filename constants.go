@@ -6,24 +6,21 @@ import (
 	"strings"
 )
 
-type Method string
-
 const (
-	MethodGet     Method = "GET"
-	MethodHead    Method = "HEAD"
-	MethodPost    Method = "POST"
-	MethodPut     Method = "PUT"
-	MethodPatch   Method = "PATCH" // RFC 5789
-	MethodDelete  Method = "DELETE"
-	MethodConnect Method = "CONNECT"
-	MethodOptions Method = "OPTIONS"
-	MethodTrace   Method = "TRACE"
+	MethodGet     = "GET"
+	MethodHead    = "HEAD"
+	MethodPost    = "POST"
+	MethodPut     = "PUT"
+	MethodPatch   = "PATCH" // RFC 5789
+	MethodDelete  = "DELETE"
+	MethodConnect = "CONNECT"
+	MethodOptions = "OPTIONS"
+	MethodTrace   = "TRACE"
 )
 
 var (
-	AllMethods        = []Method{MethodGet, MethodHead, MethodPost, MethodPut, MethodPatch, MethodDelete, MethodConnect, MethodOptions, MethodTrace}
-	AllMethodsStrings = []string{string(MethodGet), string(MethodHead), string(MethodPost), string(MethodPut), string(MethodPatch), string(MethodDelete), string(MethodConnect), string(MethodOptions), string(MethodTrace)}
-	AllMethodsJoined  = strings.Join(AllMethodsStrings, ",")
+	AllMethods       = []string{MethodGet, MethodHead, MethodPost, MethodPut, MethodPatch, MethodDelete, MethodConnect, MethodOptions, MethodTrace}
+	AllMethodsJoined = strings.Join(AllMethods, ",")
 )
 
 const (
@@ -37,6 +34,7 @@ const (
 	ContentTypeApplicationXhtmlPlusXml                   = "application/xhtml+xml"
 	ContentTypeApplicationXDashShockwaveDashFlash        = "application/x-shockwave-flash"
 	ContentTypeApplicationJson                           = "application/json"
+	ContentTypeApplicationMsgpack                        = "application/x-msgpack"
 	ContentTypeApplicationLdPlusJson                     = "application/ld+json"
 	ContentTypeApplicationXml                            = "application/xml"
 	ContentTypeApplicationZip                            = "application/zip"

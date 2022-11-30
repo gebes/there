@@ -16,7 +16,6 @@ func Recoverer(request there.Request, next there.Response) there.Response {
 				switch t := rvr.(type) {
 				case error:
 					there.Error(status.InternalServerError, t).ServeHTTP(w, r)
-
 				default:
 					there.Error(status.InternalServerError, errors.New(fmt.Sprint(t))).ServeHTTP(w, r)
 				}

@@ -6,7 +6,7 @@ import (
 
 func (router *Router) ServeHTTP(rw http.ResponseWriter, request *http.Request) {
 	httpRequest := NewHttpRequest(rw, request)
-	method := methodToInt(Method(request.Method))
+	method := methodToInt(request.Method)
 
 	node, params := router.matcher.findNode(request.URL.Path)
 	*httpRequest.RouteParams = params

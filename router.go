@@ -28,10 +28,15 @@ func NewRouter() *Router {
 		Server:            &http.Server{},
 		Configuration: &RouterConfiguration{
 			RouteNotFoundHandler: func(request Request) Response {
-				return Json(status.NotFound, map[string]string{
-					"error":  "could not find specified path",
-					"path":   request.Request.URL.Path,
-					"method": request.Method,
+				type Error struct {
+					Error  string `json:"error,omitempty" xml:"Description"`
+					Path   string `json:"path,omitempty"`
+					Method string `json:"method,omitempty"`
+				}
+				return Auto(status.NotFound, Error{
+					Error:  "could not find specified path",
+					Path:   request.Request.URL.Path,
+					Method: request.Method,
 				})
 			},
 		},

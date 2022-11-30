@@ -26,7 +26,7 @@ type CorsConfiguration struct {
 	AccessControlAllowHeaders string
 }
 
-func AllowAllConfiguration() CorsConfiguration {
+func CorsAllowAllConfiguration() CorsConfiguration {
 	return CorsConfiguration{
 		AccessControlAllowOrigin:  "*",
 		AccessControlAllowMethods: there.AllMethodsJoined,

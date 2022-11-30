@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"github.com/Gebes/there/v2/header"
 	"github.com/Gebes/there/v2/status"
 	"io"
@@ -142,9 +141,9 @@ func CreateRouter() *Router {
 	return router
 }
 
-func readBody(router *Router, t *testing.T, method Method, route string, body io.Reader) []byte {
+func readBody(router *Router, t *testing.T, method, route string, body io.Reader) []byte {
 
-	request := httptest.NewRequest(string(method), route, body)
+	request := httptest.NewRequest(method, route, body)
 	recorder := httptest.NewRecorder()
 
 	router.ServeHTTP(recorder, request)
@@ -159,7 +158,7 @@ func readBody(router *Router, t *testing.T, method Method, route string, body io
 	return data
 }
 
-func readAndUnmarshal(router *Router, t *testing.T, method Method, route string, body io.Reader, unmarshal func(data []byte, v any) error, res any) {
+func readAndUnmarshal(router *Router, t *testing.T, method, route string, body io.Reader, unmarshal func(data []byte, v any) error, res any) {
 	data := readBody(router, t, method, route, body)
 	err := unmarshal(data, res)
 
@@ -169,17 +168,17 @@ func readAndUnmarshal(router *Router, t *testing.T, method Method, route string,
 
 }
 
-func readJsonBody(router *Router, t *testing.T, method Method, route string, body io.Reader, res any) {
+func readJsonBody(router *Router, t *testing.T, method, route string, body io.Reader, res any) {
 	readAndUnmarshal(router, t, method, route, body, json.Unmarshal, res)
 }
-func readXmlBody(router *Router, t *testing.T, method Method, route string, body io.Reader, res any) {
+func readXmlBody(router *Router, t *testing.T, method, route string, body io.Reader, res any) {
 	readAndUnmarshal(router, t, method, route, body, xml.Unmarshal, res)
 }
 
 func TestJson(t *testing.T) {
 	router := CreateRouter()
 
-	methods := []Method{MethodGet, MethodPost, MethodPut, MethodDelete}
+	methods := []string{MethodGet, MethodPost, MethodPut, MethodDelete}
 
 	for _, method := range methods {
 		var res map[string]any
@@ -192,7 +191,7 @@ func TestJson(t *testing.T) {
 
 }
 
-func testSampleUserRoutes(t *testing.T, route string, handler func(router *Router, t *testing.T, method Method, route string, body io.Reader, res any), res, expected any) {
+func testSampleUserRoutes(t *testing.T, route string, handler func(router *Router, t *testing.T, method, route string, body io.Reader, res any), res, expected any) {
 	router := CreateRouter()
 	handler(router, t, MethodGet, "/data/"+route, nil, res)
 
@@ -355,7 +354,7 @@ func TestEmptyResponse(t *testing.T) {
 func TestRedirectResponse(t *testing.T) {
 	router := CreateRouter()
 
-	request := httptest.NewRequest(string(MethodGet), "/data/redirect", nil)
+	request := httptest.NewRequest(MethodGet, "/data/redirect", nil)
 	recorder := httptest.NewRecorder()
 
 	router.ServeHTTP(recorder, request)
@@ -367,9 +366,9 @@ func TestRedirectResponse(t *testing.T) {
 
 }
 
-func readStringBody(router *Router, t *testing.T, method Method, route string, body io.Reader) string {
+func readStringBody(router *Router, t *testing.T, method, route string, body io.Reader) string {
 
-	request := httptest.NewRequest(string(method), route, body)
+	request := httptest.NewRequest(method, route, body)
 	recorder := httptest.NewRecorder()
 
 	router.ServeHTTP(recorder, request)
@@ -467,7 +466,7 @@ func TestContextMiddleware1(t *testing.T) {
 
 	router := createRouter()
 
-	request := httptest.NewRequest(string(MethodGet), "/user", nil)
+	request := httptest.NewRequest(MethodGet, "/user", nil)
 	request.Header.Set("Authorization", "1")
 	recorder := httptest.NewRecorder()
 
@@ -491,7 +490,7 @@ func TestContextMiddleware2(t *testing.T) {
 
 	router := createRouter()
 
-	request := httptest.NewRequest(string(MethodGet), "/user/test2", nil)
+	request := httptest.NewRequest(MethodGet, "/user/test2", nil)
 	request.Header.Set("Authorization", "1")
 	recorder := httptest.NewRecorder()
 
@@ -752,7 +751,6 @@ func TestRouteBuilder(t *testing.T) {
 			Get("/user/:name/create", handler) // cant name parameter :name here, because :id was previously defined
 
 		err := router.HasError()
-		fmt.Println(err)
 		if err == nil {
 			t.Errorf("did not collect any error")
 		}

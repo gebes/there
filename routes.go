@@ -49,7 +49,7 @@ type Route struct {
 	methods []method
 }
 
-func (group *RouteGroup) Handle(path string, endpoint Endpoint, methodsString ...Method) *RouteRouteGroupBuilder {
+func (group *RouteGroup) Handle(path string, endpoint Endpoint, methodsString ...string) *RouteRouteGroupBuilder {
 	var methods []method
 	for _, m := range methodsString {
 		methods = append(methods, methodToInt(m))

@@ -14,7 +14,7 @@ import (
 func TestCorsMiddleware(t *testing.T) {
 
 	router := there.NewRouter()
-	router.Use(Cors(AllowAllConfiguration()))
+	router.Use(Cors(CorsAllowAllConfiguration()))
 	router.Get("/", func(request there.Request) there.Response {
 		return there.Status(status.OK)
 	})
