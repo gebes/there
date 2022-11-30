@@ -27,10 +27,7 @@
     <img src="https://img.shields.io/github/license/Gebes/there.svg" alt="License">
 </a>
 <a href="https://GitHub.com/Gebes/there/releases/">
-    <img src="https://img.shields.io/github/release/Gebes/there" alt="Latest releace">
-</a>
-<a href="https://gocover.io/github.com/Gebes/there">
-    <img src="https://gocover.io/_badge/github.com/Gebes/there" alt="Latest releace">
+    <img src="https://img.shields.io/github/release/Gebes/there" alt="Latest release">
 </a>
 <a href="https://www.codefactor.io/repository/github/Gebes/there">
     <img src="https://www.codefactor.io/repository/github/Gebes/there/badge" alt="Latest releace">
@@ -44,6 +41,7 @@
     <img src="https://img.shields.io/badge/Maintainer-Gebes-blue" alt="Maintainer">
 </a>
 </p>
+
 
 
 
