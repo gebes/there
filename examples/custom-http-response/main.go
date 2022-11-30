@@ -10,7 +10,7 @@ import (
 )
 
 //Msgpack takes a StatusCode and data which gets marshaled to Msgpack
-func Msgpack(code int, data interface{}) there.Response {
+func Msgpack(code int, data any) there.Response {
    msgpackData, err := msgpack.Marshal(data) // marshal the data
    if err != nil {
       panic(err) // panic if the data was invalid. can be caught by Recoverer
@@ -33,7 +33,7 @@ func main() {
 }
 
 func Get(request there.Request) there.Response {
-   return Msgpack(there.StatusOK, map[string]string{ // now use the created response
+   return Msgpack(status.OK, map[string]string{ // now use the created response
       "Hello": "World",
       "How":   "are you?",
    })

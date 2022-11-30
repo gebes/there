@@ -1,9 +1,12 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"github.com/Gebes/there/v2"
+	"github.com/Gebes/there/v2/status"
 	"log"
+
+	"github.com/Gebes/there/v2"
 )
 
 type (
@@ -32,7 +35,7 @@ func main() {
 }
 
 func GetPosts(request there.Request) there.Response {
-	return there.Json(there.StatusOK, posts)
+	return there.Json(status.OK, posts)
 }
 
 func GetPostById(request there.Request) there.Response {
@@ -40,26 +43,27 @@ func GetPostById(request there.Request) there.Response {
 
 	post := postById(id)
 	if post == nil {
-		return there.Error(there.StatusNotFound, "could not find post")
+		return there.Error(status.NotFound, errors.New("could not find post"))
 	}
 
-	return there.Json(there.StatusOK, post)
+	return there.Json(status.OK, post)
 }
 
 func CreatePost(request there.Request) there.Response {
 	var body Post
 	err := request.Body.BindJson(&body) // Decode body
 	if err != nil {                     // If body was not valid json, return bad request error
-		return there.Error(there.StatusBadRequest, fmt.Errorf("could not parse body: %w", err))
+		return there.Error(status.BadRequest, fmt.Errorf("could not parse body: %w", err))
 	}
 
 	post := postById(body.Id)
 	if post != nil { // if the post already exists, return conflict error
-		return there.Error(there.StatusConflict, "post with this ID already exists")
+		return there.Error(status.Conflict, errors.New("post with this ID already exists"))
 	}
 
-	posts = append(posts, body)                  // create post
-	return there.Json(there.StatusCreated, body) // return created post as json
+	posts = append(posts, body) // create post
+
+	return there.Json(status.Created, body) // return created post as json
 }
 
 func postById(id string) *Post {
@@ -71,4 +75,12 @@ func postById(id string) *Post {
 		}
 	}
 	return post
+}
+
+func ExampleGet(request there.Request) there.Response {
+	user := map[string]string{
+		"firstname": "John",
+		"surname":   "Smith",
+	}
+	return there.Json(status.OK, user)
 }
