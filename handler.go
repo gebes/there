@@ -5,24 +5,19 @@ import (
 )
 
 func (router *Router) ServeHTTP(rw http.ResponseWriter, request *http.Request) {
-
 	httpRequest := NewHttpRequest(rw, request)
-	var middlewares = make([]Middleware, 0)
-	middlewares = append(middlewares, router.globalMiddlewares...)
+	method := methodToInt(Method(request.Method))
 
-	var endpoint Endpoint = nil
+	node, params := router.matcher.findNode(request.URL.Path)
+	*httpRequest.RouteParams = params
 
-	for _, current := range router.routes {
-		routeParams, ok := current.Path.Parse(request.URL.Path)
-		if ok && CheckArrayContains(current.Methods, request.Method) {
-			endpoint = current.Endpoint
-			middlewares = append(middlewares, current.Middlewares...)
-			routeParamReader := RouteParamReader(routeParams)
-			httpRequest.RouteParams = &routeParamReader
-			break
-		}
+	var endpoint Endpoint
+	var middlewares []Middleware
+
+	if node != nil {
+		endpoint = node.handler[method]
+		middlewares = node.middlewares[method]
 	}
-
 	if endpoint == nil {
 		endpoint = router.Configuration.RouteNotFoundHandler
 	}
@@ -30,8 +25,13 @@ func (router *Router) ServeHTTP(rw http.ResponseWriter, request *http.Request) {
 	var next Response = ResponseFunc(func(rw http.ResponseWriter, r *http.Request) {
 		endpoint(httpRequest).ServeHTTP(rw, r)
 	})
+
 	for i := len(middlewares) - 1; i >= 0; i-- {
 		middleware := middlewares[i]
+		next = middleware(httpRequest, next)
+	}
+	for i := len(router.globalMiddlewares) - 1; i >= 0; i-- {
+		middleware := router.globalMiddlewares[i]
 		next = middleware(httpRequest, next)
 	}
 	next.ServeHTTP(rw, request)

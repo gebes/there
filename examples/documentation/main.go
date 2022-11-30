@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Gebes/there/v2"
+	"github.com/Gebes/there/v2/status"
 )
 
 func main() {
@@ -29,7 +30,7 @@ func ExampleJsonGet(request there.Request) there.Response {
 		"firstname": "John",
 		"surname":   "Smith",
 	}
-	return there.Json(there.StatusOK, user)
+	return there.Json(status.OK, user)
 }
 
 func ExampleJsonErrorGet(request there.Request) there.Response {
@@ -37,9 +38,9 @@ func ExampleJsonErrorGet(request there.Request) there.Response {
 		"firstname": "John",
 		"surname":   "Smith",
 	}
-	resp, err := there.JsonError(there.StatusOK, user)
+	resp, err := there.JsonError(status.OK, user)
 	if err != nil {
-		return there.Error(there.StatusInternalServerError, fmt.Errorf("something went wrong: %v", err))
+		return there.Error(status.InternalServerError, fmt.Errorf("something went wrong: %v", err))
 	}
 	return resp
 }
@@ -51,39 +52,38 @@ type User struct {
 
 func ExampleXmlErrorGet(request there.Request) there.Response {
 	user := User{"John", "Smith"}
-	resp, err := there.XmlError(there.StatusOK, user)
+	resp, err := there.XmlError(status.OK, user)
 	if err != nil {
-		return there.Error(there.StatusInternalServerError, fmt.Errorf("something went wrong: %v", err))
+		return there.Error(status.InternalServerError, fmt.Errorf("something went wrong: %v", err))
 	}
 	return resp
 }
 
 func ExampleXmlGet(request there.Request) there.Response {
 	user := User{"John", "Smith"}
-	return there.Xml(there.StatusOK, user)
+	return there.Xml(status.OK, user)
 }
 
 func ExampleErrorGet(request there.Request) there.Response {
 	if 1 != 2 {
-		return there.Error(there.StatusInternalServerError, errors.New("something went wrong"))
+		return there.Error(status.InternalServerError, errors.New("something went wrong"))
 	}
-	return there.Status(there.StatusOK)
+	return there.Status(status.OK)
 }
 
 func ExampleMessageGet(request there.Request) there.Response {
-	return there.Message(there.StatusOK, "Hello there")
+	return there.Message(status.OK, "Hello there")
 }
 
 func ExampleStatusGet(request there.Request) there.Response {
-	return there.Status(there.StatusOK)
+	return there.Status(status.OK)
 }
 
 func ExampleStringGet(request there.Request) there.Response {
-	return there.String(there.StatusOK, "Hello there")
+	return there.String(status.OK, "Hello there")
 }
-
 
 func ExampleBytesGet(request there.Request) there.Response {
 	data := []byte("Hello there")
-	return there.Bytes(there.StatusOK, data)
+	return there.Bytes(status.OK, data)
 }

@@ -3,6 +3,7 @@ package there
 import (
 	"errors"
 	"fmt"
+	"github.com/Gebes/there/v2/status"
 	"net/http"
 )
 
@@ -17,18 +18,26 @@ type Router struct {
 
 	//routes is a list of Routes which checks for duplicate entries
 	//on insert.
-	routes routeManager
+	*matcher
 }
 
 func NewRouter() *Router {
 	r := &Router{
 		globalMiddlewares: make([]Middleware, 0),
-		routes:            make([]*Route, 0),
+		RouteGroup:        &RouteGroup{prefix: "/"},
 		Server:            &http.Server{},
 		Configuration: &RouterConfiguration{
 			RouteNotFoundHandler: func(request Request) Response {
-				return Error(StatusNotFound, errors.New("could not find route "+request.Method+" "+request.Request.URL.Path))
+				return Json(status.NotFound, map[string]string{
+					"error":  "could not find specified path",
+					"path":   request.Request.URL.Path,
+					"method": request.Method,
+				})
 			},
+		},
+		matcher: &matcher{
+			static: map[string]*node{},
+			root:   &node{},
 		},
 	}
 	r.Server.Handler = r
@@ -60,13 +69,13 @@ func (router *Router) ListenToTLS(port Port, certFile, keyFile string) error {
 	return router.Server.ListenAndServeTLS(certFile, keyFile)
 }
 
-//Use registers a Middleware
+// Use registers a Middleware
 func (router *Router) Use(middleware Middleware) *Router {
 	router.globalMiddlewares = append(router.globalMiddlewares, middleware)
 	return router
 }
 
-//RouterConfiguration is a straightforward place to override default behavior of the router
+// RouterConfiguration is a straightforward place to override default behavior of the router
 type RouterConfiguration struct {
 	//RouteNotFoundHandler gets invoked, when the specified URL and method have no handlers
 	RouteNotFoundHandler Endpoint

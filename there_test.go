@@ -5,9 +5,12 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
+	"fmt"
+	"github.com/Gebes/there/v2/header"
+	"github.com/Gebes/there/v2/status"
 	"io"
-	"io/ioutil"
 	"log"
+	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"strconv"
@@ -15,31 +18,35 @@ import (
 	"time"
 )
 
-// constants.go tests
+// Empty handler
+func handler(request Request) Response {
+	return Status(status.OK)
+}
 
-func TestStatusText(t *testing.T) {
-	type args struct {
-		code int
+// Empty middleware
+func middleware(request Request, next Response) Response {
+	return next
+}
+
+func assertBodyResponse(t *testing.T, r http.Handler, method, route string, expected string) {
+	request := httptest.NewRequest(method, route, nil)
+	recorder := httptest.NewRecorder()
+	r.ServeHTTP(recorder, request)
+	result := recorder.Result()
+	re, err := io.ReadAll(result.Body)
+	if err != nil {
+		t.Fatalf("could not read body: %v", err)
 	}
-	tests := []struct {
-		name string
-		args args
-		want string
-	}{
-		{
-			name: "200 = OK",
-			args: args{code: StatusOK},
-			want: "OK",
-		},
+	err = result.Body.Close()
+	if err != nil {
+		t.Fatalf("could not close body: %v", err)
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := StatusText(tt.args.code); got != tt.want {
-				t.Errorf("StatusText() = %v, want %v", got, tt.want)
-			}
-		})
+	if string(re) != expected {
+		t.Fatalf("invalid response. actual: %v, expected: %v", string(re), expected)
 	}
 }
+
+// constants.go tests
 
 // Integration tests
 
@@ -47,7 +54,7 @@ func TestWriteError(t *testing.T) {
 	router := NewRouter()
 	router.Get("/", func(request Request) Response {
 		// No body with 1xx status
-		return Json(StatusContinue, "not writeable")
+		return Json(status.Continue, "not writeable")
 	})
 	var data any
 	readJsonBody(router, t, MethodGet, "/", nil, &data)
@@ -74,11 +81,11 @@ type simpleUser struct {
 func CreateRouter() *Router {
 	// Sample Data
 	json := func(request Request) Response {
-		return Json(StatusOK, sampleData)
+		return Json(status.OK, sampleData)
 	}
 	// Samle User
 	xml := func(request Request) Response {
-		return Xml(StatusOK, sampleUser)
+		return Xml(status.OK, sampleUser)
 	}
 
 	router := NewRouter()
@@ -88,24 +95,24 @@ func CreateRouter() *Router {
 	data.Handle("/json", json, MethodGet, MethodPost, MethodPut, MethodDelete)
 	data.Get("/xml", xml)
 	data.Get("/empty", func(request Request) Response {
-		return Status(StatusAccepted)
+		return Status(status.Accepted)
 	})
 	data.Get("/message", func(request Request) Response {
-		return Message(StatusOK, "Hello there")
+		return Message(status.OK, "Hello there")
 	})
 	data.Get("/string", func(request Request) Response {
-		return String(StatusOK, "Hello there")
+		return String(status.OK, "Hello there")
 	})
 	data.Get("/redirect", func(request Request) Response {
-		return Redirect(StatusMovedPermanently, "https://google.com")
+		return Redirect(status.MovedPermanently, "https://google.com")
 	})
 	data.Get("/html", func(request Request) Response {
-		return Html(StatusOK, "./test/index.html", map[string]string{
+		return Html(status.OK, "./test/index.html", map[string]string{
 			"user": "Hannes",
 		})
 	})
 	data.Get("/bytes", func(request Request) Response {
-		return Bytes(StatusOK, []byte{'a', 'b'})
+		return Bytes(status.OK, []byte{'a', 'b'})
 	})
 
 	data.Post("/return/json", func(request Request) Response {
@@ -114,7 +121,7 @@ func CreateRouter() *Router {
 		if err != nil {
 			log.Fatalln("Could not bind", err)
 		}
-		return String(StatusOK, user.Name)
+		return String(status.OK, user.Name)
 	})
 	data.Post("/return/xml", func(request Request) Response {
 		var user simpleUser
@@ -122,22 +129,22 @@ func CreateRouter() *Router {
 		if err != nil {
 			log.Fatalln("Could not bind", err)
 		}
-		return String(StatusOK, user.Name)
+		return String(status.OK, user.Name)
 	})
 	data.Post("/return/string", func(request Request) Response {
 		body, err := request.Body.ToString()
 		if err != nil {
 			log.Fatalln("Could not bind", err)
 		}
-		return String(StatusOK, body)
+		return String(status.OK, body)
 	})
 
 	return router
 }
 
-func readBody(router *Router, t *testing.T, method, route string, body io.Reader) []byte {
+func readBody(router *Router, t *testing.T, method Method, route string, body io.Reader) []byte {
 
-	request := httptest.NewRequest(method, route, body)
+	request := httptest.NewRequest(string(method), route, body)
 	recorder := httptest.NewRecorder()
 
 	router.ServeHTTP(recorder, request)
@@ -145,14 +152,14 @@ func readBody(router *Router, t *testing.T, method, route string, body io.Reader
 	result := recorder.Result()
 
 	defer result.Body.Close()
-	data, err := ioutil.ReadAll(result.Body)
+	data, err := io.ReadAll(result.Body)
 	if err != nil {
 		t.Fatalf("could not read body %v", err)
 	}
 	return data
 }
 
-func readAndUnmarshal(router *Router, t *testing.T, method, route string, body io.Reader, unmarshal func(data []byte, v any) error, res any) {
+func readAndUnmarshal(router *Router, t *testing.T, method Method, route string, body io.Reader, unmarshal func(data []byte, v any) error, res any) {
 	data := readBody(router, t, method, route, body)
 	err := unmarshal(data, res)
 
@@ -162,17 +169,17 @@ func readAndUnmarshal(router *Router, t *testing.T, method, route string, body i
 
 }
 
-func readJsonBody(router *Router, t *testing.T, method, route string, body io.Reader, res any) {
+func readJsonBody(router *Router, t *testing.T, method Method, route string, body io.Reader, res any) {
 	readAndUnmarshal(router, t, method, route, body, json.Unmarshal, res)
 }
-func readXmlBody(router *Router, t *testing.T, method, route string, body io.Reader, res any) {
+func readXmlBody(router *Router, t *testing.T, method Method, route string, body io.Reader, res any) {
 	readAndUnmarshal(router, t, method, route, body, xml.Unmarshal, res)
 }
 
 func TestJson(t *testing.T) {
 	router := CreateRouter()
 
-	methods := []string{MethodGet, MethodPost, MethodPut, MethodDelete}
+	methods := []Method{MethodGet, MethodPost, MethodPut, MethodDelete}
 
 	for _, method := range methods {
 		var res map[string]any
@@ -185,7 +192,7 @@ func TestJson(t *testing.T) {
 
 }
 
-func testSampleUserRoutes(t *testing.T, route string, handler func(router *Router, t *testing.T, method, route string, body io.Reader, res any), res, expected any) {
+func testSampleUserRoutes(t *testing.T, route string, handler func(router *Router, t *testing.T, method Method, route string, body io.Reader, res any), res, expected any) {
 	router := CreateRouter()
 	handler(router, t, MethodGet, "/data/"+route, nil, res)
 
@@ -247,10 +254,10 @@ func TestMiddlewareErrorResponse(t *testing.T) {
 func TestGlobalMiddlewareErrorResponse(t *testing.T) {
 	router := NewRouter().
 		Get("error/data/global", func(request Request) Response {
-			return Status(StatusOK)
+			return Status(status.OK)
 		}).
 		Use(func(request Request, next Response) Response {
-			return Error(StatusInternalServerError, errors.New("errored out"))
+			return Error(status.InternalServerError, errors.New("errored out"))
 		})
 	testErrorResponse(router, t, "data/global")
 }
@@ -261,7 +268,7 @@ func TestPanicErrorResponse(t *testing.T) {
 			panic("oh no panic")
 		}).
 		Use(func(request Request, next Response) Response {
-			return Error(StatusInternalServerError, errors.New("errored out"))
+			return Error(status.InternalServerError, errors.New("errored out"))
 		})
 	testErrorResponse(router, t, "data/panic")
 }
@@ -296,10 +303,10 @@ func TestBodyToStringError(t *testing.T) {
 			}
 
 			if tests != did {
-				return Error(StatusInternalServerError, errors.New("not every bind threw an error: "+strconv.Itoa(did)+"/"+strconv.Itoa(tests)))
+				return Error(status.InternalServerError, errors.New("not every bind threw an error: "+strconv.Itoa(did)+"/"+strconv.Itoa(tests)))
 			}
 
-			return Status(StatusOK)
+			return Status(status.OK)
 		})
 
 	res := readStringBody(router, t, MethodPost, "/test", errReader(0))
@@ -348,7 +355,7 @@ func TestEmptyResponse(t *testing.T) {
 func TestRedirectResponse(t *testing.T) {
 	router := CreateRouter()
 
-	request := httptest.NewRequest(MethodGet, "/data/redirect", nil)
+	request := httptest.NewRequest(string(MethodGet), "/data/redirect", nil)
 	recorder := httptest.NewRecorder()
 
 	router.ServeHTTP(recorder, request)
@@ -360,9 +367,9 @@ func TestRedirectResponse(t *testing.T) {
 
 }
 
-func readStringBody(router *Router, t *testing.T, method, route string, body io.Reader) string {
+func readStringBody(router *Router, t *testing.T, method Method, route string, body io.Reader) string {
 
-	request := httptest.NewRequest(method, route, body)
+	request := httptest.NewRequest(string(method), route, body)
 	recorder := httptest.NewRecorder()
 
 	router.ServeHTTP(recorder, request)
@@ -370,7 +377,7 @@ func readStringBody(router *Router, t *testing.T, method, route string, body io.
 	result := recorder.Result()
 
 	defer result.Body.Close()
-	data, err := ioutil.ReadAll(result.Body)
+	data, err := io.ReadAll(result.Body)
 	if err != nil {
 		t.Fatalf("could not read body %v", err)
 	}
@@ -420,11 +427,11 @@ func createRouter() *Router {
 	router := NewRouter()
 	router.
 		Use(func(request Request, next Response) Response {
-			authorization := request.Headers.GetDefault(RequestHeaderAuthorization, "")
+			authorization := request.Headers.GetDefault(header.RequestAuthorization, "")
 
 			user, ok := users[authorization]
 			if !ok {
-				return Error(StatusUnauthorized, errors.New("not authorized"))
+				return Error(status.Unauthorized, errors.New("not authorized"))
 			}
 
 			request.WithContext(context.WithValue(request.Context(), "user", user))
@@ -435,10 +442,10 @@ func createRouter() *Router {
 			user, ok := request.Context().Value("user").(simpleUser)
 
 			if !ok {
-				return Error(StatusUnprocessableEntity, errors.New("could not get user from context"))
+				return Error(status.UnprocessableEntity, errors.New("could not get user from context"))
 			}
 
-			return Json(StatusOK, user)
+			return Json(status.OK, user)
 		}).With(func(request Request, next Response) Response {
 
 		request.WithContext(context.WithValue(request.Context(), "world", "hello"))
@@ -447,10 +454,10 @@ func createRouter() *Router {
 	})
 
 	router.Get("/user/test2", func(request Request) Response {
-		return Status(StatusOK)
+		return Status(status.OK)
 	}).With(func(request Request, next Response) Response {
 		request.WithContext(context.WithValue(request.Context(), "hello", "world"))
-		return String(StatusBadRequest, "Error")
+		return String(status.BadRequest, "Error")
 	})
 
 	return router
@@ -460,7 +467,7 @@ func TestContextMiddleware1(t *testing.T) {
 
 	router := createRouter()
 
-	request := httptest.NewRequest(MethodGet, "/user", nil)
+	request := httptest.NewRequest(string(MethodGet), "/user", nil)
 	request.Header.Set("Authorization", "1")
 	recorder := httptest.NewRecorder()
 
@@ -469,7 +476,7 @@ func TestContextMiddleware1(t *testing.T) {
 	result := recorder.Result()
 
 	defer result.Body.Close()
-	data, err := ioutil.ReadAll(result.Body)
+	data, err := io.ReadAll(result.Body)
 	if err != nil {
 		t.Fatalf("could not read body %v", err)
 	}
@@ -484,7 +491,7 @@ func TestContextMiddleware2(t *testing.T) {
 
 	router := createRouter()
 
-	request := httptest.NewRequest(MethodGet, "/user/test2", nil)
+	request := httptest.NewRequest(string(MethodGet), "/user/test2", nil)
 	request.Header.Set("Authorization", "1")
 	recorder := httptest.NewRecorder()
 
@@ -493,7 +500,7 @@ func TestContextMiddleware2(t *testing.T) {
 	result := recorder.Result()
 
 	defer result.Body.Close()
-	data, err := ioutil.ReadAll(result.Body)
+	data, err := io.ReadAll(result.Body)
 	if err != nil {
 		t.Fatalf("could not read body %v", err)
 	}
@@ -504,493 +511,8 @@ func TestContextMiddleware2(t *testing.T) {
 	}
 }
 
-// Tests for path.go
-
-func TestConstructPath(t *testing.T) {
-	type args struct {
-		pathString string
-		ignoreCase bool
-	}
-	tests := []struct {
-		name string
-		args args
-		want Path
-	}{
-		{
-			name: "/home",
-			args: args{
-				pathString: "/home",
-				ignoreCase: false,
-			},
-			want: Path{
-				parts: []pathPart{
-					{value: "home", variable: false},
-				},
-				ignoreCase: false,
-			},
-		},
-		{
-			name: "/user/:id",
-			args: args{
-				pathString: "/user/:id",
-				ignoreCase: false,
-			},
-			want: Path{
-				parts: []pathPart{
-					{value: "user", variable: false},
-					{value: "id", variable: true},
-				},
-				ignoreCase: false,
-			},
-		},
-		{
-			name: "/home",
-			args: args{
-				pathString: "/home",
-				ignoreCase: true,
-			},
-			want: Path{
-				parts: []pathPart{
-					{value: "home", variable: false},
-				},
-				ignoreCase: true,
-			},
-		},
-		{
-			name: "/user/:id",
-			args: args{
-				pathString: "/user/:id",
-				ignoreCase: true,
-			},
-			want: Path{
-				parts: []pathPart{
-					{value: "user", variable: false},
-					{value: "id", variable: true},
-				},
-				ignoreCase: true,
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := ConstructPath(tt.args.pathString, tt.args.ignoreCase); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ConstructPath() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestConstructPathPanic(t *testing.T) {
-	defer func() { recover() }()
-
-	//should panic because id is defined twice
-	ConstructPath(":id/:id", false)
-	ConstructPath(":id/:Id", false)
-
-	t.Errorf("did not panic")
-}
-
-func TestPath_Equals(t *testing.T) {
-	type args struct {
-		toCompare Path
-	}
-	tests := []struct {
-		name string
-		path Path
-		args args
-		want bool
-	}{
-		{
-			name: "/",
-			path: ConstructPath("/", true),
-			args: args{ConstructPath("/", true)},
-			want: true,
-		},
-		{
-			name: "/",
-			path: ConstructPath("/", true),
-			args: args{ConstructPath("/", false)},
-			want: false,
-		},
-		{
-			name: "/",
-			path: ConstructPath("/", false),
-			args: args{ConstructPath("/", true)},
-			want: false,
-		},
-		{
-			name: "/",
-			path: ConstructPath("/", false),
-			args: args{ConstructPath("/", false)},
-			want: true,
-		},
-
-		{
-			name: "/home/:id == /home/:uid",
-			path: ConstructPath("/home/:id", false),
-			args: args{ConstructPath("/home/:uid", false)},
-			want: true,
-		},
-		{
-			name: "/home/:id != /Home/:uid",
-			path: ConstructPath("/home/:id", false),
-			args: args{ConstructPath("/Home/:uid", false)},
-			want: false,
-		},
-
-		{
-			name: "/home/:id != /home/about",
-			path: ConstructPath("/home/:id", false),
-			args: args{ConstructPath("/home/about", false)},
-			want: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.path.Equals(tt.args.toCompare); got != tt.want {
-				t.Errorf("Equals() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestPath_Parse(t *testing.T) {
-
-	type args struct {
-		route string
-	}
-	tests := []struct {
-		name  string
-		path  Path
-		args  args
-		want  map[string]string
-		want1 bool
-	}{
-		{
-			name:  "/",
-			path:  ConstructPath("/", false),
-			args:  args{route: "/"},
-			want:  map[string]string{},
-			want1: true,
-		},
-		{
-			name: "/:id",
-			path: ConstructPath("/:id", false),
-			args: args{route: "/101"},
-			want: map[string]string{
-				"id": "101",
-			},
-			want1: true,
-		},
-		{
-			name: "/user/:id",
-			path: ConstructPath("/user/:id", false),
-			args: args{route: "/user/101"},
-			want: map[string]string{
-				"id": "101",
-			},
-			want1: true,
-		},
-		{
-			name: "/user/:id",
-			path: ConstructPath("/user/:id", true),
-			args: args{route: "/USER/101"},
-			want: map[string]string{
-				"id": "101",
-			},
-			want1: true,
-		},
-		{
-			name: "/user/:id",
-			path: ConstructPath("/user/:id", true),
-			args: args{route: "/USER/101"},
-			want: map[string]string{
-				"id": "101",
-			},
-			want1: true,
-		},
-		{
-			name: "/USER/:id",
-			path: ConstructPath("/USER/:id", true),
-			args: args{route: "/useR/101"},
-			want: map[string]string{
-				"id": "101",
-			},
-			want1: true,
-		},
-		{
-			name:  "/USER/:id",
-			path:  ConstructPath("/USER/:id", false),
-			args:  args{route: "/useR/101"},
-			want:  nil,
-			want1: false,
-		},
-		{
-			name:  "/user/:id",
-			path:  ConstructPath("/user/:id", false),
-			args:  args{route: "/"},
-			want:  nil,
-			want1: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, got1 := tt.path.Parse(tt.args.route)
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Parse() got = %v, want %v", got, tt.want)
-			}
-			if got1 != tt.want1 {
-				t.Errorf("Parse() got1 = %v, want %v", got1, tt.want1)
-			}
-		})
-	}
-}
-
-func TestPath_ToString(t *testing.T) {
-	type fields struct {
-		parts      []pathPart
-		ignoreCase bool
-	}
-	type test struct {
-		name   string
-		fields fields
-		want   string
-	}
-	tests := []test{}
-
-	add := func(constructWith string, expect string) {
-		tests = append(tests, test{
-			name: "\"" + constructWith + "\" -> \"" + expect + "\"",
-			fields: fields{
-				parts:      ConstructPath(constructWith, false).parts,
-				ignoreCase: false,
-			},
-			want: expect,
-		})
-	}
-	add("", "/")
-	add("/", "/")
-	add("//////", "/")
-	add("//", "/")
-	add("/home", "/home")
-	add("home/", "/home")
-	add("/home/", "/home")
-	add("home/user", "/home/user")
-	add("/home/user", "/home/user")
-	add("/home/user/", "/home/user")
-	add("//home/user//", "/home/user")
-	add("///home//user///", "/home/user")
-	add("/user/:id", "/user/:id")
-	add("/user/:id/", "/user/:id")
-	add("user/:id/", "/user/:id")
-	add("user/:id", "/user/:id")
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			p := Path{
-				parts:      tt.fields.parts,
-				ignoreCase: tt.fields.ignoreCase,
-			}
-			if got := p.ToString(); got != tt.want {
-				t.Errorf("ToString() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_splitUrl(t *testing.T) {
-	type args struct {
-		route string
-	}
-	tests := []struct {
-		name string
-		args args
-		want []string
-	}{
-		{
-			name: "/url",
-			args: args{"/url"},
-			want: []string{"url"},
-		},
-		{
-			name: "/",
-			args: args{"/"},
-			want: []string{},
-		},
-		{
-			name: "/url///home",
-			args: args{"/url///home"},
-			want: []string{"url", "home"},
-		},
-		{
-			name: "url///home",
-			args: args{"url///home"},
-			want: []string{"url", "home"},
-		},
-		{
-			name: "url///home/",
-			args: args{"url///home/"},
-			want: []string{"url", "home"},
-		},
-		{
-			name: "url/home",
-			args: args{"url/home"},
-			want: []string{"url", "home"},
-		},
-		{
-			name: "",
-			args: args{""},
-			want: []string{},
-		},
-		{
-			name: "///////",
-			args: args{"///////"},
-			want: []string{},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := splitUrl(tt.args.route); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("splitUrl() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-// Tests for request.go
-
 var (
-	exampleRouteParamReader = RouteParamReader{
-		"id":   "101",
-		"name": "Max",
-	}
-)
-
-func TestRouteParamReader_Get(t *testing.T) {
-	type args struct {
-		key string
-	}
-	tests := []struct {
-		name   string
-		reader RouteParamReader
-		args   args
-		want   string
-		want1  bool
-	}{
-		{
-			name:   "Existing Param",
-			reader: exampleRouteParamReader,
-			args:   args{key: "id"},
-			want:   "101",
-			want1:  true,
-		},
-		{
-			name:   "Existing Param",
-			reader: exampleRouteParamReader,
-			args:   args{key: "name"},
-			want:   "Max",
-			want1:  true,
-		},
-		{
-			name:   "Not Existing Param",
-			reader: exampleRouteParamReader,
-			args:   args{key: "something"},
-			want:   "",
-			want1:  false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, got1 := tt.reader.Get(tt.args.key)
-			if got != tt.want {
-				t.Errorf("Get() got = %v, want %v", got, tt.want)
-			}
-			if got1 != tt.want1 {
-				t.Errorf("Get() got1 = %v, want %v", got1, tt.want1)
-			}
-		})
-	}
-}
-
-func TestRouteParamReader_GetDefault(t *testing.T) {
-	type args struct {
-		key          string
-		defaultValue string
-	}
-	tests := []struct {
-		name   string
-		reader RouteParamReader
-		args   args
-		want   string
-	}{
-		{
-			name:   "Existing Param",
-			reader: exampleRouteParamReader,
-			args:   args{key: "id", defaultValue: "abc"},
-			want:   "101",
-		},
-		{
-			name:   "Existing Param",
-			reader: exampleRouteParamReader,
-			args:   args{key: "name", defaultValue: "abc"},
-			want:   "Max",
-		},
-		{
-			name:   "Not Existing Param",
-			reader: exampleRouteParamReader,
-			args:   args{key: "something", defaultValue: "abc"},
-			want:   "abc",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.reader.GetDefault(tt.args.key, tt.args.defaultValue); got != tt.want {
-				t.Errorf("GetDefault() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestRouteParamReader_Has(t *testing.T) {
-	type args struct {
-		key string
-	}
-	tests := []struct {
-		name   string
-		reader RouteParamReader
-		args   args
-		want   bool
-	}{
-		{
-			name:   "Existing Param",
-			reader: exampleRouteParamReader,
-			args:   args{key: "id"},
-			want:   true,
-		},
-		{
-			name:   "Existing Param",
-			reader: exampleRouteParamReader,
-			args:   args{key: "name"},
-			want:   true,
-		},
-		{
-			name:   "Not Existing Param",
-			reader: exampleRouteParamReader,
-			args:   args{key: "something"},
-			want:   false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.reader.Has(tt.args.key); got != tt.want {
-				t.Errorf("Has() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-var (
-	exampleReader = BasicReader{
+	exampleReader = MapReader{
 		"id":    []string{"100", "101"},
 		"name":  []string{},
 		"query": []string{"all"},
@@ -1003,7 +525,7 @@ func TestParamReader_Get(t *testing.T) {
 	}
 	tests := []struct {
 		name   string
-		reader BasicReader
+		reader MapReader
 		args   args
 		want   string
 		want1  bool
@@ -1057,7 +579,7 @@ func TestParamReader_GetDefault(t *testing.T) {
 	}
 	tests := []struct {
 		name   string
-		reader BasicReader
+		reader MapReader
 		args   args
 		want   string
 	}{
@@ -1101,7 +623,7 @@ func TestParamReader_GetSlice(t *testing.T) {
 	}
 	tests := []struct {
 		name   string
-		reader BasicReader
+		reader MapReader
 		args   args
 		want   []string
 		want1  bool
@@ -1154,7 +676,7 @@ func TestParamReader_Has(t *testing.T) {
 	}
 	tests := []struct {
 		name   string
-		reader BasicReader
+		reader MapReader
 		args   args
 		want   bool
 	}{
@@ -1194,17 +716,16 @@ func TestParamReader_Has(t *testing.T) {
 
 // Tests for router.go
 
-func TestPort_ToAddr(t *testing.T) {
+func TestPort(t *testing.T) {
 	tests := []struct {
 		name string
 		p    Port
 		want string
 	}{
-		{
-			name: "Port to string",
-			p:    8080,
-			want: ":8080",
-		},
+		{name: "80", p: 80, want: ":80"},
+		{name: "443", p: 443, want: ":443"},
+		{name: "3000", p: 3000, want: ":3000"},
+		{name: "8080", p: 8080, want: ":8080"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1215,723 +736,130 @@ func TestPort_ToAddr(t *testing.T) {
 	}
 }
 
-// Tests for routes.go
-
-func TestNewRouteGroup(t *testing.T) {
-	router := NewRouter()
-	if router.RouteGroup.prefix != "/" {
-		log.Fatalln("Route prefix is not /")
-	}
-
-	subGroup := router.Group("home")
-	if subGroup.prefix != "/home/" {
-		log.Fatalln("Route prefix is not /home/ but", subGroup.prefix)
-	}
-
-	handler := func(request Request) Response {
-		return Status(StatusOK)
-	}
-
-	tests := map[string]func(route string, endpoint Endpoint) *RouteRouteGroupBuilder{
-		MethodGet:     subGroup.Get,
-		MethodPost:    subGroup.Post,
-		MethodPatch:   subGroup.Patch,
-		MethodDelete:  subGroup.Delete,
-		MethodConnect: subGroup.Connect,
-		MethodHead:    subGroup.Head,
-		MethodTrace:   subGroup.Trace,
-		MethodPut:     subGroup.Put,
-		MethodOptions: subGroup.Options,
-	}
-
-	for method, methodFunc := range tests {
-		if len(subGroup.routes) != 0 {
-			log.Fatalln("Amount of routes should be 0")
+func TestRouteBuilder(t *testing.T) {
+	t.Run("two middlewares", func(t *testing.T) {
+		router := NewRouter()
+		h := router.Get("/", handler).With(middleware).With(middleware)
+		if len(h.node.middlewares[methodGet]) != 2 {
+			t.Fatalf("node did not have two middlewares")
 		}
+	})
+	t.Run("wrong parameter name", func(t *testing.T) {
+		router := NewRouter()
 
-		h := methodFunc("/", handler)
+		router.
+			Patch("/user/:id/update", handler).
+			Get("/user/:name/create", handler) // cant name parameter :name here, because :id was previously defined
 
-		if subGroup.routes[0].Methods[0] != method {
-			log.Fatalln("Method should be", method, "but is", subGroup.routes[0].Methods[0])
+		err := router.HasError()
+		fmt.Println(err)
+		if err == nil {
+			t.Errorf("did not collect any error")
 		}
-
-		if len(subGroup.routes) != 1 {
-			log.Fatalln("Amount of routes should be 1")
+	})
+	t.Run("group prefix", func(t *testing.T) {
+		router := NewRouter()
+		group := router.Group("/home")
+		if group.prefix != "/home/" {
+			t.Error("Route prefix is not /home/ but", group.prefix)
 		}
-
-		subGroup.routes.RemoveRoute(h.Route)
-
-		if len(subGroup.routes) != 0 {
-			log.Fatalln("Amount of routes should be 0")
-		}
-	}
-
+	})
 }
 
-func TestNewRouteGroup2(t *testing.T) {
-	router := NewRouter()
-	group := NewRouteGroup(router, "home")
-	if group.prefix != "/home/" {
-		log.Fatalln("Route prefix is not /home/ but", group.prefix)
+func TestMethods(t *testing.T) {
+	for _, tt := range AllMethods {
+		t.Run(string(tt), func(t *testing.T) {
+			r := NewRouter()
+			r.Handle("/user", handler, tt)
+			assertBodyResponse(t, r, string(tt), "/user", "")
+		})
 	}
 }
 
-func TestNewRouteGroup3(t *testing.T) {
+func TestStatusText(t *testing.T) {
+	statusText := map[int]string{
+		status.Continue:           "Continue",
+		status.SwitchingProtocols: "Switching Protocols",
+		status.Processing:         "Processing",
+		status.EarlyHints:         "Early Hints",
 
-	handler := func(request Request) Response {
-		return Status(StatusOK)
-	}
+		status.OK:                   "OK",
+		status.Created:              "Created",
+		status.Accepted:             "Accepted",
+		status.NonAuthoritativeInfo: "Non-Authoritative Information",
+		status.NoContent:            "No Content",
+		status.ResetContent:         "Reset Content",
+		status.PartialContent:       "Partial Content",
+		status.MultiStatus:          "Multi-Status",
+		status.AlreadyReported:      "Already Reported",
+		status.IMUsed:               "IM Used",
 
-	router := NewRouter()
+		status.MultipleChoices:   "Multiple Choices",
+		status.MovedPermanently:  "Moved Permanently",
+		status.Found:             "Found",
+		status.SeeOther:          "See Other",
+		status.NotModified:       "Not Modified",
+		status.UseProxy:          "Use Proxy",
+		status.TemporaryRedirect: "Temporary Redirect",
+		status.PermanentRedirect: "Permanent Redirect",
 
-	router.routes = nil // this should be covered and not throw any panics
+		status.BadRequest:                   "Bad Request",
+		status.Unauthorized:                 "Unauthorized",
+		status.PaymentRequired:              "Payment Required",
+		status.Forbidden:                    "Forbidden",
+		status.NotFound:                     "Not Found",
+		status.MethodNotAllowed:             "Method Not Allowed",
+		status.NotAcceptable:                "Not Acceptable",
+		status.ProxyAuthRequired:            "Proxy Authentication Required",
+		status.RequestTimeout:               "Request Timeout",
+		status.Conflict:                     "Conflict",
+		status.Gone:                         "Gone",
+		status.LengthRequired:               "Length Required",
+		status.PreconditionFailed:           "Precondition Failed",
+		status.RequestEntityTooLarge:        "Request Entity Too Large",
+		status.RequestURITooLong:            "Request URI Too Long",
+		status.UnsupportedMediaType:         "Unsupported Media Type",
+		status.RequestedRangeNotSatisfiable: "Requested Range Not Satisfiable",
+		status.ExpectationFailed:            "Expectation Failed",
+		status.Teapot:                       "I'm a teapot",
+		status.MisdirectedRequest:           "Misdirected Request",
+		status.UnprocessableEntity:          "Unprocessable Entity",
+		status.Locked:                       "Locked",
+		status.FailedDependency:             "Failed Dependency",
+		status.TooEarly:                     "Too Early",
+		status.UpgradeRequired:              "Upgrade Required",
+		status.PreconditionRequired:         "Precondition Required",
+		status.TooManyRequests:              "Too Many Requests",
+		status.RequestHeaderFieldsTooLarge:  "Request Headers Fields Too Large",
+		status.UnavailableForLegalReasons:   "Unavailable For Legal Reasons",
 
-	defer func() { recover() }()
-
-	router.
-		Get("/", handler).IgnoreCase().IgnoreCase().
-		Get("/home/", handler).
-		Get("home", handler) // duplicate route, MUST throw
-
-	t.Errorf("did not panic")
-}
-
-func TestRouteRouteGroupBuilder_AddMiddleware2(t *testing.T) {
-	handler := func(request Request) Response {
-		return Status(StatusOK)
+		status.InternalServerError:           "Internal Server Error",
+		status.NotImplemented:                "Not Implemented",
+		status.BadGateway:                    "Bad Gateway",
+		status.ServiceUnavailable:            "Service Unavailable",
+		status.GatewayTimeout:                "Gateway Timeout",
+		status.HTTPVersionNotSupported:       "HTTP Version Not Supported",
+		status.VariantAlsoNegotiates:         "Variant Also Negotiates",
+		status.InsufficientStorage:           "Insufficient Storage",
+		status.LoopDetected:                  "Loop Detected",
+		status.NotExtended:                   "Not Extended",
+		status.NetworkAuthenticationRequired: "Network Authentication Required",
 	}
-	middleware := func(request Request, next Response) Response {
-		return next
-	}
-	router := NewRouter()
-	h := router.Get("/", handler).With(middleware).With(middleware)
-	if len(h.Middlewares) != 2 {
-		log.Fatalln("container did not have two middlewares")
-	}
-}
-
-func TestRoute_OverlapsWith2(t *testing.T) {
-	routeA := &Route{
-		Endpoint:    nil,
-		Methods:     []string{MethodGet},
-		Path:        ConstructPath("/home", false),
-		Middlewares: nil,
-	}
-	routeB := &Route{
-		Endpoint:    nil,
-		Methods:     []string{MethodGet, MethodPost},
-		Path:        ConstructPath("/home", false),
-		Middlewares: nil,
-	}
-	routeC := &Route{
-		Endpoint:    nil,
-		Methods:     []string{MethodGet, MethodPost},
-		Path:        ConstructPath("/HOME", false),
-		Middlewares: nil,
-	}
-	if !routeA.OverlapsWith(*routeB) {
-		log.Fatalln("routes a and b must overlap!")
-	}
-	if routeA.OverlapsWith(*routeC) {
-		log.Fatalln("routes a and c must NOT overlap!")
-	}
-
-}
-
-func TestRouteGroup_Connect(t *testing.T) {
-	type fields struct {
-		Router *Router
-		prefix string
-	}
-	type args struct {
-		route    string
-		endpoint Endpoint
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   *RouteRouteGroupBuilder
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			group := &RouteGroup{
-				Router: tt.fields.Router,
-				prefix: tt.fields.prefix,
-			}
-			if got := group.Connect(tt.args.route, tt.args.endpoint); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Connect() = %v, want %v", got, tt.want)
+	for code, text := range statusText {
+		t.Run(strconv.Itoa(code)+" = "+text, func(t *testing.T) {
+			if got := status.Text(code); got != text {
+				t.Errorf("StatusText() = %v, want %v", got, text)
 			}
 		})
 	}
 }
 
-func TestRouteGroup_Delete(t *testing.T) {
-	type fields struct {
-		Router *Router
-		prefix string
-	}
-	type args struct {
-		route    string
-		endpoint Endpoint
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   *RouteRouteGroupBuilder
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			group := &RouteGroup{
-				Router: tt.fields.Router,
-				prefix: tt.fields.prefix,
-			}
-			if got := group.Delete(tt.args.route, tt.args.endpoint); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Delete() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestRouteGroup_Get(t *testing.T) {
-	type fields struct {
-		Router *Router
-		prefix string
-	}
-	type args struct {
-		route    string
-		endpoint Endpoint
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   *RouteRouteGroupBuilder
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			group := &RouteGroup{
-				Router: tt.fields.Router,
-				prefix: tt.fields.prefix,
-			}
-			if got := group.Get(tt.args.route, tt.args.endpoint); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Get() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestRouteGroup_Group(t *testing.T) {
-	type fields struct {
-		Router *Router
-		prefix string
-	}
-	type args struct {
-		prefix string
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   *RouteGroup
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			group := RouteGroup{
-				Router: tt.fields.Router,
-				prefix: tt.fields.prefix,
-			}
-			if got := group.Group(tt.args.prefix); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Group() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestRouteGroup_Handle(t *testing.T) {
-	type fields struct {
-		Router *Router
-		prefix string
-	}
-	type args struct {
-		path     string
-		endpoint Endpoint
-		methods  []string
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   *RouteRouteGroupBuilder
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			group := &RouteGroup{
-				Router: tt.fields.Router,
-				prefix: tt.fields.prefix,
-			}
-			if got := group.Handle(tt.args.path, tt.args.endpoint, tt.args.methods...); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Handle() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestRouteGroup_Head(t *testing.T) {
-	type fields struct {
-		Router *Router
-		prefix string
-	}
-	type args struct {
-		route    string
-		endpoint Endpoint
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   *RouteRouteGroupBuilder
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			group := &RouteGroup{
-				Router: tt.fields.Router,
-				prefix: tt.fields.prefix,
-			}
-			if got := group.Head(tt.args.route, tt.args.endpoint); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Head() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestRouteGroup_Options(t *testing.T) {
-	type fields struct {
-		Router *Router
-		prefix string
-	}
-	type args struct {
-		route    string
-		endpoint Endpoint
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   *RouteRouteGroupBuilder
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			group := &RouteGroup{
-				Router: tt.fields.Router,
-				prefix: tt.fields.prefix,
-			}
-			if got := group.Options(tt.args.route, tt.args.endpoint); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Options() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestRouteGroup_Patch(t *testing.T) {
-	type fields struct {
-		Router *Router
-		prefix string
-	}
-	type args struct {
-		route    string
-		endpoint Endpoint
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   *RouteRouteGroupBuilder
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			group := &RouteGroup{
-				Router: tt.fields.Router,
-				prefix: tt.fields.prefix,
-			}
-			if got := group.Patch(tt.args.route, tt.args.endpoint); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Patch() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestRouteGroup_Post(t *testing.T) {
-	type fields struct {
-		Router *Router
-		prefix string
-	}
-	type args struct {
-		route    string
-		endpoint Endpoint
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   *RouteRouteGroupBuilder
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			group := &RouteGroup{
-				Router: tt.fields.Router,
-				prefix: tt.fields.prefix,
-			}
-			if got := group.Post(tt.args.route, tt.args.endpoint); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Post() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestRouteGroup_Put(t *testing.T) {
-	type fields struct {
-		Router *Router
-		prefix string
-	}
-	type args struct {
-		route    string
-		endpoint Endpoint
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   *RouteRouteGroupBuilder
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			group := &RouteGroup{
-				Router: tt.fields.Router,
-				prefix: tt.fields.prefix,
-			}
-			if got := group.Put(tt.args.route, tt.args.endpoint); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Put() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestRouteGroup_Trace(t *testing.T) {
-	type fields struct {
-		Router *Router
-		prefix string
-	}
-	type args struct {
-		route    string
-		endpoint Endpoint
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   *RouteRouteGroupBuilder
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			group := &RouteGroup{
-				Router: tt.fields.Router,
-				prefix: tt.fields.prefix,
-			}
-			if got := group.Trace(tt.args.route, tt.args.endpoint); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Trace() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestRouteManager_FindOverlappingRoute(t *testing.T) {
-	type args struct {
-		routeToCheck *Route
-	}
-	tests := []struct {
-		name string
-		r    routeManager
-		args args
-		want *Route
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.r.FindOverlappingRoute(tt.args.routeToCheck); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("FindOverlappingRoute() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestRouteManager_RemoveRoute(t *testing.T) {
-	type args struct {
-		toRemove *Route
-	}
-	tests := []struct {
-		name string
-		r    routeManager
-		args args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-		})
-	}
-}
-
-func TestRouteRouteGroupBuilder_AddMiddleware(t *testing.T) {
-	type fields struct {
-		Route      *Route
-		RouteGroup *RouteGroup
-	}
-	type args struct {
-		middleware Middleware
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   *RouteRouteGroupBuilder
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			group := &RouteRouteGroupBuilder{
-				Route:      tt.fields.Route,
-				RouteGroup: tt.fields.RouteGroup,
-			}
-			if got := group.With(tt.args.middleware); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("With() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestRouteRouteGroupBuilder_IgnoreCase(t *testing.T) {
-	type fields struct {
-		Route      *Route
-		RouteGroup *RouteGroup
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		want   *RouteRouteGroupBuilder
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			group := &RouteRouteGroupBuilder{
-				Route:      tt.fields.Route,
-				RouteGroup: tt.fields.RouteGroup,
-			}
-			if got := group.IgnoreCase(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("IgnoreCase() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestRoute_OverlapsWith(t *testing.T) {
-	type fields struct {
-		Endpoint    Endpoint
-		Methods     []string
-		Path        Path
-		Middlewares []Middleware
-	}
-	type args struct {
-		toCompare Route
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			e := Route{
-				Endpoint:    tt.fields.Endpoint,
-				Methods:     tt.fields.Methods,
-				Path:        tt.fields.Path,
-				Middlewares: tt.fields.Middlewares,
-			}
-			if got := e.OverlapsWith(tt.args.toCompare); got != tt.want {
-				t.Errorf("OverlapsWith() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestRoute_ToString(t *testing.T) {
-	type fields struct {
-		Endpoint    Endpoint
-		Methods     []string
-		Path        Path
-		Middlewares []Middleware
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		want   string
-	}{
-		{
-			name: "ToString Uppercase",
-			fields: fields{
-				Endpoint: nil,
-				Methods:  []string{MethodGet},
-				Path: Path{
-					parts: []pathPart{
-						{
-							value:    "",
-							variable: false,
-						},
-					},
-					ignoreCase: true,
-				},
-				Middlewares: nil,
-			},
-			want: "[GET] / *IgnoreCase",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			e := Route{
-				Endpoint:    tt.fields.Endpoint,
-				Methods:     tt.fields.Methods,
-				Path:        tt.fields.Path,
-				Middlewares: tt.fields.Middlewares,
-			}
-			if got := e.ToString(); got != tt.want {
-				t.Errorf("ToString() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-// Tests for array_utils.go
-
-func TestCheckArrayContains(t *testing.T) {
-	type args struct {
-		slice    []string
-		toSearch string
-	}
-	tests := []struct {
-		name string
-		args args
-		want bool
-	}{
-		{
-			name: "a b c d includes a",
-			args: args{
-				slice:    []string{"a", "b", "c", "d"},
-				toSearch: "a",
-			},
-			want: true,
-		},
-		{
-			name: "a b c d includes b",
-			args: args{
-				slice:    []string{"a", "b", "c", "d"},
-				toSearch: "b",
-			},
-			want: true,
-		},
-		{
-			name: "a b c d includes c",
-			args: args{
-				slice:    []string{"a", "b", "c", "d"},
-				toSearch: "c",
-			},
-			want: true,
-		},
-		{
-			name: "a b c d includes d",
-			args: args{
-				slice:    []string{"a", "b", "c", "d"},
-				toSearch: "d",
-			},
-			want: true,
-		},
-		{
-			name: "a b c d does not include e",
-			args: args{
-				slice:    []string{"a", "b", "c", "d"},
-				toSearch: "e",
-			},
-			want: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := CheckArrayContains(tt.args.slice, tt.args.toSearch); got != tt.want {
-				t.Errorf("CheckArrayContains() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestCheckArraysOverlap(t *testing.T) {
-	type args struct {
-		a []string
-		b []string
-	}
-	tests := []struct {
-		name string
-		args args
-		want bool
-	}{
-		{
-			name: "a b c overlaps with c d e",
-			args: args{
-				a: []string{"a", "b", "c"},
-				b: []string{"c", "d", "e"},
-			},
-			want: true,
-		},
-		{
-			name: "a b c overlaps with d e f",
-			args: args{
-				a: []string{"a", "b", "c"},
-				b: []string{"d", "e", "f"},
-			},
-			want: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := CheckArraysOverlap(tt.args.a, tt.args.b); got != tt.want {
-				t.Errorf("CheckArraysOverlap() = %v, want %v", got, tt.want)
+func TestContentType(t *testing.T) {
+	for file, value := range fileContentTypes {
+		t.Run(file+" = "+value, func(t *testing.T) {
+			got := ContentType(file)
+			if got != value {
+				t.Errorf("ContentType() = %v, want %v", got, value)
 			}
 		})
 	}

@@ -1,127 +1,223 @@
 package there
 
 import (
+	"fmt"
 	"strings"
 )
 
-type Path struct {
-	parts      []pathPart
-	ignoreCase bool
+type method uint8
+
+const (
+	methodGet method = iota
+	methodHead
+	methodPost
+	methodPut
+	methodPatch
+	methodDelete
+	methodConnect
+	methodOptions
+	methodTrace
+	methods
+)
+
+func methodToInt(method Method) method {
+	switch method {
+	case MethodHead:
+		return methodHead
+	case MethodPost:
+		return methodPost
+	case MethodPut:
+		return methodPut
+	case MethodPatch:
+		return methodPatch
+	case MethodDelete:
+		return methodDelete
+	case MethodConnect:
+		return methodConnect
+	case MethodOptions:
+		return methodOptions
+	case MethodTrace:
+		return methodTrace
+	default:
+		return methodGet
+	}
 }
 
-type pathPart struct {
-	value    string
-	variable bool
+func methodToString(method method) Method {
+	switch method {
+	case methodHead:
+		return MethodHead
+	case methodPost:
+		return MethodPost
+	case methodPut:
+		return MethodPut
+	case methodPatch:
+		return MethodPatch
+	case methodDelete:
+		return MethodDelete
+	case methodConnect:
+		return MethodConnect
+	case methodOptions:
+		return MethodOptions
+	case methodTrace:
+		return MethodTrace
+	default:
+		return MethodGet
+	}
 }
 
-// ConstructPath returns the path to match.
-func ConstructPath(pathString string, ignoreCase bool) Path {
-	split := splitUrl(pathString)
-	parts := make([]pathPart, len(split))
-	for i, s := range split {
-		variable := false
-		const variablePrefix = ":"
-		if strings.HasPrefix(s, variablePrefix) {
-			s = s[len(variablePrefix):]
-			for _, part := range parts {
-				if part.variable && part.value == s {
-					panic(pathString + " has defined the route param \"" + s + "\" more than once")
-				}
+type (
+	matcher struct {
+		root   *node
+		static map[string]*node
+	}
+
+	node struct {
+		name        string
+		children    map[string]*node
+		paramNode   *node
+		handler     [methods]Endpoint
+		middlewares [methods][]Middleware
+	}
+)
+
+func (m *matcher) ensureNodeExists(path string) (*node, error) {
+	isDynamic := len(path) != 0 && path[0] == ':'
+	if !isDynamic {
+		for i := range path {
+			if path[i] == '/' && i != len(path)-1 && path[i+1] == ':' {
+				isDynamic = true
+				break
 			}
-			variable = true
-		}
-
-		parts[i] = pathPart{
-			value:    s,
-			variable: variable,
 		}
 	}
-
-	path := Path{
-		parts:      parts,
-		ignoreCase: ignoreCase,
+	if isDynamic {
+		return m.root.ensureNodeExists(path)
+	} else {
+		n, ok := m.static[path]
+		if ok {
+			return n, nil
+		}
+		n = &node{}
+		m.static[path] = n
+		return n, nil
 	}
-	return path
 }
 
-func (p Path) ToString() string {
-	path := "/"
-	for i, part := range p.parts {
-		if part.variable {
-			path += ":"
-		}
-		path += part.value
-		if i != len(p.parts)-1 {
-			path += "/"
-		}
-	}
-	return path
-}
-
-func (p Path) Equals(toCompare Path) bool {
-	if len(p.parts) != len(toCompare.parts) || p.ignoreCase != toCompare.ignoreCase {
-		return false
-	}
-	if len(p.parts) == 0 {
-		return true
+func (m *matcher) findNode(path string) (*node, map[string][]string) {
+	n, ok := m.static[path]
+	if ok {
+		return n, nil
 	}
 
-	ignoreCase := p.ignoreCase
+	pathIndex := 0
 
-	for i := 0; i < len(p.parts); i++ {
-		a := p.parts[i]
-		b := toCompare.parts[i]
-		if !a.variable && !b.variable {
-			if (ignoreCase && strings.ToLower(a.value) != strings.ToLower(b.value)) ||
-				(!ignoreCase && a.value != b.value) {
-				return false
-			}
-		} else if (!a.variable && b.variable) || (a.variable && !b.variable) {
-			return false
-		}
+	var params map[string][]string
+
+	n = m.root
+
+	if len(path) == 0 {
+		return n, params
 	}
 
-	return true
-}
-
-func (p Path) Parse(route string) (map[string]string, bool) {
-	params := map[string]string{}
-
-	split := splitUrl(route)
-
-	if len(split) != len(p.parts) {
-		return nil, false
-	}
-
-	ignoreCase := p.ignoreCase
-
-	for i := 0; i < len(p.parts); i++ {
-		a := p.parts[i]
-		b := split[i]
-		if a.variable {
-			params[a.value] = b
+	if path[0] == '/' {
+		if len(path) == 1 {
+			path = ""
 		} else {
-			if (ignoreCase && strings.ToLower(a.value) != strings.ToLower(b)) ||
-				(!ignoreCase && a.value != b) {
-				return nil, false
-			}
+			pathIndex++
 		}
 	}
 
-	return params, true
+	var segment string
+
+	for {
+		if len(path)-pathIndex == 0 {
+			return n, params
+		}
+
+		for i := pathIndex; i < len(path); i++ {
+			if path[i] == '/' {
+				segment = path[pathIndex:i]
+				pathIndex = i + 1
+				break
+			} else if i == len(path)-1 {
+				i++
+				segment = path[pathIndex:i]
+				pathIndex = i
+				break
+			}
+		}
+
+		next, ok := n.children[segment]
+		if !ok {
+			if n.paramNode == nil {
+				return nil, nil
+			}
+			if params == nil {
+				params = map[string][]string{}
+			}
+			params[n.paramNode.name] = append(params[n.paramNode.name], segment)
+			n = n.paramNode
+		} else {
+			n = next
+		}
+	}
 }
 
-func splitUrl(route string) []string {
-	for strings.Contains(route, "//") {
-		route = strings.ReplaceAll(route, "//", "/")
+func (currentNode *node) ensureNodeExists(path string) (*node, error) {
+	pathIndex := 0
+
+	n := currentNode
+
+	if len(path) == 0 {
+		return n, nil
 	}
 
-	route = strings.TrimPrefix(route, "/")
-	route = strings.TrimSuffix(route, "/")
-
-	if len(route) == 0 {
-		return []string{}
+	if path[0] == '/' {
+		pathIndex++
 	}
 
-	return strings.Split(route, "/")
+	var segment string
+
+	for {
+		if len(path)-pathIndex == 0 {
+			return n, nil
+		}
+
+		for i := pathIndex; i < len(path); i++ {
+			if path[i] == '/' {
+				segment = path[pathIndex:i]
+				pathIndex = i + 1
+				break
+			} else if i == len(path)-1 {
+				i++
+				segment = path[pathIndex:i]
+				pathIndex = i
+				break
+			}
+		}
+		next, ok := n.children[segment]
+		if !ok {
+			isParamSegment := len(segment) != 0 && segment[0] == ':'
+			if isParamSegment {
+				stripped := strings.TrimPrefix(segment, ":")
+				if n.paramNode == nil {
+					n.paramNode = &node{name: stripped}
+				}
+				if n.paramNode.name != stripped {
+					return nil, fmt.Errorf("path variable \"%s\" for path \"%s\" needs to equal \"%s\" as in all other routes", stripped, path, n.paramNode.name)
+				}
+				n = n.paramNode
+			} else {
+				if n.children == nil {
+					n.children = map[string]*node{}
+				}
+				next = &node{name: segment}
+				n.children[segment] = next
+				n = next
+			}
+		} else {
+			n = next
+		}
+	}
 }

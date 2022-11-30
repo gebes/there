@@ -3,6 +3,7 @@ package middlewares
 import (
 	"errors"
 	"fmt"
+	"github.com/Gebes/there/v2/status"
 	"net/http"
 
 	"github.com/Gebes/there/v2"
@@ -14,10 +15,10 @@ func Recoverer(request there.Request, next there.Response) there.Response {
 			if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {
 				switch t := rvr.(type) {
 				case error:
-					there.Error(there.StatusInternalServerError, t).ServeHTTP(w, r)
+					there.Error(status.InternalServerError, t).ServeHTTP(w, r)
 
 				default:
-				there.Error(there.StatusInternalServerError, errors.New(fmt.Sprint(t))).ServeHTTP(w, r)
+					there.Error(status.InternalServerError, errors.New(fmt.Sprint(t))).ServeHTTP(w, r)
 				}
 			}
 		}()

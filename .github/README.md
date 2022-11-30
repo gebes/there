@@ -34,18 +34,8 @@
 <a href="https://gocover.io/github.com/Gebes/there">
     <img src="https://gocover.io/_badge/github.com/Gebes/there" alt="Latest releace">
 </a>
-<a href="https://www.codefactor.io/repository/github/Gebes/there">
-    <img src="https://www.codefactor.io/repository/github/Gebes/there/badge" alt="Latest releace">
-</a>
 
-<br><br>
-<a href="https://gitHub.com/Gebes/there/graphs/commit-activity">
-    <img src="https://img.shields.io/badge/Maintained%3F-yes-green.svg" alt="Maintained?">
-</a>
-<a href="https://github.com/Gebes">
-    <img src="https://img.shields.io/badge/Maintainer-Gebes-blue" alt="Maintainer">
-</a>
-</p>
+
 
 
 
@@ -72,7 +62,7 @@ func main() {
 	
 	// Register GET route /
 	router.Get("/", func(request there.Request) there.Response {
-		return there.Json(there.StatusOK, Map{
+		return there.Json(status.OK, map[string]string{
 			"message": "Hello World!",
 		})
 	})
@@ -90,25 +80,27 @@ func main() {
 ## 🤔 Why There?
 
 
-The general problem with many routers is the way you handle responses. Most frameworks make it too complex or do not offer the proper abstraction to get the same result in a short amount of time.  
-The goal of **There** is to give developers the right tool to create robust apis in no time.
+The general problem with many routers is the way you handle responses. Most frameworks make it too complex or do not offer the proper abstraction to get the required result in a short amount of time.  
+The goal of **There** is to give developers the right tool to create robust apis in a shorter amount of time.
 
 We solve this problem by providing simple interfaces to control the flow of your API.  
 Got an error while fetching the user? Just `return Error(status, err)`. Want to return some data? Just `return Json(status, data)`. Is the data too large? Compress it `return Gzip(Json(status, data))`.  
 This type of control flow is way easier to read, and it doesn't take away any freedom!
 
+### ⚡️ Speed
+Speed is critical, even though your Go router will never be a bottleneck. As a comparison, **There** is faster than Gin and Mux ([Benchmark](https://pastebin.com/iP7NhtZH), [Result](https://pastebin.com/RrKi8B3J)).
 
-### Imports
+### 📤 Imports
 If you create an API with **There** you do not need to import `net/http` even once! Simply import
 ```go
 import "github.com/Gebes/there/v2"
 ```
 and **There** provides you with all the handlers, constants and interfaces you need to create a router, middleware or anything else!  
 **There** provides enough constants for you! In total there are 140 of them.
-* Method (`MethodGet`, `MethodPost`)
-* Status (`StatusOK`, `StatusInternalServerError`)
-* RequestHeader/ResponseHeader (`RequestHeaderContentType`, `RequestHeaderAcceptEncoding`, `ResponseHeaderLocation`)
-* ContentType (`ContentTypeApplicationJson`, `ContentTypeApplicationXml`)
+* Method (`there.MethodGet`, `there.MethodPost`)
+* Status (`status.OK`, `statusInternalServerError`)
+* Header/Request only Header/Response only Header (`header.ContentType`, `header.RequestAcceptEncoding`, `header.ResponseLocation`)
+* ContentType (`there.ContentTypeApplicationJson`, `there.ContentTypeApplicationXml`)
 
 ## 🧠 Philosophy
 > Focus on your project, not on the framework.
@@ -124,7 +116,7 @@ So **There** should be something for everyone.
 * [**Expandable** - add your own control flow](#expandable---add-your-own-control-flow)
 * [Complete **middleware** support](#complete-middleware-support)
 * [**Lightweight** - no dependencies](#lightweight---no-dependencies)
-* [Robust - 99,6% coverage](#robust---996-coverage)
+* [Robust](#robust---996-coverage)
 
 ### Straightforward routing
 
@@ -135,7 +127,7 @@ Define route variables with `:` and you have all the things you need for routing
 	router := there.NewRouter()
 
 	router.Group("/user").
-		Get("/", Handler). // /user
+		Get("/", Handler).
 		Post("/", Handler).
 		Patch("/", Handler)
 
@@ -143,33 +135,32 @@ Define route variables with `:` and you have all the things you need for routing
 		Get("/:id", Handler).
 		Post("/", Handler)
 
-	router.
-		Get("/details", Handler).IgnoreCase()
+	router.Get("/details", Handler)
 ```
 
-[🧑‍💻 View more code examples](https://github.com/Gebes/there/tree/main/examples/straightforward-routing)
+[🧑‍💻 View full code example and best practices](https://github.com/Gebes/there/tree/main/examples/straightforward-routing)
 
 ### Minimalistic control flow
 
 
 Controlling your route's flow with **There** is a delight! It is easy to understand and fast to write.  
-A HttpResponse is basically a `http.handler`. **There** provides several handlers out of the box!
+A HttpResponse is basically a `http.Handler`. **There** provides several handlers out of the box!
 
 ```go
 func CreatePost(request there.Request) there.Response {
 	var body Post
 	err := request.Body.BindJson(&body) // Decode body
 	if err != nil { // If body was not valid json, return bad request error
-		return there.Error(there.StatusBadRequest, "Could not parse body: "+err.Error())
+		return there.Error(status.BadRequest, "Could not parse body: "+err.Error())
 	}
 
 	post := postById(body.Id)
 	if post != nil { // if the post already exists, return conflict error
-		return there.Error(there.StatusConflict, "Post with this ID already exists")
+		return there.Error(status.Conflict, "Post with this ID already exists")
 	}
 
 	posts = append(posts, body) // create post
-	return there.Json(there.StatusCreated, body) // return created post as json
+	return there.Json(status.Created, body) // return created post as json
 }
 ```
 
@@ -195,13 +186,13 @@ func Msgpack(code int, data interface{}) there.Response {
    if err != nil {
       panic(err) // panic if the data was invalid. can be caught by Recoverer
    }
-   return there.WithHeaders(MapString{ // set proper content-type
+   return there.WithHeaders(map[string]string{ // set proper content-type
       there.ResponseHeaderContentType: "application/x-msgpack",
    }, there.Bytes(code, msgpackData))
 }
 
 func Get(request there.Request) there.Response {
-   return Msgpack(there.StatusOK, map[string]string{ // now use the created response
+   return Msgpack(status.OK, map[string]string{ // now use the created response
       "Hello": "World",
       "How":   "are you?",
    })
@@ -242,7 +233,7 @@ func main() {
 func GlobalMiddleware(request there.Request, next there.Response) there.Response {
    // Check the request content-type
    if request.Headers.GetDefault(there.RequestHeaderContentType, "") != there.ContentTypeApplicationJson {
-      return there.Error(there.StatusUnsupportedMediaType, "Header " + there.RequestHeaderContentType + " is not " + there.ContentTypeApplicationJson)
+      return there.Error(status.UnsupportedMediaType, "Header " + there.RequestHeaderContentType + " is not " + there.ContentTypeApplicationJson)
    }
    
    return next // Everything is fine until here, continue
@@ -256,7 +247,7 @@ func RouteSpecificMiddleware(request there.Request, next there.Response) there.R
 ```
 
 With the `.Use` method, you can add a global middleware. No matter on which group you call it, it will be **global**.  
-On the other side, if you use the `.With` method you can only add a middleware to **one handler**! Not to a whole group.
+On the other side, if you use the `.With` method you can only add a middleware to **one handler**! **Not to a whole group.**
 
 The `GlobalMiddleware` in this code checks if the request has `application/json` as content-type. If not, the request will fail with an error.
 Compared to the `GlobalMiddleware`, the `RouteSpecificMiddleware` does not change the control flow but adds data to the response.
@@ -273,7 +264,7 @@ func Recoverer(request there.Request, next there.Response) there.Response {
    fn := func(w http.ResponseWriter, r *http.Request) {
       defer func() {
          if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {
-            there.Error(there.StatusInternalServerError, rvr).ServeHTTP(w, r)
+            there.Error(status.InternalServerError, rvr).ServeHTTP(w, r)
          }
       }()
       next.ServeHTTP(w, r)
@@ -289,6 +280,18 @@ It is a trivial Recoverer. The only things you need to change are the types and 
 
 **There** was built to be lightweight and robust, so if you use **There**, you do not need to worry about having many more external dependencies because **There** has none!
 
-### Robust - 99,6% coverage
+### Robust
 
 Almost everything in **There** has a corresponding test. We tested the framework well in production and wrote enough test cases, so in the end almost everything that makes sense to test was tested.
+
+
+# 👨‍💻 Contributions
+Feel free to contribute to this project in any way! May it be a simple issue, idea or a finished pull request. Every helpful hand is welcomed.
+
+<a href="https://gitHub.com/Gebes/there/graphs/commit-activity">
+    <img src="https://img.shields.io/badge/Maintained%3F-yes-green.svg" alt="Maintained?">
+</a>
+<a href="https://github.com/Gebes">
+    <img src="https://img.shields.io/badge/Maintainer-Gebes-blue" alt="Maintainer">
+</a>
+</p>

@@ -33,7 +33,7 @@ func main() {
 }
 
 func Get(request there.Request) there.Response {
-   return Msgpack(there.StatusOK, map[string]string{ // now use the created response
+   return Msgpack(status.OK, map[string]string{ // now use the created response
       "Hello": "World",
       "How":   "are you?",
    })

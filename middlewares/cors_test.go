@@ -1,6 +1,8 @@
 package middlewares
 
 import (
+	"github.com/Gebes/there/v2/header"
+	"github.com/Gebes/there/v2/status"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -14,7 +16,7 @@ func TestCorsMiddleware(t *testing.T) {
 	router := there.NewRouter()
 	router.Use(Cors(AllowAllConfiguration()))
 	router.Get("/", func(request there.Request) there.Response {
-		return there.Status(there.StatusOK)
+		return there.Status(status.OK)
 	})
 
 	request := httptest.NewRequest(there.MethodGet, "/", nil)
@@ -36,9 +38,9 @@ func TestCorsMiddleware(t *testing.T) {
 }
 
 func checkHeaders(t *testing.T, result *http.Response) {
-	if !reflect.DeepEqual(result.Header.Get(there.ResponseHeaderAccessControlAllowOrigin), "*") ||
-		!reflect.DeepEqual(result.Header.Get(there.ResponseHeaderAccessControlAllowMethods), there.AllMethodsString) ||
-		!reflect.DeepEqual(result.Header.Get(there.ResponseHeaderAccessControlAllowHeaders), "Accept, Content-Type, Content-Length, Authorization") {
+	if !reflect.DeepEqual(result.Header.Get(header.ResponseAccessControlAllowOrigin), "*") ||
+		!reflect.DeepEqual(result.Header.Get(header.ResponseAccessControlAllowMethods), there.AllMethodsJoined) ||
+		!reflect.DeepEqual(result.Header.Get(header.ResponseAccessControlAllowHeaders), "Accept, Content-Type, Content-Length, Authorization") {
 		t.Fatal("headers did not match allow all configuration", result.Header)
 	}
 }
