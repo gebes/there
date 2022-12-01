@@ -58,7 +58,7 @@ func Logger(configuration ...LoggerConfiguration) func(request there.Request, ne
 			start := time.Now()
 			defer func() {
 				code := ww.writtenHeader
-				diff := time.Now().Sub(start)
+				diff := time.Since(start)
 				toLog := color.Blue(r.Method+" "+r.URL.Path) + " resulted in " + statusCodeToColoredString(code) + " (" + status.Text(code) + ") after " + fmt.Sprint(diff)
 
 				if code == status.InternalServerError {

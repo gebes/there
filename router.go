@@ -29,6 +29,7 @@ func NewRouter() *Router {
 			RouteNotFoundHandler: func(request HttpRequest) HttpResponse {
 				return Error(StatusNotFound, errors.New("could not find route "+request.Method+" "+request.Request.URL.Path))
 			},
+			SanitizePaths: true,
 		},
 	}
 	r.Server.Handler = r
@@ -70,6 +71,7 @@ func (router *Router) Use(middleware Middleware) *Router {
 type RouterConfiguration struct {
 	//RouteNotFoundHandler gets invoked, when the specified URL and method have no handlers
 	RouteNotFoundHandler Endpoint
+	SanitizePaths        bool
 }
 
 type assertionErrors []error
@@ -87,8 +89,4 @@ func (a *assertionErrors) assert(condition bool, errorString string) {
 	if !condition {
 		*a = append(*a, errors.New(errorString))
 	}
-}
-
-func (a *assertionErrors) addError(err error) {
-	*a = append(*a, err)
 }

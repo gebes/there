@@ -120,6 +120,7 @@ func (m *matcher) findNode(path string) (*node, map[string][]string) {
 		return n, params
 	}
 
+	// skip initial slash
 	if path[0] == '/' {
 		if len(path) == 1 {
 			path = ""
@@ -128,13 +129,17 @@ func (m *matcher) findNode(path string) (*node, map[string][]string) {
 		}
 	}
 
+	// current segment of the path /segment1/segment2/segment3
 	var segment string
 
 	for {
+		// check if we reached the end of the route
 		if len(path)-pathIndex == 0 {
 			return n, params
 		}
 
+		// get next path segment
+		// optimized way of split(path, "/")[index]
 		for i := pathIndex; i < len(path); i++ {
 			if path[i] == '/' {
 				segment = path[pathIndex:i]
@@ -148,14 +153,19 @@ func (m *matcher) findNode(path string) (*node, map[string][]string) {
 			}
 		}
 
+		// check if we got a child
 		next, ok := n.children[segment]
 		if !ok {
+			// if not check, if a wildcard child exists
 			if n.paramNode == nil {
 				return nil, nil
 			}
+			// if so, initialize the params map now
+			// lazy initialization to save some time
 			if params == nil {
 				params = map[string][]string{}
 			}
+			// continue iterating
 			params[n.paramNode.name] = append(params[n.paramNode.name], segment)
 			n = n.paramNode
 		} else {
@@ -177,13 +187,17 @@ func (currentNode *node) ensureNodeExists(path string) (*node, error) {
 		pathIndex++
 	}
 
+	// current segment of the path /segment1/segment2/segment3
 	var segment string
 
 	for {
+		// check if we reached the end of the route
 		if len(path)-pathIndex == 0 {
 			return n, nil
 		}
 
+		// get next path segment
+		// optimized way of split(path, "/")[index]
 		for i := pathIndex; i < len(path); i++ {
 			if path[i] == '/' {
 				segment = path[pathIndex:i]
@@ -196,14 +210,24 @@ func (currentNode *node) ensureNodeExists(path string) (*node, error) {
 				break
 			}
 		}
+
+		// check if we got a child
 		next, ok := n.children[segment]
 		if !ok {
 			isParamSegment := len(segment) != 0 && segment[0] == ':'
 			if isParamSegment {
+				// create node with current name.
+				// name needs to be stored later with request.RouteParams
 				stripped := strings.TrimPrefix(segment, ":")
 				if n.paramNode == nil {
 					n.paramNode = &node{name: stripped}
 				}
+
+				// cover edge case when user tries to have the following routes
+				//  /user/:id/test
+				//  /user/:name/test2
+				// the data structure does not comply with that, since we only
+				// store the name of one wildcard child
 				if n.paramNode.name != stripped {
 					return nil, fmt.Errorf("path variable \"%s\" for path \"%s\" needs to equal \"%s\" as in all other routes", stripped, path, n.paramNode.name)
 				}

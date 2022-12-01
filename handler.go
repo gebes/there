@@ -2,13 +2,19 @@ package there
 
 import (
 	"net/http"
+	"path"
 )
 
 func (router *Router) ServeHTTP(rw http.ResponseWriter, request *http.Request) {
 	httpRequest := NewHttpRequest(rw, request)
 	method := methodToInt(request.Method)
 
-	node, params := router.matcher.findNode(request.URL.Path)
+	sanitizedPath := request.URL.Path
+	if router.Configuration.SanitizePaths {
+		sanitizedPath = path.Clean(sanitizedPath)
+	}
+
+	node, params := router.matcher.findNode(sanitizedPath)
 	*httpRequest.RouteParams = params
 
 	var endpoint Endpoint
