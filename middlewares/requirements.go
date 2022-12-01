@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"fmt"
 	"github.com/Gebes/there/v2/status"
 
 	"github.com/Gebes/there/v2"
@@ -13,7 +12,7 @@ import (
 func RequireHost(host string) func(request there.Request, next there.Response) there.Response {
 	return func(request there.Request, next there.Response) there.Response {
 		if request.Host != host {
-			return there.String(status.BadRequest, fmt.Sprintf("Invalid host for access to resource"))
+			return there.String(status.BadRequest, "Invalid host for access to resource")
 		}
 		return next
 	}

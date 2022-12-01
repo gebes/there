@@ -39,6 +39,7 @@ func NewRouter() *Router {
 					Method: request.Method,
 				})
 			},
+			SanitizePaths: true,
 		},
 		matcher: &matcher{
 			static: map[string]*node{},
@@ -84,6 +85,7 @@ func (router *Router) Use(middleware Middleware) *Router {
 type RouterConfiguration struct {
 	//RouteNotFoundHandler gets invoked, when the specified URL and method have no handlers
 	RouteNotFoundHandler Endpoint
+	SanitizePaths        bool
 }
 
 type assertionErrors []error
@@ -101,8 +103,4 @@ func (a *assertionErrors) assert(condition bool, errorString string) {
 	if !condition {
 		*a = append(*a, errors.New(errorString))
 	}
-}
-
-func (a *assertionErrors) addError(err error) {
-	*a = append(*a, err)
 }

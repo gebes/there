@@ -1,7 +1,7 @@
 package there
 
 import (
-	"path/filepath"
+	path2 "path"
 	"strings"
 )
 
@@ -55,7 +55,6 @@ func (group *RouteGroup) Handle(path string, endpoint Endpoint, methodsString ..
 		methods = append(methods, methodToInt(m))
 	}
 
-	path = filepath.Clean(path)
 	if path == "" {
 		path = "/"
 	}
@@ -64,10 +63,7 @@ func (group *RouteGroup) Handle(path string, endpoint Endpoint, methodsString ..
 	}
 
 	path = group.prefix + path
-
-	for strings.Contains(path, "//") {
-		path = strings.ReplaceAll(path, "//", "/")
-	}
+	path = path2.Clean(path)
 
 	node, err := group.Router.ensureNodeExists(path)
 	if err != nil {
