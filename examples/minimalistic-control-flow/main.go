@@ -21,7 +21,7 @@ func main() {
 
 	router.Group("/post").
 		Get("/", GetPosts).
-		Get("/:id", GetPostById).
+		Get("/{id}", GetPostById).
 		Post("/", CreatePost)
 
 	err := router.Listen(8080)

@@ -28,7 +28,7 @@ func main() {
 
 	router.Get("/", Get)
 	router.Get("/user", Get)
-	router.Get("/user/:name", Get)
+	router.Get("/user/{name}", Get)
 
 	err := router.Listen(8080)
 	if err != nil {
