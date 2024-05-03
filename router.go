@@ -16,8 +16,8 @@ type Router struct {
 
 	globalMiddlewares []Middleware
 
-	//routes is a list of Routes which checks for duplicate entries
-	//on insert.
+	// routes is a list of Routes which checks for duplicate entries
+	// on insert.
 	*matcher
 }
 
@@ -36,7 +36,7 @@ func NewRouter() *Router {
 				return Auto(status.NotFound, Error{
 					Error:  "could not find specified path",
 					Path:   request.Request.URL.Path,
-					Method: request.Method,
+					Method: request.Request.Method,
 				})
 			},
 			SanitizePaths: true,
@@ -76,14 +76,14 @@ func (router *Router) ListenToTLS(port Port, certFile, keyFile string) error {
 }
 
 // Use registers a Middleware
-func (router *Router) Use(middleware Middleware) *Router {
-	router.globalMiddlewares = append(router.globalMiddlewares, middleware)
+func (router *Router) Use(middleware ...Middleware) *Router {
+	router.globalMiddlewares = append(router.globalMiddlewares, middleware...)
 	return router
 }
 
 // RouterConfiguration is a straightforward place to override default behavior of the router
 type RouterConfiguration struct {
-	//RouteNotFoundHandler gets invoked, when the specified URL and method have no handlers
+	// RouteNotFoundHandler gets invoked, when the specified URL and method have no handlers
 	RouteNotFoundHandler Endpoint
 	SanitizePaths        bool
 }

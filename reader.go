@@ -27,7 +27,7 @@ func (reader MapReader) GetIntDefault(key string, defaultValue int) int {
 	return v
 }
 
-func (reader MapReader) GetIntSlice(key string, delimiter string) ([]int, error) {
+func (reader MapReader) GetIntSlice(key, delimiter string) ([]int, error) {
 	list, ok := reader.GetSlice(key)
 	if !ok {
 		return nil, ErrorParameterNotPresent
@@ -44,7 +44,7 @@ func (reader MapReader) GetIntSlice(key string, delimiter string) ([]int, error)
 	return ints, nil
 }
 
-func (reader MapReader) GetIntSliceDefault(key string, delimiter string, defaultValue []int) []int {
+func (reader MapReader) GetIntSliceDefault(key, delimiter string, defaultValue []int) []int {
 	list, ok := reader.GetSlice(key)
 	if !ok {
 		return defaultValue

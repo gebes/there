@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"fmt"
 	"github.com/Gebes/there/v2/middlewares/color"
 	"github.com/Gebes/there/v2/status"
 	"log"
@@ -59,7 +58,7 @@ func Logger(configuration ...LoggerConfiguration) func(request there.Request, ne
 			defer func() {
 				code := ww.writtenHeader
 				diff := time.Since(start)
-				toLog := color.Blue(r.Method+" "+r.URL.Path) + " resulted in " + statusCodeToColoredString(code) + " (" + status.Text(code) + ") after " + fmt.Sprint(diff)
+				toLog := color.Blue(r.Method+" "+r.URL.Path) + " resulted in " + statusCodeToColoredString(code) + " (" + status.Text(code) + ") after " + diff.String()
 
 				if code == status.InternalServerError {
 					config.ErrorLogger.Println(toLog+":", string(*ww.writtenBytes))
