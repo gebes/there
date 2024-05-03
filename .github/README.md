@@ -94,10 +94,10 @@ func CreatePost(request there.Request) there.Response {
     var body Post
     err := request.Body.BindJson(&body)
     if err != nil {
-        return there.Error(status.BadRequest, "Could not parse body: " + err.Error())
+        return there.Error(status.BadRequest, "could not parse body: " + err.Error())
     }
     if postById(body.Id) != nil {
-        return there.Error(status.Conflict, "Post with this ID already exists")
+        return there.Error(status.Conflict, "post with this ID already exists")
     }
     posts = append(posts, body)
     return there.Json(status.Created, body)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/Gebes/there/v2/status"
 	"net/http"
+	"sync"
 )
 
 type Router struct {
@@ -18,7 +19,9 @@ type Router struct {
 
 	// routes is a list of Routes which checks for duplicate entries
 	// on insert.
-	serveMux *http.ServeMux
+	serveMux      *http.ServeMux
+	handlerKeeper map[string]*muxHandler
+	mutex         sync.Mutex
 }
 
 func NewRouter() *Router {
@@ -41,7 +44,8 @@ func NewRouter() *Router {
 			},
 			SanitizePaths: true,
 		},
-		serveMux: http.NewServeMux(),
+		serveMux:      http.NewServeMux(),
+		handlerKeeper: map[string]*muxHandler{},
 	}
 
 	r.Server.Handler = r

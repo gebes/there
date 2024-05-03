@@ -33,8 +33,8 @@ func main() {
 
 func Handler(request there.Request) there.Response {
 	return there.Json(status.OK, map[string]any{
-		"path":         request.Request.URL.Path,
-		"method":       request.Method,
-		"route_params": request.RouteParams,
+		"path":        request.Request.URL.Path,
+		"method":      request.Method,
+		"route_param": request.Request.PathValue("id"),
 	})
 }

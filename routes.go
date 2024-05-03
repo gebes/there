@@ -50,6 +50,9 @@ type Route struct {
 }
 
 func (group *RouteGroup) Handle(path string, endpoint Endpoint, methodsString ...string) *RouteRouteGroupBuilder {
+	group.Router.mutex.Lock()
+	defer group.Router.mutex.Unlock()
+
 	var methods []method
 	for _, m := range methodsString {
 		methods = append(methods, methodToInt(m))
@@ -65,8 +68,20 @@ func (group *RouteGroup) Handle(path string, endpoint Endpoint, methodsString ..
 	path = group.prefix + path
 	path = path2.Clean(path)
 
-	muxHandler := newMuxHandler(group.Router, endpoint)
-	group.serveMux.Handle(path, muxHandler)
+	var ok bool
+	var muxHandler *muxHandler
+	muxHandler, ok = group.Router.handlerKeeper[path]
+	if !ok {
+		muxHandler = newMuxHandler(group.Router, endpoint)
+		group.serveMux.Handle(path, muxHandler)
+		group.Router.handlerKeeper[path] = muxHandler
+	}
+
+	for _, m := range methods {
+		muxHandler.methods[m] = muxHandlerEndpoint{
+			endpoint: endpoint,
+		}
+	}
 
 	route := &Route{
 		muxHandler,
@@ -122,6 +137,9 @@ func (group *RouteGroup) Options(route string, endpoint Endpoint) *RouteRouteGro
 
 // With adds a middleware to the handler the method is called on
 func (group *RouteRouteGroupBuilder) With(middleware Middleware) *RouteRouteGroupBuilder {
-	group.muxHandler.AddMiddleware(middleware)
+	for _, method := range group.methods {
+		endpoint := group.muxHandler.methods[method]
+		endpoint.AddMiddleware(middleware)
+	}
 	return group
 }
