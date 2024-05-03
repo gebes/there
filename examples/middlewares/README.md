@@ -1,8 +1,10 @@
 # ⭐️ Middlewares
 
-To keep things simple, you can use already existing middlewares with little to no change, and you can use the simple control flow from **There** in your middlewares.
+To keep things simple, you can use already existing middlewares with little to no change, and you can use the simple
+control flow from **There** in your middlewares.
 
 Here is an example:
+
 ```go
 
 func main() {
@@ -39,13 +41,18 @@ func RouteSpecificMiddleware(request HttpRequest, next HttpResponse) HttpRespons
 With the `.Use` method, you can add a global middleware. No matter on which group you call it, it will be **global**.  
 On the other side, if you use the `.With` method you can only add a middleware to **one handler**! Not to a whole group.
 
-The `GlobalMiddleware` in this code checks if the request has `application/json` as content-type. If not, the request will fail with an error.
-Compared to the `GlobalMiddleware`, the `RouteSpecificMiddleware` does not change the control flow but adds data to the response.
+The `GlobalMiddleware` in this code checks if the request has `application/json` as content-type. If not, the request
+will fail with an error.
+Compared to the `GlobalMiddleware`, the `RouteSpecificMiddleware` does not change the control flow but adds data to the
+response.
 
-Be careful in this example. Global middlewares will always be called first, so if the global middleware returns an error, the content-language header won't be set by the `RouteSpecificMiddleware` middleware.
+Be careful in this example. Global middlewares will always be called first, so if the global middleware returns an
+error, the content-language header won't be set by the `RouteSpecificMiddleware` middleware.
 
 ## Using already existing middlewares
-If you have other middlewares, which you created using other routers, then there is a high chance that you can use it in **There** without changing much.
+
+If you have other middlewares, which you created using other routers, then there is a high chance that you can use it in
+**There** without changing much.
 
 As an example, let us have a look at the Recoverer middleware.
 
@@ -68,4 +75,5 @@ func Recoverer(request there.Request, next there.Response) there.Response {
 }
 ```
 
-It is a trivial Recoverer. The only things you need to change are the types and the parameters. **There** provides you all the types required, so that you don't need to import "net/http".
+It is a trivial Recoverer. The only things you need to change are the types and the parameters. **There** provides you
+all the types required, so that you don't need to import "net/http".
