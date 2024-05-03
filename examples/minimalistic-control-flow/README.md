@@ -1,6 +1,5 @@
 # ⭐️ Minimalistic control flow
 
-
 Controlling your route's flow with **There** is a delight! It is easy to understand and fast to write.  
 A HttpResponse is basically a `http.Handler`. **There** provides several handlers out of the box!
 
@@ -22,6 +21,7 @@ func CreatePost(request HttpRequest) HttpResponse {
 }
 ```
 
-This handler uses `Error` and `Json`. By returning a HttpResponse, the handler chain will break and **There** will render the given response.
+This handler uses `Error` and `Json`. By returning a HttpResponse, the handler chain will break and **There** will
+render the given response.
 
 [📚 Documentation](https://there.gebes.io/responses/status)  
