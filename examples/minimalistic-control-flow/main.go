@@ -39,7 +39,7 @@ func GetPosts(request there.Request) there.Response {
 }
 
 func GetPostById(request there.Request) there.Response {
-	id := request.RouteParams.GetDefault("id", "")
+	id := request.RouteParams.Get("id")
 
 	post := postById(id)
 	if post == nil {

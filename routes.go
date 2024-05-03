@@ -78,7 +78,7 @@ func (group *RouteGroup) Handle(path string, endpoint Endpoint, methodsString ..
 	}
 
 	for _, m := range methods {
-		muxHandler.methods[m] = muxHandlerEndpoint{
+		muxHandler.methods[m] = &muxHandlerEndpoint{
 			endpoint: endpoint,
 		}
 	}

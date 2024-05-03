@@ -18,7 +18,7 @@ func (router *Router) ServeHTTP(rw http.ResponseWriter, request *http.Request) {
 type (
 	muxHandler struct {
 		router  *Router
-		methods map[method]muxHandlerEndpoint
+		methods map[method]*muxHandlerEndpoint
 	}
 	muxHandlerEndpoint struct {
 		endpoint    Endpoint
@@ -30,7 +30,7 @@ type (
 func newMuxHandler(router *Router, endpoint Endpoint) *muxHandler {
 	return &muxHandler{
 		router:  router,
-		methods: map[method]muxHandlerEndpoint{},
+		methods: map[method]*muxHandlerEndpoint{},
 	}
 }
 

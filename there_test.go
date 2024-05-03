@@ -739,7 +739,7 @@ func TestRouteBuilder(t *testing.T) {
 	t.Run("two middlewares", func(t *testing.T) {
 		router := NewRouter()
 		h := router.Get("/", handler).With(middleware).With(middleware)
-		if len(h.muxHandler.middlewares) != 2 {
+		if len(h.muxHandler.methods[methodGet].middlewares) != 2 {
 			t.Fatalf("node did not have two middlewares")
 		}
 	})
