@@ -18,7 +18,7 @@ type Router struct {
 
 	// routes is a list of Routes which checks for duplicate entries
 	// on insert.
-	*matcher
+	serveMux *http.ServeMux
 }
 
 func NewRouter() *Router {
@@ -29,9 +29,9 @@ func NewRouter() *Router {
 		Configuration: &RouterConfiguration{
 			RouteNotFoundHandler: func(request Request) Response {
 				type Error struct {
-					Error  string `json:"error,omitempty" xml:"Description"`
-					Path   string `json:"path,omitempty"`
-					Method string `json:"method,omitempty"`
+					Error  string `json:"error,omitempty" xml:"Error" yaml:"error" bson:"error"`
+					Path   string `json:"path,omitempty" xml:"Path" yaml:"path" bson:"path"`
+					Method string `json:"method,omitempty" xml:"Method" yaml:"method" bson:"method"`
 				}
 				return Auto(status.NotFound, Error{
 					Error:  "could not find specified path",
@@ -41,11 +41,9 @@ func NewRouter() *Router {
 			},
 			SanitizePaths: true,
 		},
-		matcher: &matcher{
-			static: map[string]*node{},
-			root:   &node{},
-		},
+		serveMux: http.NewServeMux(),
 	}
+
 	r.Server.Handler = r
 	r.RouteGroup = NewRouteGroup(r, "/")
 	return r

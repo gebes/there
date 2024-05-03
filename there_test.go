@@ -739,20 +739,8 @@ func TestRouteBuilder(t *testing.T) {
 	t.Run("two middlewares", func(t *testing.T) {
 		router := NewRouter()
 		h := router.Get("/", handler).With(middleware).With(middleware)
-		if len(h.node.middlewares[methodGet]) != 2 {
+		if len(h.muxHandler.middlewares) != 2 {
 			t.Fatalf("node did not have two middlewares")
-		}
-	})
-	t.Run("wrong parameter name", func(t *testing.T) {
-		router := NewRouter()
-
-		router.
-			Patch("/user/:id/update", handler).
-			Get("/user/:name/create", handler) // cant name parameter :name here, because :id was previously defined
-
-		err := router.HasError()
-		if err == nil {
-			t.Errorf("did not collect any error")
 		}
 	})
 	t.Run("group prefix", func(t *testing.T) {

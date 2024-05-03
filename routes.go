@@ -45,8 +45,8 @@ type Endpoint func(request Request) Response
 
 // Route adds attributes to an Endpoint func
 type Route struct {
-	node    *node
-	methods []method
+	muxHandler *muxHandler
+	methods    []method
 }
 
 func (group *RouteGroup) Handle(path string, endpoint Endpoint, methodsString ...string) *RouteRouteGroupBuilder {
@@ -65,20 +65,11 @@ func (group *RouteGroup) Handle(path string, endpoint Endpoint, methodsString ..
 	path = group.prefix + path
 	path = path2.Clean(path)
 
-	node, err := group.Router.ensureNodeExists(path)
-	if err != nil {
-		group.Router.assertionErrors = append(group.Router.assertionErrors, err)
-	}
-	if node != nil {
-		for _, method := range methods {
-			group.Router.assert(node.handler[method] == nil, string(methodToString(method))+" "+path+" already defined")
-			node.handler[method] = endpoint
-		}
-
-	}
+	muxHandler := newMuxHandler(group.Router, endpoint)
+	group.serveMux.Handle(path, muxHandler)
 
 	route := &Route{
-		node,
+		muxHandler,
 		methods,
 	}
 
@@ -131,8 +122,6 @@ func (group *RouteGroup) Options(route string, endpoint Endpoint) *RouteRouteGro
 
 // With adds a middleware to the handler the method is called on
 func (group *RouteRouteGroupBuilder) With(middleware Middleware) *RouteRouteGroupBuilder {
-	for _, method := range group.methods {
-		group.node.middlewares[method] = append(group.node.middlewares[method], middleware)
-	}
+	group.muxHandler.AddMiddleware(middleware)
 	return group
 }

@@ -21,7 +21,7 @@ type Request struct {
 	Body          *BodyReader
 	Params        *MapReader
 	Headers       *MapReader
-	RouteParams   *MapReader
+	RouteParams   *RouteParamReader
 	RemoteAddress string
 	Host          string
 	URI           string
@@ -30,7 +30,6 @@ type Request struct {
 func NewHttpRequest(responseWriter http.ResponseWriter, request *http.Request) Request {
 	paramReader := MapReader(request.URL.Query())
 	headerReader := MapReader(request.Header)
-	routeParamReader := new(MapReader)
 	return Request{
 		Request:        request,
 		ResponseWriter: responseWriter,
@@ -38,7 +37,7 @@ func NewHttpRequest(responseWriter http.ResponseWriter, request *http.Request) R
 		Body:           &BodyReader{request: request},
 		Params:         &paramReader,
 		Headers:        &headerReader,
-		RouteParams:    routeParamReader,
+		RouteParams:    &RouteParamReader{request},
 		RemoteAddress:  request.RemoteAddr,
 		URI:            request.RequestURI,
 	}
@@ -121,4 +120,12 @@ func (reader MapReader) GetSlice(key string) ([]string, bool) {
 		return nil, false
 	}
 	return list, true
+}
+
+type RouteParamReader struct {
+	request *http.Request
+}
+
+func (reader RouteParamReader) Get(key string) string {
+	return reader.request.PathValue(key)
 }

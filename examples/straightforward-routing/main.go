@@ -12,16 +12,16 @@ func main() {
 
 	router.Group("/user").
 		Get("/all", Handler).
-		Get("/:id", Handler).
+		Get("/{id}", Handler).
 		Post("/", Handler).
-		Patch("/:id", Handler).
-		Delete("/:id", Handler)
+		Patch("/{id}", Handler).
+		Delete("/{id}", Handler)
 
 	router.Group("/user/post").
-		Get("/:id", Handler).
+		Get("/{id}", Handler).
 		Post("/", Handler).
-		Patch("/:id", Handler).
-		Delete("/:id", Handler)
+		Patch("/{id}", Handler).
+		Delete("/{id}", Handler)
 
 	router.Get("/details", Handler)
 

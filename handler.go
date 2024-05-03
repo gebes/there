@@ -6,39 +6,57 @@ import (
 )
 
 func (router *Router) ServeHTTP(rw http.ResponseWriter, request *http.Request) {
+	handler, pattern := router.serveMux.Handler(request)
+	if len(pattern) == 0 { // no handler was found
+		router.Configuration.RouteNotFoundHandler(NewHttpRequest(rw, request)).ServeHTTP(rw, request)
+	} else {
+		handler.ServeHTTP(rw, request)
+	}
+}
+
+// muxHandler defines a struct that encapsulates a handler and its middleware.
+type muxHandler struct {
+	router      *Router
+	endpoint    Endpoint
+	middlewares []Middleware
+}
+
+// newMuxHandler initializes and returns a new muxHandler.
+func newMuxHandler(router *Router, endpoint Endpoint) *muxHandler {
+	return &muxHandler{
+		router:      router,
+		endpoint:    endpoint,
+		middlewares: []Middleware{},
+	}
+}
+
+// AddMiddleware adds a new middleware to the handler's stack.
+func (h *muxHandler) AddMiddleware(m Middleware) {
+	h.middlewares = append(h.middlewares, m)
+}
+
+// ServeHTTP implements the http.Handler interface for muxHandler.
+func (h *muxHandler) ServeHTTP(rw http.ResponseWriter, request *http.Request) {
 	httpRequest := NewHttpRequest(rw, request)
-	method := methodToInt(request.Method)
 
 	sanitizedPath := request.URL.Path
-	if router.Configuration.SanitizePaths {
+	if h.router.Configuration.SanitizePaths {
 		sanitizedPath = path.Clean(sanitizedPath)
 	}
 
-	node, params := router.matcher.findNode(sanitizedPath)
-	*httpRequest.RouteParams = params
-
-	var endpoint Endpoint
-	var middlewares []Middleware
-
-	if node != nil {
-		endpoint = node.handler[method]
-		middlewares = node.middlewares[method]
-	}
-	if endpoint == nil {
-		endpoint = router.Configuration.RouteNotFoundHandler
-	}
-
 	var next Response = ResponseFunc(func(rw http.ResponseWriter, r *http.Request) {
-		endpoint(httpRequest).ServeHTTP(rw, r)
+		h.endpoint(httpRequest).ServeHTTP(rw, r)
 	})
 
-	for i := len(middlewares) - 1; i >= 0; i-- {
-		middleware := middlewares[i]
-		next = middleware(httpRequest, next)
+	// Apply endpoint-specific middleware in reverse order.
+	for i := len(h.middlewares) - 1; i >= 0; i-- {
+		next = h.middlewares[i](httpRequest, next)
 	}
-	for i := len(router.globalMiddlewares) - 1; i >= 0; i-- {
-		middleware := router.globalMiddlewares[i]
-		next = middleware(httpRequest, next)
+
+	// Apply global middlewares in reverse order.
+	for i := len(h.router.globalMiddlewares) - 1; i >= 0; i-- {
+		next = h.router.globalMiddlewares[i](httpRequest, next)
 	}
+
 	next.ServeHTTP(rw, request)
 }
