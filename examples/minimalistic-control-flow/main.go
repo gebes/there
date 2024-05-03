@@ -1,8 +1,12 @@
 package main
 
 import (
-	. "github.com/Gebes/there/v2"
+	"errors"
+	"fmt"
+	"github.com/Gebes/there/v2/status"
 	"log"
+
+	"github.com/Gebes/there/v2"
 )
 
 type (
@@ -17,48 +21,49 @@ type (
 var posts = make(Posts, 0)
 
 func main() {
-	router := NewRouter()
+	router := there.NewRouter()
 
 	router.Group("/post").
 		Get("/", GetPosts).
-		Get("/:id", GetPostById).
+		Get("/{id}", GetPostById).
 		Post("/", CreatePost)
 
 	err := router.Listen(8080)
 	if err != nil {
-		log.Fatalln("Could not listen to 8080", err)
+		log.Fatalln("Could not listen to 8080:", err)
 	}
 }
 
-func GetPosts(request HttpRequest) HttpResponse {
-	return Json(StatusOK, posts)
+func GetPosts(request there.Request) there.Response {
+	return there.Json(status.OK, posts)
 }
 
-func GetPostById(request HttpRequest) HttpResponse {
+func GetPostById(request there.Request) there.Response {
 	id := request.RouteParams.GetDefault("id", "")
 
 	post := postById(id)
 	if post == nil {
-		return Error(StatusNotFound, "Could not find post")
+		return there.Error(status.NotFound, errors.New("could not find post"))
 	}
 
-	return Json(StatusOK, post)
+	return there.Json(status.OK, post)
 }
 
-func CreatePost(request HttpRequest) HttpResponse {
+func CreatePost(request there.Request) there.Response {
 	var body Post
 	err := request.Body.BindJson(&body) // Decode body
 	if err != nil {                     // If body was not valid json, return bad request error
-		return Error(StatusBadRequest, "Could not parse body: "+err.Error())
+		return there.Error(status.BadRequest, fmt.Errorf("could not parse body: %w", err))
 	}
 
 	post := postById(body.Id)
 	if post != nil { // if the post already exists, return conflict error
-		return Error(StatusConflict, "Post with this ID already exists")
+		return there.Error(status.Conflict, errors.New("post with this ID already exists"))
 	}
 
-	posts = append(posts, body)      // create post
-	return Json(StatusCreated, body) // return created post as json
+	posts = append(posts, body) // create post
+
+	return there.Json(status.Created, body) // return created post as json
 }
 
 func postById(id string) *Post {
@@ -70,4 +75,12 @@ func postById(id string) *Post {
 		}
 	}
 	return post
+}
+
+func ExampleGet(request there.Request) there.Response {
+	user := map[string]string{
+		"firstname": "John",
+		"surname":   "Smith",
+	}
+	return there.Json(status.OK, user)
 }

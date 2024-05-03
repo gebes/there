@@ -50,16 +50,21 @@ If you have other middlewares, which you created using other routers, then there
 As an example, let us have a look at the Recoverer middleware.
 
 ```go
-func Recoverer(request HttpRequest, next HttpResponse) HttpResponse {
-   fn := func(w http.ResponseWriter, r *http.Request) {
-      defer func() {
-         if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {
-            Error(StatusInternalServerError, rvr).ServeHTTP(w, r)
-         }
-      }()
-      next.ServeHTTP(w, r)
-   }
-   return HttpResponseFunc(fn)
+func Recoverer(request there.Request, next there.Response) there.Response {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {
+				switch t := rvr.(type) {
+				case error:
+					there.Error(status.InternalServerError, t).ServeHTTP(w, r)
+				default:
+					there.Error(status.InternalServerError, errors.New(fmt.Sprint(t))).ServeHTTP(w, r)
+				}
+			}
+		}()
+		next.ServeHTTP(w, r)
+	}
+	return there.ResponseFunc(fn)
 }
 ```
 

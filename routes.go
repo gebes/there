@@ -1,7 +1,7 @@
 package there
 
 import (
-	"fmt"
+	path2 "path"
 	"strings"
 )
 
@@ -14,21 +14,19 @@ func (group RouteGroup) Group(prefix string) *RouteGroup {
 
 	prefix = strings.TrimPrefix(prefix, "/")
 
-	Assert(len(prefix) > 1, "route group needs to have at least one symbol")
+	group.assert(len(prefix) > 1, "route group needs to have at least one symbol")
 
 	if !strings.HasSuffix(prefix, "/") {
 		prefix += "/"
 	}
 
-	return &RouteGroup{
-		Router: group.Router,
-		prefix: group.prefix + prefix,
-	}
+	group.prefix += prefix
+	return &group
 }
 
 func NewRouteGroup(router *Router, route string) *RouteGroup {
 
-	Assert(route != "", "route must not be empty")
+	router.assert(route != "", "route \""+route+"\" must not be empty")
 
 	if !strings.HasPrefix(route, "/") {
 		route = "/" + route
@@ -43,51 +41,52 @@ func NewRouteGroup(router *Router, route string) *RouteGroup {
 	}
 }
 
-type Endpoint func(request HttpRequest) HttpResponse
+type Endpoint func(request Request) Response
 
-//Route adds attributes to an Endpoint func
+// Route adds attributes to an Endpoint func
 type Route struct {
-	Endpoint    Endpoint
-	Methods     []string
-	Path        Path
-	Middlewares []Middleware
+	muxHandler *muxHandler
+	methods    []method
 }
 
-//OverlapsWith checks if an Route somehow overlaps with another container. For this to be true, the path and at least one method must equal
-func (e Route) OverlapsWith(toCompare Route) bool {
-	if !e.Path.Equals(toCompare.Path) {
-		return false
+func (group *RouteGroup) Handle(path string, endpoint Endpoint, methodsString ...string) *RouteRouteGroupBuilder {
+	group.Router.mutex.Lock()
+	defer group.Router.mutex.Unlock()
+
+	var methods []method
+	for _, m := range methodsString {
+		methods = append(methods, methodToInt(m))
 	}
-	return CheckArraysOverlap(e.Methods, toCompare.Methods)
-}
 
-func (e Route) ToString() string {
-	r := fmt.Sprint(e.Methods, " ", e.Path.ToString())
-	if e.Path.ignoreCase {
-		r += " *IgnoreCase"
+	if path == "" {
+		path = "/"
 	}
-	return r
-}
-
-func (group *RouteGroup) Handle(path string, endpoint Endpoint, methods ...string) *RouteRouteGroupBuilder {
-	Assert(path != "", "path must not be empty")
-	path = strings.TrimPrefix(path, "/")
-	path = strings.TrimSuffix(path, "/")
-	Assert(len(methods) != 0, "path must have at least one method")
+	if path[0] == '/' {
+		path = "/" + path
+	}
 
 	path = group.prefix + path
+	path = path2.Clean(path)
 
-	if group.Router.routes == nil {
-		group.Router.routes = make([]*Route, 0)
+	var ok bool
+	var muxHandler *muxHandler
+	muxHandler, ok = group.Router.handlerKeeper[path]
+	if !ok {
+		muxHandler = newMuxHandler(group.Router, endpoint)
+		group.serveMux.Handle(path, muxHandler)
+		group.Router.handlerKeeper[path] = muxHandler
+	}
+
+	for _, m := range methods {
+		muxHandler.methods[m] = muxHandlerEndpoint{
+			endpoint: endpoint,
+		}
 	}
 
 	route := &Route{
-		endpoint,
+		muxHandler,
 		methods,
-		ConstructPath(path, false),
-		make([]Middleware, 0),
 	}
-	group.routes.AddRoute(route)
 
 	return &RouteRouteGroupBuilder{
 		route,
@@ -136,55 +135,11 @@ func (group *RouteGroup) Options(route string, endpoint Endpoint) *RouteRouteGro
 	return group.Handle(route, endpoint, MethodOptions)
 }
 
-//With adds a middleware to the handler the method is called on
+// With adds a middleware to the handler the method is called on
 func (group *RouteRouteGroupBuilder) With(middleware Middleware) *RouteRouteGroupBuilder {
-	group.Middlewares = append(group.Middlewares, middleware)
+	for _, method := range group.methods {
+		endpoint := group.muxHandler.methods[method]
+		endpoint.AddMiddleware(middleware)
+	}
 	return group
-}
-
-func (group *RouteRouteGroupBuilder) IgnoreCase() *RouteRouteGroupBuilder {
-	// cancel if already ignore case
-	if group.Route.Path.ignoreCase {
-		return group
-	}
-
-	// delete route
-	group.routes.RemoveRoute(group.Route)
-
-	group.Route.Path.ignoreCase = true
-	group.routes.AddRoute(group.Route)
-
-	return group
-}
-
-type RouteManager []*Route
-
-func (r *RouteManager) FindOverlappingRoute(routeToCheck *Route) *Route {
-	for _, toCompare := range *r {
-		if toCompare.OverlapsWith(*routeToCheck) {
-			return toCompare
-		}
-	}
-	return nil
-}
-
-func (r *RouteManager) AddRoute(routeToAdd *Route) *Route {
-
-	if overlapsWith := r.FindOverlappingRoute(routeToAdd); overlapsWith != nil {
-		panic("The route \"" + routeToAdd.ToString() + "\" overlaps with the existing route \"" + overlapsWith.ToString() + "\"")
-	}
-
-	*r = append(*r, routeToAdd)
-
-	return routeToAdd
-}
-
-func (r *RouteManager) RemoveRoute(toRemove *Route) {
-
-	for i, container := range *r {
-		if container.Path.Equals(toRemove.Path) {
-			*r = append((*r)[:i], (*r)[i+1:]...)
-		}
-	}
-
 }

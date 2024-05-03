@@ -4,45 +4,54 @@ import (
 	"context"
 	"encoding/json"
 	"encoding/xml"
-	"io/ioutil"
+	"errors"
+	"io"
 	"net/http"
 )
 
-type HttpRequest struct {
+var (
+	ErrorParameterNotPresent = errors.New("parameter not present")
+)
+
+type Request struct {
 	Request        *http.Request
 	ResponseWriter http.ResponseWriter
 
-	Method      string
-	Body        *BodyReader
-	Params      *BasicReader
-	Headers     *BasicReader
-	RouteParams *RouteParamReader
+	Method        string
+	Body          *BodyReader
+	Params        *MapReader
+	Headers       *MapReader
+	RouteParams   *RouteParamReader
+	RemoteAddress string
+	Host          string
+	URI           string
 }
 
-func NewHttpRequest(responseWriter http.ResponseWriter, request *http.Request) HttpRequest {
-	paramReader := BasicReader(request.URL.Query())
-	headerReader := BasicReader(request.Header)
-	routeParamReader := RouteParamReader(MapString{})
-	return HttpRequest{
+func NewHttpRequest(responseWriter http.ResponseWriter, request *http.Request) Request {
+	paramReader := MapReader(request.URL.Query())
+	headerReader := MapReader(request.Header)
+	return Request{
 		Request:        request,
 		ResponseWriter: responseWriter,
 		Method:         request.Method,
 		Body:           &BodyReader{request: request},
 		Params:         &paramReader,
 		Headers:        &headerReader,
-		RouteParams:    &routeParamReader,
+		RouteParams:    &RouteParamReader{request},
+		RemoteAddress:  request.RemoteAddr,
+		URI:            request.RequestURI,
 	}
 }
 
-func (r *HttpRequest) Context() context.Context {
+func (r *Request) Context() context.Context {
 	return r.Request.Context()
 }
 
-func (r *HttpRequest) WithContext(ctx context.Context) {
+func (r *Request) WithContext(ctx context.Context) {
 	*r.Request = *r.Request.WithContext(ctx)
 }
 
-//BodyReader reads the body and unmarshal it to the specified destination
+// BodyReader reads the body and unmarshal it to the specified destination
 type BodyReader struct {
 	request *http.Request
 }
@@ -73,7 +82,7 @@ func (read BodyReader) ToString() (string, error) {
 }
 
 func (read BodyReader) ToBytes() ([]byte, error) {
-	data, err := ioutil.ReadAll(read.request.Body)
+	data, err := io.ReadAll(read.request.Body)
 	defer read.request.Body.Close()
 	if err != nil {
 		return nil, err
@@ -81,15 +90,15 @@ func (read BodyReader) ToBytes() ([]byte, error) {
 	return data, nil
 }
 
-//BasicReader reads http params
-type BasicReader map[string][]string
+// MapReader reads http params
+type MapReader map[string][]string
 
-func (reader BasicReader) Has(key string) bool {
+func (reader MapReader) Has(key string) bool {
 	_, ok := reader.GetSlice(key)
 	return ok
 }
 
-func (reader BasicReader) GetDefault(key, defaultValue string) string {
+func (reader MapReader) GetDefault(key, defaultValue string) string {
 	s, ok := reader.Get(key)
 	if !ok {
 		return defaultValue
@@ -97,7 +106,7 @@ func (reader BasicReader) GetDefault(key, defaultValue string) string {
 	return s
 }
 
-func (reader BasicReader) Get(key string) (string, bool) {
+func (reader MapReader) Get(key string) (string, bool) {
 	list, ok := reader.GetSlice(key)
 	if !ok {
 		return "", false
@@ -105,7 +114,7 @@ func (reader BasicReader) Get(key string) (string, bool) {
 	return list[0], true
 }
 
-func (reader BasicReader) GetSlice(key string) ([]string, bool) {
+func (reader MapReader) GetSlice(key string) ([]string, bool) {
 	list, ok := reader[key]
 	if !ok || len(list) == 0 {
 		return nil, false
@@ -113,23 +122,10 @@ func (reader BasicReader) GetSlice(key string) ([]string, bool) {
 	return list, true
 }
 
-//RouteParamReader reads dynamic route params
-type RouteParamReader map[string]string
-
-func (reader RouteParamReader) Has(key string) bool {
-	_, ok := reader[key]
-	return ok
+type RouteParamReader struct {
+	request *http.Request
 }
 
-func (reader RouteParamReader) GetDefault(key, defaultValue string) string {
-	s, ok := reader.Get(key)
-	if !ok {
-		return defaultValue
-	}
-	return s
-}
-
-func (reader RouteParamReader) Get(key string) (string, bool) {
-	v, ok := reader[key]
-	return v, ok
+func (reader RouteParamReader) Get(key string) string {
+	return reader.request.PathValue(key)
 }

@@ -2,7 +2,7 @@
 
 
 Controlling your route's flow with **There** is a delight! It is easy to understand and fast to write.  
-A HttpResponse is basically a `http.handler`. **There** provides several handlers out of the box!
+A HttpResponse is basically a `http.Handler`. **There** provides several handlers out of the box!
 
 ```go
 func CreatePost(request HttpRequest) HttpResponse {
