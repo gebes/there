@@ -8,7 +8,11 @@ import (
 func (router *Router) ServeHTTP(rw http.ResponseWriter, request *http.Request) {
 	_, pattern := router.serveMux.Handler(request)
 	if len(pattern) == 0 { // no handler was found
-		router.Configuration.RouteNotFoundHandler(NewHttpRequest(rw, request)).ServeHTTP(rw, request)
+		// not found with global middlewares applied
+		wrappedNotFoundHandler := router.applyGlobalMiddlewares(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+			router.Configuration.RouteNotFoundHandler(NewHttpRequest(rw, req)).ServeHTTP(rw, req)
+		}))
+		wrappedNotFoundHandler.ServeHTTP(rw, request)
 	} else {
 		router.serveMux.ServeHTTP(rw, request)
 	}
@@ -51,7 +55,10 @@ func (h *muxHandler) ServeHTTP(rw http.ResponseWriter, request *http.Request) {
 
 	muxHandlerEndpoint, ok := h.methods[method]
 	if !ok {
-		h.router.Configuration.RouteNotFoundHandler(NewHttpRequest(rw, request)).ServeHTTP(rw, request)
+		// not found with global middlewares applied
+		h.router.applyGlobalMiddlewares(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+			h.router.Configuration.RouteNotFoundHandler(httpRequest).ServeHTTP(rw, req)
+		})).ServeHTTP(rw, request)
 		return
 	}
 	endpoint, middlewares := muxHandlerEndpoint.endpoint, muxHandlerEndpoint.middlewares
@@ -71,4 +78,21 @@ func (h *muxHandler) ServeHTTP(rw http.ResponseWriter, request *http.Request) {
 	}
 
 	next.ServeHTTP(rw, request)
+}
+
+// applyGlobalMiddlewares wraps the given http.Handler with the router's global middlewares.
+func (router *Router) applyGlobalMiddlewares(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, request *http.Request) {
+		httpRequest := NewHttpRequest(rw, request)
+		var next Response = ResponseFunc(func(rw http.ResponseWriter, r *http.Request) {
+			handler.ServeHTTP(rw, r)
+		})
+
+		// Apply global middlewares in reverse order.
+		for i := len(router.globalMiddlewares) - 1; i >= 0; i-- {
+			next = router.globalMiddlewares[i](httpRequest, next)
+		}
+
+		next.ServeHTTP(rw, request)
+	})
 }
