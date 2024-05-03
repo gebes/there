@@ -113,7 +113,7 @@ type headerResponse struct {
 func (h headerResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	for key, value := range h.headers {
 		// Only set the header, if it wasn't set yet
-		if len(rw.Header().Get(key)) == 0 {
+		if rw.Header().Get(key) == "" {
 			rw.Header().Set(key, value)
 		}
 	}
@@ -275,7 +275,7 @@ func parseTemplate(templateFileName string, data any) (*string, error) {
 		return nil, err
 	}
 	buf := new(bytes.Buffer)
-	if err = t.Execute(buf, data); err != nil {
+	if err := t.Execute(buf, data); err != nil {
 		return nil, err
 	}
 	body := buf.String()
@@ -506,7 +506,7 @@ type autoResponse struct {
 
 func (a autoResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	contentTypes := make([]string, 0, len(AutoHandlers))
-	for s, _ := range AutoHandlers {
+	for s := range AutoHandlers {
 		contentTypes = append(contentTypes, s)
 	}
 
@@ -524,7 +524,7 @@ func (a autoResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 // offer is preferred.  For example, text/* trumps */*. If two offers match
 // with equal weight and specificity, then the offer earlier in the list is
 // preferred. If no offers match, then defaultOffer is returned.
-func NegotiateContentType(headerValue []string, offers []string, defaultOffer string) string {
+func NegotiateContentType(headerValue, offers []string, defaultOffer string) string {
 	bestOffer := defaultOffer
 	bestQ := -1.0
 	bestWild := 3
@@ -622,20 +622,20 @@ func expectTokenSlash(s string) (token, rest string) {
 	return s[:i], s[i:]
 }
 
-func expectQuality(s string) (q float64, rest string) {
+func expectQuality(s string) (quality float64, rest string) {
 	switch {
-	case len(s) == 0:
+	case s == "":
 		return -1, ""
 	case s[0] == '0':
-		q = 0
+		quality = 0
 	case s[0] == '1':
-		q = 1
+		quality = 1
 	default:
 		return -1, ""
 	}
 	s = s[1:]
 	if !strings.HasPrefix(s, ".") {
-		return q, s
+		return quality, s
 	}
 	s = s[1:]
 	i := 0
@@ -649,7 +649,7 @@ func expectQuality(s string) (q float64, rest string) {
 		n = n*10 + int(b) - '0'
 		d *= 10
 	}
-	return q + float64(n)/float64(d), s[i:]
+	return quality + float64(n)/float64(d), s[i:]
 }
 
 // Octet types from RFC 2616.
@@ -683,8 +683,8 @@ func init() {
 		var t octetType
 		isCtl := c <= 31 || c == 127
 		isChar := 0 <= c && c <= 127
-		isSeparator := strings.IndexRune(" \t\"(),/:;<=>?@[]\\{}", rune(c)) >= 0
-		if strings.IndexRune(" \t\r\n", rune(c)) >= 0 {
+		isSeparator := strings.ContainsRune(" \t\"(),/:;<=>?@[]\\{}", rune(c))
+		if strings.ContainsRune(" \t\r\n", rune(c)) {
 			t |= isSpace
 		}
 		if isChar && !isCtl && !isSeparator {
@@ -712,7 +712,7 @@ func File(path string, contentType ...string) Response {
 		}
 
 		header = ContentType(extension)
-		if len(header) == 0 {
+		if header == "" {
 			header = ContentTypeTextPlain
 		}
 	}

@@ -82,7 +82,7 @@ type (
 )
 
 func (m *matcher) ensureNodeExists(path string) (*node, error) {
-	isDynamic := len(path) != 0 && path[0] == ':'
+	isDynamic := path != "" && path[0] == ':'
 	if !isDynamic {
 		for i := range path {
 			if path[i] == '/' && i != len(path)-1 && path[i+1] == ':' {
@@ -116,7 +116,7 @@ func (m *matcher) findNode(path string) (*node, map[string][]string) {
 
 	n = m.root
 
-	if len(path) == 0 {
+	if path == "" {
 		return n, params
 	}
 
@@ -165,7 +165,7 @@ func (m *matcher) findNode(path string) (*node, map[string][]string) {
 			if params == nil {
 				params = map[string][]string{}
 			}
-			// continue iterating
+
 			params[n.paramNode.name] = append(params[n.paramNode.name], segment)
 			n = n.paramNode
 		} else {
@@ -179,7 +179,7 @@ func (currentNode *node) ensureNodeExists(path string) (*node, error) {
 
 	n := currentNode
 
-	if len(path) == 0 {
+	if path == "" {
 		return n, nil
 	}
 
@@ -214,7 +214,7 @@ func (currentNode *node) ensureNodeExists(path string) (*node, error) {
 		// check if we got a child
 		next, ok := n.children[segment]
 		if !ok {
-			isParamSegment := len(segment) != 0 && segment[0] == ':'
+			isParamSegment := segment != "" && segment[0] == ':'
 			if isParamSegment {
 				// create node with current name.
 				// name needs to be stored later with request.RouteParams

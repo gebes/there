@@ -133,7 +133,7 @@ const (
 
 	// ResponseLocation
 	// Used in redirection, or when a new resource has been created.
-	//Example 1:
+	// Example 1:
 	//	Location: http://www.w3.org/pub/WWW/People.html Example 2:
 	//	Location: /pub/WWW/People.html
 	ResponseLocation = "Location"
@@ -166,7 +166,7 @@ const (
 
 	// ResponseRetryAfter
 	// If an entity is temporarily unavailable, this instructs the client to try again later. Value could be a specified period of time (in seconds) or a HTTP-date.
-	//Example 1:
+	// Example 1:
 	//	Retry-After: 120 Example 2:
 	//	Retry-After: Fri, 07 Nov 2014 23:59:59 GMT
 	ResponseRetryAfter = "Retry-After"
@@ -197,7 +197,7 @@ const (
 
 	// ResponseVary
 	// Tells downstream proxies how to match future request headers to decide whether the cached response can be used rather than requesting a fresh one from the origin server.
-	//Example 1:
+	// Example 1:
 	//	Vary: * Example 2:
 	//	Vary: Accept-Language
 	ResponseVary = "Vary"

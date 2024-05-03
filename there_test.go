@@ -27,7 +27,7 @@ func middleware(request Request, next Response) Response {
 	return next
 }
 
-func assertBodyResponse(t *testing.T, r http.Handler, method, route string, expected string) {
+func assertBodyResponse(t *testing.T, r http.Handler, method, route, expected string) {
 	request := httptest.NewRequest(method, route, nil)
 	recorder := httptest.NewRecorder()
 	r.ServeHTTP(recorder, request)
@@ -309,7 +309,7 @@ func TestBodyToStringError(t *testing.T) {
 		})
 
 	res := readStringBody(router, t, MethodPost, "/test", errReader(0))
-	if len(res) != 0 {
+	if res != "" {
 		log.Fatalln("res was empty but shouldn't be", res)
 	}
 }
@@ -346,7 +346,7 @@ func TestEmptyResponse(t *testing.T) {
 	router := CreateRouter()
 	r := readBody(router, t, MethodGet, "/data/empty", nil)
 	res := string(r)
-	if len(res) != 0 {
+	if res != "" {
 		log.Fatalln("res was", res, "and not empty \"\"")
 	}
 }
