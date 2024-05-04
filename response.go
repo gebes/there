@@ -181,7 +181,9 @@ type stringResponse struct {
 
 func (s stringResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	rw.WriteHeader(s.code)
-	rw.Header().Set(header.ContentType, ContentTypeTextPlain)
+	if rw.Header().Get(header.ContentType) == "" {
+		rw.Header().Set(header.ContentType, ContentTypeTextPlain)
+	}
 	_, err := rw.Write(s.data)
 	if err != nil {
 		log.Printf("stringResponse: ServeHttp write failed: %v", err)
@@ -345,7 +347,9 @@ type jsonResponse struct {
 
 func (j jsonResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	rw.WriteHeader(j.code)
-	rw.Header().Set(header.ContentType, ContentTypeApplicationJson)
+	if rw.Header().Get(header.ContentType) == "" {
+		rw.Header().Set(header.ContentType, ContentTypeApplicationJson)
+	}
 	_, err := rw.Write(j.data)
 	if err != nil {
 		log.Printf("jsonResponse: ServeHttp write failed: %v", err)
@@ -481,7 +485,9 @@ type xmlResponse struct {
 }
 
 func (x xmlResponse) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	rw.Header().Set(header.ContentType, ContentTypeApplicationXml)
+	if rw.Header().Get(header.ContentType) == "" {
+		rw.Header().Set(header.ContentType, ContentTypeApplicationXml)
+	}
 	rw.WriteHeader(x.code)
 	_, err := rw.Write(x.data)
 	if err != nil {
