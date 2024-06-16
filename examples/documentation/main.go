@@ -3,8 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/Gebes/there/v2"
-	"github.com/Gebes/there/v2/status"
+	"github.com/gebes/there/v2"
+	"github.com/gebes/there/v2/status"
 )
 
 func main() {

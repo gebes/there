@@ -1,9 +1,9 @@
 package middlewares
 
 import (
-	"github.com/Gebes/there/v2"
-	"github.com/Gebes/there/v2/header"
-	"github.com/Gebes/there/v2/status"
+	"github.com/gebes/there/v2"
+	"github.com/gebes/there/v2/header"
+	"github.com/gebes/there/v2/status"
 )
 
 func Cors(configuration CorsConfiguration) there.Middleware {

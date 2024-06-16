@@ -2,12 +2,12 @@ package middlewares
 
 import (
 	"errors"
-	"github.com/Gebes/there/v2/status"
+	"github.com/gebes/there/v2/status"
 	"net/http/httptest"
 	"reflect"
 	"testing"
 
-	"github.com/Gebes/there/v2"
+	"github.com/gebes/there/v2"
 )
 
 func TestSkip(t *testing.T) {

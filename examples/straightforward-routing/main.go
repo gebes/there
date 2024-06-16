@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/Gebes/there/v2/status"
+	"github.com/gebes/there/v2/status"
 	"log"
 
-	"github.com/Gebes/there/v2"
+	"github.com/gebes/there/v2"
 )
 
 func main() {

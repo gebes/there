@@ -1,8 +1,8 @@
 package middlewares
 
 import (
-	"github.com/Gebes/there/v2"
-	"github.com/Gebes/there/v2/status"
+	"github.com/gebes/there/v2"
+	"github.com/gebes/there/v2/status"
 	"path"
 )
 

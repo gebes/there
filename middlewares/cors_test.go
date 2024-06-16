@@ -1,14 +1,14 @@
 package middlewares
 
 import (
-	"github.com/Gebes/there/v2/header"
-	"github.com/Gebes/there/v2/status"
+	"github.com/gebes/there/v2/header"
+	"github.com/gebes/there/v2/status"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"testing"
 
-	"github.com/Gebes/there/v2"
+	"github.com/gebes/there/v2"
 )
 
 func TestCorsMiddleware(t *testing.T) {

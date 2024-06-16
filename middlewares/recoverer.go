@@ -3,10 +3,10 @@ package middlewares
 import (
 	"errors"
 	"fmt"
-	"github.com/Gebes/there/v2/status"
+	"github.com/gebes/there/v2/status"
 	"net/http"
 
-	"github.com/Gebes/there/v2"
+	"github.com/gebes/there/v2"
 )
 
 func Recoverer(request there.Request, next there.Response) there.Response {

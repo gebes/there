@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/Gebes/there/v2"
+	"github.com/gebes/there/v2"
 	"log"
 )
 

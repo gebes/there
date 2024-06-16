@@ -3,9 +3,9 @@ package main
 // This example is commented out, to prevent the third party dependency from being added.
 /*
 import (
-    "github.com/Gebes/there/v2"
-    "github.com/Gebes/there/v2/header"
-    "github.com/Gebes/there/v2/status"
+    "github.com/gebes/there/v2"
+    "github.com/gebes/there/v2/header"
+    "github.com/gebes/there/v2/status"
     "github.com/vmihailenco/msgpack/v5"
     "log"
 )

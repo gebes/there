@@ -1,9 +1,9 @@
 package middlewares
 
 import (
-	"github.com/Gebes/there/v2/status"
+	"github.com/gebes/there/v2/status"
 
-	"github.com/Gebes/there/v2"
+	"github.com/gebes/there/v2"
 )
 
 // RequireHost is a middleware, that forces incoming requests to have a specific host header set.

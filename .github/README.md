@@ -1,6 +1,6 @@
 <p align="center">
 <a href="https://there.gebes.io">
-<img src="https://github.com/Gebes/there/blob/main/.github/logo/logo-compressed.png?raw=true" alt="Gopher There" height="256">
+<img src="https://github.com/gebes/there/blob/main/.github/logo/logo-compressed.png?raw=true" alt="Gopher There" height="256">
 </a>
 </p>
 <p align="center">
@@ -12,21 +12,21 @@ Effortless Go Routing: Build Powerful Services with Minimal Overhead
 <a href="http://golang.org">
     <img src="https://img.shields.io/badge/Made%20with-Go-1f425f.svg" alt="Made with Go">
 </a>
-<img src="https://img.shields.io/github/go-mod/go-version/Gebes/there.svg" alt="Go Version">
+<img src="https://img.shields.io/github/go-mod/go-version/gebes/there.svg" alt="Go Version">
 <a href="https://there.gebes.io/">
     <img src="https://img.shields.io/badge/Documentation-there-blue.svg" alt="Documentation">
 </a>
-<a href="https://pkg.go.dev/github.com/Gebes/there/v2">
+<a href="https://pkg.go.dev/github.com/gebes/there/v2">
     <img src="https://img.shields.io/badge/godoc-reference-blue.svg" alt="GoDoc">
 </a>
-<a href="https://goreportcard.com/report/github.com/Gebes/there">
-    <img src="https://goreportcard.com/badge/github.com/Gebes/there" alt="GoReportCard">
+<a href="https://goreportcard.com/report/github.com/gebes/there">
+    <img src="https://goreportcard.com/badge/github.com/gebes/there" alt="GoReportCard">
 </a>
-<a href="https://github.com/Gebes/there/blob/master/LICENSE">
-    <img src="https://img.shields.io/github/license/Gebes/there.svg" alt="License">
+<a href="https://github.com/gebes/there/blob/master/LICENSE">
+    <img src="https://img.shields.io/github/license/gebes/there.svg" alt="License">
 </a>
-<a href="https://GitHub.com/Gebes/there/releases/">
-    <img src="https://img.shields.io/github/release/Gebes/there" alt="Latest release">
+<a href="https://GitHub.com/gebes/there/releases/">
+    <img src="https://img.shields.io/github/release/gebes/there" alt="Latest release">
 </a>
 
 ## 🔥 Get Started
@@ -38,7 +38,7 @@ Effortless Go Routing: Build Powerful Services with Minimal Overhead
 3. Install `there` with the `go get` command
 
 ```sh
-go get -u github.com/Gebes/there/v2
+go get -u github.com/gebes/there/v2
 ```
 
 4. Create a `main.go` file
@@ -47,8 +47,8 @@ go get -u github.com/Gebes/there/v2
 package main
 
 import (
-	"github.com/Gebes/there/v2"
-	"github.com/Gebes/there/v2/status"
+	"github.com/gebes/there/v2"
+	"github.com/gebes/there/v2/status"
 	"log"
 )
 
@@ -107,7 +107,7 @@ func CreatePost(request there.Request) there.Response {
 }
 ```
 
-[🧑‍💻 View full code example](https://github.com/Gebes/there/tree/main/examples/minimalistic-control-flow)
+[🧑‍💻 View full code example](https://github.com/gebes/there/tree/main/examples/minimalistic-control-flow)
 
 ### Straightforward Routing
 
@@ -128,7 +128,7 @@ router.Group("/user/post")
 router.Get("/details", Handler)
 ```
 
-[🧑‍💻 View full code example and best practices](https://github.com/Gebes/there/tree/main/examples/straightforward-routing)
+[🧑‍💻 View full code example and best practices](https://github.com/gebes/there/tree/main/examples/straightforward-routing)
 
 ### Expandable - Customize Your Control Flow
 
@@ -137,7 +137,7 @@ dependencies:
 
 ```go
 import (
-    "github.com/Gebes/there/v2"
+    "github.com/gebes/there/v2"
     "github.com/vmihailenco/msgpack/v5"
 )
 
@@ -152,7 +152,7 @@ func Msgpack(code int, data interface{}) there.Response {
 }
 ```
 
-[🧑‍💻 View full code example](https://github.com/Gebes/there/tree/main/examples/custom-http-response)
+[🧑‍💻 View full code example](https://github.com/gebes/there/tree/main/examples/custom-http-response)
 
 ## 🌟 Additional Features for the Skeptical Gophers
 
@@ -191,7 +191,7 @@ Check out our benchmarks for more details:
 Feel free to contribute to this project in any way! May it be a simple issue, idea or a finished pull request. Every
 helpful hand is welcomed.
 
-<a href="https://gitHub.com/Gebes/there/graphs/commit-activity">
+<a href="https://gitHub.com/gebes/there/graphs/commit-activity">
     <img src="https://img.shields.io/badge/Maintained%3F-yes-green.svg" alt="Maintained?">
 </a>
 <a href="https://github.com/Gebes">

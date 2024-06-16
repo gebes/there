@@ -3,7 +3,7 @@ package there
 import (
 	"errors"
 	"fmt"
-	"github.com/Gebes/there/v2/status"
+	"github.com/gebes/there/v2/status"
 	"net/http"
 	"sync"
 )

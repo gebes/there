@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/Gebes/there/v2/header"
-	"github.com/Gebes/there/v2/status"
+	"github.com/gebes/there/v2/header"
+	"github.com/gebes/there/v2/status"
 	"log"
 
-	"github.com/Gebes/there/v2"
-	"github.com/Gebes/there/v2/middlewares"
+	"github.com/gebes/there/v2"
+	"github.com/gebes/there/v2/middlewares"
 )
 
 func main() {

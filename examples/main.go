@@ -2,9 +2,9 @@ package main
 
 import (
 	"errors"
-	"github.com/Gebes/there/v2"
-	"github.com/Gebes/there/v2/middlewares"
-	"github.com/Gebes/there/v2/status"
+	"github.com/gebes/there/v2"
+	"github.com/gebes/there/v2/middlewares"
+	"github.com/gebes/there/v2/status"
 	"log"
 	"math/rand"
 )

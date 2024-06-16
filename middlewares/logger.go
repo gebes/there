@@ -1,14 +1,14 @@
 package middlewares
 
 import (
-	"github.com/Gebes/there/v2/middlewares/color"
-	"github.com/Gebes/there/v2/status"
+	"github.com/gebes/there/v2/middlewares/color"
+	"github.com/gebes/there/v2/status"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/Gebes/there/v2"
+	"github.com/gebes/there/v2"
 )
 
 type responseWriterWrapper struct {

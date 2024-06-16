@@ -1,14 +1,14 @@
 # ⭐️ Custom Http Response
 
 Simply create your own HttpResponse to save time. However, if you need some inspiration, look into
-the [response.go](https://github.com/Gebes/there/blob/main/response.go) file.
+the [response.go](https://github.com/gebes/there/blob/main/response.go) file.
 
 For example, let us create a Msgpack response. By default, there does not provide a Msgpack response, because this would
 require a third-party dependency. But it is not much work to create your own Msgpack HttpResponse:
 
 ```go
 import (
-"github.com/Gebes/there/v2"
+"github.com/gebes/there/v2"
 "github.com/vmihailenco/msgpack/v5"
 )
 
