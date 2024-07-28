@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"net/url"
 )
 
 var (
@@ -19,8 +20,8 @@ type Request struct {
 
 	Method        string
 	Body          *BodyReader
-	Params        *MapReader
-	Headers       *MapReader
+	Params        DefaultUrlValues
+	Headers       DefaultHttpHeader
 	RouteParams   *RouteParamReader
 	RemoteAddress string
 	Host          string
@@ -28,15 +29,13 @@ type Request struct {
 }
 
 func NewHttpRequest(responseWriter http.ResponseWriter, request *http.Request) Request {
-	paramReader := MapReader(request.URL.Query())
-	headerReader := MapReader(request.Header)
 	return Request{
 		Request:        request,
 		ResponseWriter: responseWriter,
 		Method:         request.Method,
 		Body:           &BodyReader{request: request},
-		Params:         &paramReader,
-		Headers:        &headerReader,
+		Params:         DefaultUrlValues{request.URL.Query()},
+		Headers:        DefaultHttpHeader{request.Header},
 		RouteParams:    &RouteParamReader{request},
 		RemoteAddress:  request.RemoteAddr,
 		URI:            request.RequestURI,
@@ -90,36 +89,29 @@ func (read BodyReader) ToBytes() ([]byte, error) {
 	return data, nil
 }
 
-// MapReader reads http params
-type MapReader map[string][]string
-
-func (reader MapReader) Has(key string) bool {
-	_, ok := reader.GetSlice(key)
-	return ok
+// DefaultHttpHeader wraps http.Header and provides a method to get a header value with a default.
+type DefaultHttpHeader struct {
+	http.Header
 }
 
-func (reader MapReader) GetDefault(key, defaultValue string) string {
-	s, ok := reader.Get(key)
-	if !ok {
+func (h DefaultHttpHeader) GetDefault(key, defaultValue string) string {
+	value := h.Get(key)
+	if value == "" {
 		return defaultValue
 	}
-	return s
+	return value
 }
 
-func (reader MapReader) Get(key string) (string, bool) {
-	list, ok := reader.GetSlice(key)
-	if !ok {
-		return "", false
-	}
-	return list[0], true
+type DefaultUrlValues struct {
+	url.Values
 }
 
-func (reader MapReader) GetSlice(key string) ([]string, bool) {
-	list, ok := reader[key]
-	if !ok || len(list) == 0 {
-		return nil, false
+func (v DefaultUrlValues) GetDefault(key, defaultValue string) string {
+	value := v.Get(key)
+	if value == "" {
+		return defaultValue
 	}
-	return list, true
+	return value
 }
 
 type RouteParamReader struct {
