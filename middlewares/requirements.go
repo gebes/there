@@ -22,7 +22,7 @@ func RequireHost(host string) func(request there.Request, next there.Response) t
 // If this method is not used, only Status with status StatusBadRequest is returned.
 func RequireHeader(key string, value string) func(request there.Request, next there.Response) there.Response {
 	return func(request there.Request, next there.Response) there.Response {
-		if header := request.Headers.Get(key); header != value {
+		if header, exists := request.Headers.Get(key); !exists || header != value {
 			return there.Status(status.BadRequest)
 		}
 		return next
