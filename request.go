@@ -94,9 +94,17 @@ type DefaultHttpHeader struct {
 	http.Header
 }
 
-func (h DefaultHttpHeader) GetDefault(key, defaultValue string) string {
-	value := h.Get(key)
+func (v DefaultHttpHeader) Get(key string) (string, bool) {
+	value := v.Header.Get(key)
 	if value == "" {
+		return "", false
+	}
+	return value, true
+}
+
+func (v DefaultHttpHeader) GetDefault(key, defaultValue string) string {
+	value, ok := v.Get(key)
+	if !ok {
 		return defaultValue
 	}
 	return value
@@ -107,9 +115,17 @@ type DefaultUrlValues struct {
 	url.Values
 }
 
-func (v DefaultUrlValues) GetDefault(key, defaultValue string) string {
-	value := v.Get(key)
+func (v DefaultUrlValues) Get(key string) (string, bool) {
+	value := v.Values.Get(key)
 	if value == "" {
+		return "", false
+	}
+	return value, true
+}
+
+func (v DefaultUrlValues) GetDefault(key, defaultValue string) string {
+	value, ok := v.Get(key)
+	if !ok {
 		return defaultValue
 	}
 	return value
