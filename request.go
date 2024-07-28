@@ -102,6 +102,7 @@ func (h DefaultHttpHeader) GetDefault(key, defaultValue string) string {
 	return value
 }
 
+// DefaultUrlValues wraps url.Values and provides a method to get a header value with a default.
 type DefaultUrlValues struct {
 	url.Values
 }
