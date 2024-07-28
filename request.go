@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"net/textproto"
 	"net/url"
 )
 
@@ -95,11 +96,11 @@ type DefaultHttpHeader struct {
 }
 
 func (v DefaultHttpHeader) Get(key string) (string, bool) {
-	value := v.Header.Get(key)
-	if value == "" {
+	value, ok := v.Header[textproto.CanonicalMIMEHeaderKey(key)]
+	if !ok || len(value) == 0 {
 		return "", false
 	}
-	return value, true
+	return value[0], true
 }
 
 func (v DefaultHttpHeader) GetDefault(key, defaultValue string) string {
@@ -116,11 +117,11 @@ type DefaultUrlValues struct {
 }
 
 func (v DefaultUrlValues) Get(key string) (string, bool) {
-	value := v.Values.Get(key)
-	if value == "" {
+	value, ok := v.Values[key]
+	if !ok || len(value) == 0 {
 		return "", false
 	}
-	return value, true
+	return value[0], true
 }
 
 func (v DefaultUrlValues) GetDefault(key, defaultValue string) string {
